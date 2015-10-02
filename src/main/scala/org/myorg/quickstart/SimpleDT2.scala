@@ -1,0 +1,111 @@
+package org.myorg.quickstart
+
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import org.apache.flink.api.common.operators.Order
+import org.apache.flink.api.scala._
+
+/**
+ * Implements the "WordCount" program that computes a simple word occurrence histogram
+ * over some sample data
+ *
+ * This example shows how to:
+ *
+ *   - write a simple Flink program.
+ *   - use Tuple data types.
+ *   - write and use user-defined functions.
+ */
+object SimpleDT2 {
+  def main(args: Array[String]) {
+
+    // set up the execution environment
+    val env = ExecutionEnvironment.getExecutionEnvironment
+
+//    // get input data
+//    val text = env.fromElements(
+////      """
+////        To be, or not to be,--that is the question:--
+////        Whether 'tis nobler in the mind to suffer
+////        The slings and arrows of outrageous fortune
+////        Or to take arms against a sea of troubles
+//      """
+//        the quick brown fox jumps over the lazy dog
+//        the quick brown cat jumps over the lazy dog
+//        the cat sleeps again
+//        the dog sleeps too
+//        but the cat sleeps more
+//        and the dog sleeps deeper
+//        and the quick brown fox really jumps over the ultra lazy dog
+//        HEY WHATS UP??
+//      """)
+
+    val text = env.readTextFile("/Volumes/ExtendedHD/Users/stevo/Documents/corpora/simplewiki/simplewikipedia_sent_tok.txt")
+//    val text = env.readTextFile("/Volumes/ExtendedHD/Users/stevo/Documents/corpora/simplewiki/simplewikipedia_sent_tok_fruits.txt")
+    case class JoBim (jo: String, bim: String, freq: Int)
+
+    val jobims_raw = text
+      .filter(_ != null)
+      .filter(!_.trim().isEmpty())
+      .filter(_.split("\\W+").length >= 3)
+      .flatMap(_.split("\\W+")
+        .sliding(3)
+        .map{ x => JoBim(x(1), x(0) + " @ "  + x(2), 1)})
+
+    val jobims_accumulated = jobims_raw.groupBy("jo","bim")
+      .sum("freq")
+      .filter(_.freq > 1)
+
+    jobims_accumulated.map(jb => (jb.jo, jb.bim, jb.freq)).writeAsCsv("s2_simplewiki.jobims.tsv", "\n", "\t")
+
+    val joined = jobims_accumulated
+      .joinWithHuge(jobims_accumulated)
+      .where("bim")
+      .equalTo("bim")((j1,j2) => (j1, j2, Math.min(j1.freq, j2.freq).toDouble / Math.max(j1.freq, j2.freq).toDouble))
+      .groupBy(0)
+      .sortGroup(2, Order.DESCENDING)
+      .first(1000)
+
+
+//      .filter(join => !(join._1.jo equals join._2.jo))
+
+//    //joined.print()
+
+//    joined.map(j => (j._1.jo, j._2.jo, j._1.bim, j._1.freq, j._2.freq, j._3)).writeAsCsv("simplewiki.joined_jobims.tsv", "\n", "\t")
+
+    case class DTEntry(jo1 : String, jo2 : String, freq : Int)
+    val dt = joined.map(x=>((x._1.jo, x._2.jo), 1))
+      .groupBy(0)
+      .sum(1)
+      .map(x => DTEntry(x._1._1, x._1._2, x._2))
+      .filter(_.freq > 1)
+
+    val dtsort = dt
+      .groupBy("jo1")
+      .sortGroup("freq", Order.DESCENDING)
+      .first(100)
+
+    dtsort.map(dt => (dt.jo1, dt.jo2, dt.freq)).writeAsCsv("s2_simplewiki.dt.tsv", "\n", "\t")
+
+    env.execute("DT")
+
+
+
+
+  }
+}
