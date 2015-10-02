@@ -21,11 +21,16 @@ object ConfTest {
       println(entry.getKey + "\t" + entry.getValue.render() + ":" + entry.getValue.valueType())
     }
 
+    println(conf.getConfig("DT").getConfig("outfile").hasPath("dt"))
+    println(conf.getConfig("DT").getConfig("outfile").getString("dt"))
+
     LOG.trace("this is a trace message")
     LOG.debug("this is a debug message")
     LOG.info("this is a info message")
     LOG.warn("this is a warn message")
     LOG.error("this is a error message")
+
+
 
 
 

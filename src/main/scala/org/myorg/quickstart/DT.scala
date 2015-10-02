@@ -18,11 +18,12 @@ package org.myorg.quickstart
  * limitations under the License.
  */
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala._
 
 import scala.math._
+import scala.reflect.io.File
 
 /**
  * Implements the "WordCount" program that computes a simple word occurrence histogram
@@ -37,33 +38,29 @@ import scala.math._
 object DT {
   def main(args: Array[String]) {
 
-    val conf = ConfigFactory.load() // load application.conf
+    var conf:Config = null
+    if(args.length > 0)
+      conf = ConfigFactory.load(args(0)) // load conf
+    else
+      conf = ConfigFactory.load() // load application.conf
+    conf = conf.getConfig("DT")
+    val outputconfig = conf.getConfig("outfile")
+    if(!(outputconfig.hasPath("jobim") && outputconfig.hasPath("dt")))
+      return
 
     // set up the execution environment
     val env = ExecutionEnvironment.getExecutionEnvironment
 
-//    // get input data
-//    val text = env.fromElements(
-////      """
-////        To be, or not to be,--that is the question:--
-////        Whether 'tis nobler in the mind to suffer
-////        The slings and arrows of outrageous fortune
-////        Or to take arms against a sea of troubles
-//      """
-//        the quick brown fox jumps over the lazy dog
-//        the quick brown cat jumps over the lazy dog
-//        the cat sleeps again
-//        the dog sleeps too
-//        but the cat sleeps more
-//        and the dog sleeps deeper
-//        and the quick brown fox really jumps over the ultra lazy dog
-//        HEY WHATS UP??
-//      """)
+    // get input data
+    val in = conf.getString("input")
 
-    val text = env.readTextFile("/Volumes/ExtendedHD/Users/stevo/Documents/corpora/simplewiki/simplewikipedia_sent_tok.txt")
-//    val text = env.readTextFile("/Volumes/ExtendedHD/Users/stevo/Documents/corpora/simplewiki/simplewikipedia_sent_tok_fruits.txt")
+    var text:DataSet[String] = null
+    if(File(in).exists)
+      text = env.readTextFile(in)
+    else
+      text = env.fromCollection(in.split('\n'))
+
     case class JoBim (jo: String, bim: String, freq_cooc: Int = 0, freq_jo: Int = 0, freq_bim: Int = 0, sig: Double = 0d)
-
     val jobims_raw = text
       .filter(_ != null)
       .filter(!_.trim().isEmpty())
@@ -74,26 +71,21 @@ object DT {
 
     val jobims_accumulated = jobims_raw.groupBy("jo","bim")
       .sum("freq_cooc")
-      .filter(_.freq_cooc >= 2)
+      .filter(_.freq_cooc > 1)
 
     val jos_accumulated = jobims_raw.groupBy("jo")
       .sum("freq_jo")
       .map(_.copy(bim="@"))
-      .filter(_.freq_jo >= 2)
+      .filter(_.freq_jo > 1)
 
     val bims_accumulated = jobims_raw.groupBy("bim")
       .sum("freq_bim")
       .map(_.copy(jo="@"))
-      .filter(_.freq_bim >= 2)
-
-//    jobims_accumulated.map(jb => (jb.jo, jb.bim, jb.freq_cooc)).writeAsCsv("simplewiki.jobim.tsv", "\n", "\t")
-//    jos_accumulated.map(jb => (jb.jo, jb.freq_jo)).writeAsCsv("simplewiki.jo.tsv", "\n", "\t")
-//    bims_accumulated.map(jb => (jb.bim, jb.freq_bim)).writeAsCsv("simplewiki.bim.tsv", "\n", "\t")
+      .filter(jb => jb.freq_bim > 1 && jb.freq_bim <= 1000)
 
     def lmi(jb: JoBim, n:Long):JoBim = {
       val pmi = (log(jb.freq_cooc) + log(n)) - (log(jb.freq_jo) + log(jb.freq_bim))
       val lmi = jb.freq_cooc * pmi
-      //val lmi = jb.freq_cooc.toDouble * Math.log(jb.freq_cooc / (jb.freq_jo.toDouble * jb.freq_bim.toDouble))
       jb.copy(sig = pmi)
     }
 
@@ -112,14 +104,23 @@ object DT {
       .sortGroup("sig", Order.DESCENDING)
       .first(1000)
 
-    jobimsall.map(jb => (jb.jo, jb.bim, jb.freq_cooc, jb.freq_jo, jb.freq_bim, f"${jb.sig}%.4f")).writeAsCsv("simplewiki.jobimall.tsv", "\n", "\t")
+    if(outputconfig.hasPath("jobim")){
+      val o = jobimsall.map(jb => (jb.jo, jb.bim, jb.freq_cooc, jb.freq_jo, jb.freq_bim, f"${jb.sig}%.4f"))
+      if(outputconfig.getString("jobim") equals "stdout")
+        o.print()
+      else{
+        o.writeAsCsv(outputconfig.getString("jobim"), "\n", "\t")
+        if(!outputconfig.hasPath("dt")) {
+          env.execute("JOBIMS")
+          return
+        }
+      }
+    }
 
     val joined = jobimsall
       .joinWithHuge(jobimsall)
       .where("bim")
       .equalTo("bim")
-
-//    joined.map(jb => (jb.jo, jb.jbim, j._1.bim, j._1.freq, j._2.freq)).writeAsCsv("simplewiki.joined_jobims.tsv", "\n", "\t")
 
     case class DTEntry(jo1 : String, jo2 : String, freq : Int)
     val dt = joined.map(x=>DTEntry(x._1.jo, x._2.jo, 1 ))
@@ -132,13 +133,15 @@ object DT {
       .sortGroup("freq", Order.DESCENDING)
       .first(100)
 
-    dtsort.map(dt => (dt.jo1, dt.jo2, dt.freq)).writeAsCsv("simplewiki.dt.tsv", "\n", "\t")
-//
-//    dtsort.print()
-    env.execute("DT")
-
-
-
+    if(outputconfig.hasPath("dt")){
+      val o = dtsort.map(dt => (dt.jo1, dt.jo2, dt.freq));
+      if(outputconfig.getString("dt") equals "stdout")
+        o.print()
+      else {
+        o.writeAsCsv(outputconfig.getString("dt"), "\n", "\t")
+        env.execute("DT")
+      }
+    }
 
   }
 }
