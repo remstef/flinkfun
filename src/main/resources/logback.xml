@@ -12,11 +12,11 @@
     </encoder>
   </appender>
 
-  <root level="warn">
+  <root level="info">
     <appender-ref ref="sysout"/>
   </root>
 
-  <logger name="org.myorg.quickstart" additivity="false" level="${DT.verbosity:-debug}">
+  <logger name="org.myorg.quickstart" additivity="false" level="${verbosity:-info}">
     <appender-ref ref="sysout"/>
   </logger>
 
