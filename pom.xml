@@ -21,13 +21,13 @@ under the License.
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.myorg.quickstart</groupId>
-	<artifactId>quickstart</artifactId>
+	<groupId>de.tudarmstadt.lt</groupId>
+	<artifactId>flinkdt</artifactId>
 	<version>0.1</version>
 	<packaging>jar</packaging>
 
-	<name>Flink Quickstart Job</name>
-	<url>http://www.myorganization.org</url>
+	<name>flinkdt</name>
+	<url>https://www.lt.tu-darmstadt.de</url>
 
 	<repositories>
 		<repository>
@@ -123,7 +123,6 @@ under the License.
 			<artifactId>logback-core</artifactId>
 			<version>1.1.2</version>
 		</dependency>
-
 
 	</dependencies>
 
@@ -232,6 +231,8 @@ under the License.
 									<exclude>org.mortbay.jetty:servlet-api</exclude>
 									<exclude>commons-io:commons-io</exclude>
 									<exclude>commons-cli:commons-cli</exclude>
+									<exclude>ch.qos.logback:logback-classic</exclude>
+									<exclude>ch.qos.logback:logback-core</exclude>
 								</excludes>
 							</artifactSet>
 							<filters>
@@ -246,7 +247,7 @@ under the License.
 							<transformers>
 								<!-- add Main-Class to manifest file -->
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>org.myorg.quickstart.Job</mainClass>
+									<mainClass>de.tudarmstadt.lt.flinkdt.DT</mainClass>
 								</transformer>
 							</transformers>
 							<createDependencyReducedPom>false</createDependencyReducedPom>
@@ -293,10 +294,8 @@ under the License.
 						<buildcommand>org.scala-ide.sdt.core.scalabuilder</buildcommand>
 					</buildcommands>
 					<classpathContainers>
-						<classpathContainer>org.scala-ide.sdt.launching.SCALA_CONTAINER
-						</classpathContainer>
-						<classpathContainer>org.eclipse.jdt.launching.JRE_CONTAINER
-						</classpathContainer>
+						<classpathContainer>org.scala-ide.sdt.launching.SCALA_CONTAINER</classpathContainer>
+						<classpathContainer>org.eclipse.jdt.launching.JRE_CONTAINER</classpathContainer>
 					</classpathContainers>
 					<excludes>
 						<exclude>org.scala-lang:scala-library</exclude>
