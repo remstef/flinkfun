@@ -1,4 +1,4 @@
-package org.myorg.quickstart
+package de.tudarmstadt.lt.flinkdt
 
 import com.typesafe.config.{ConfigValue, ConfigFactory}
 import org.apache.hadoop.yarn.logaggregation.LogAggregationUtils

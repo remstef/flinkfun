@@ -16,7 +16,7 @@
     <appender-ref ref="sysout"/>
   </root>
 
-  <logger name="org.myorg.quickstart" additivity="false" level="${verbosity:-info}">
+  <logger name="de.tudarmstadt.lt.flinkdt" additivity="false" level="${verbosity:-info}">
     <appender-ref ref="sysout"/>
   </logger>
 

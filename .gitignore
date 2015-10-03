@@ -20,6 +20,7 @@ project/plugins/project/
 
 # Steffen specific
 data/
+flinkv0.9.1-hadoop1/
 
 # Created by https://www.gitignore.io/api/scala,intellij,eclipse,maven,sbt
 

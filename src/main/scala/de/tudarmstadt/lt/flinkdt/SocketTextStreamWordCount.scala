@@ -1,4 +1,4 @@
-package org.myorg.quickstart
+package de.tudarmstadt.lt.flinkdt
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
