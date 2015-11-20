@@ -6,28 +6,47 @@ import scala.collection.mutable
   * Created by sr on 11/20/15.
   */
 @SerialVersionUID(42L)
-class PatGen[O](wildcard:O) extends Serializable {
+class PatGen[O](wildcard:O, __debug:Boolean = false) extends Serializable {
 
-  val NO_FIXED:Array[Int] = Array()
+  case class Pat(var pattern:Seq[O], indices:Seq[Int], filler:Seq[O])
 
-  def comb(n:Int, k:Int, fixed:Seq[Int]) = Range(0,n).combinations(k).filter(_.intersect(fixed).isEmpty);
+  private val NO_FIXED:Array[Int] = Array()
 
-  def raw_patterns(seq: Seq[O], num_wildcards:Int = 1, fixed_indices:Seq[Int] = NO_FIXED):TraversableOnce[Seq[O]] = {
+  def comb(n:Int, k:Int, fixed:Seq[Int] = NO_FIXED) = if(__debug) comb_ordered(n,k,fixed) else comb_undefined_ordering(n, k, fixed)
+
+  // ordering is not specified (default)
+  def comb_undefined_ordering(n:Int, k:Int, fixed:Seq[Int] = NO_FIXED) = Range(0,n).combinations(k).filter(_.intersect(fixed).isEmpty)
+
+  // ordering is enforced (for debugging purposes)
+  def comb_ordered(n:Int, k:Int, fixed:Seq[Int] = NO_FIXED) = comb_undefined_ordering(n, k, fixed).toSeq.sortWith((c1, c2) => {
+    val result = for(i <- 0 until c1.size) yield c2(i) - c1(i)
+    val d = result.find(_ != 0)
+    d.getOrElse(0) > 0
+  })
+
+  def raw_patterns(seq: Seq[O], num_wildcards:Int = 1, fixed_indices:Seq[Int] = NO_FIXED):TraversableOnce[Pat] = {
     val index_combinations = comb(seq.length, num_wildcards, fixed_indices)
     val patterns = for(comb <- index_combinations) yield {
       var pattern = seq
-      for(i <- comb)
+      var filler:Seq[O] = Vector()
+      for (i <- comb) {
+        filler :+= pattern(i)
         pattern = pattern.updated(i, wildcard)
-      pattern
+      }
+      Pat(pattern,comb,filler)
     }
     patterns
   }
 
-  def merged_patterns(seq: Seq[O], num_wildcards:Int = 1, fixed_indices:Seq[Int] = NO_FIXED, remove_leading_wildcards:Boolean = true, remove_trailing_wildcards:Boolean = true):TraversableOnce[Seq[O]] = {
+  def merged_patterns(seq: Seq[O], num_wildcards:Int = 1, fixed_indices:Seq[Int] = NO_FIXED, remove_leading_wildcards:Boolean = true, remove_trailing_wildcards:Boolean = true):TraversableOnce[Pat] = {
     if(num_wildcards < 1)
-      return Seq(seq)
+      return Seq(seq).map(s => Pat(seq,Array[Int](),Seq[O]()))
     val rpatterns = raw_patterns(seq, num_wildcards, fixed_indices)
-    val patterns = rpatterns.map(remove_leading_and_trailing_wildcards(_, remove_leading_wildcards, remove_trailing_wildcards)).map(merge_wildcards(_))
+    val patterns = rpatterns.map(pat => {
+      pat.pattern = remove_leading_and_trailing_wildcards(pat.pattern, remove_leading_wildcards, remove_trailing_wildcards)
+      pat.pattern = merge_wildcards(pat.pattern)
+      pat
+    })
     patterns
   }
 
@@ -51,17 +70,23 @@ class PatGen[O](wildcard:O) extends Serializable {
     pattern.slice(first, last+1)
   }
 
-  def skip_patterns(seq: Seq[O], skip:Int = 1):TraversableOnce[Seq[O]] = {
+  def skip_patterns(seq: Seq[O], skip:Int = 1):TraversableOnce[Pat] = {
     val rpatterns = raw_patterns(seq, skip, NO_FIXED)
-    val patterns = rpatterns.map(remove_leading_and_trailing_wildcards(_, true, true)).map(merge_wildcards(_))
-    val skipgrams = patterns.map(remove_wildcards(_))
+    val skipgrams = rpatterns.map(pat => {
+      pat.pattern = remove_leading_and_trailing_wildcards(pat.pattern, true, true)
+      pat.pattern = merge_wildcards(pat.pattern)
+      pat.pattern = remove_wildcards(pat.pattern)
+      pat
+    })
     skipgrams
   }
 
-  def skip_grams(seq: Seq[O], n:Int = 3, skip:Int = 1):TraversableOnce[Seq[O]] = {
+  def kSkipNgrams(seq: Seq[O], n:Int = 3, skip:Int = 1):TraversableOnce[Seq[O]] = {
     var rpatterns:mutable.Set[Seq[O]] = mutable.Set()
     for(ngram <- seq.sliding(n+skip))
-      rpatterns ++= raw_patterns(ngram, skip, NO_FIXED).map(remove_leading_and_trailing_wildcards(_,true,true))
+      rpatterns ++= raw_patterns(ngram, skip, NO_FIXED)
+        .map(_.pattern)
+        .map(remove_leading_and_trailing_wildcards(_,true,true))
     val patterns = rpatterns.toSeq.map(merge_wildcards(_))
     val skipgrams = patterns.map(remove_wildcards(_))
     skipgrams
