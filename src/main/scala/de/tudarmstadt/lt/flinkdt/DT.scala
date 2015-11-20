@@ -46,14 +46,27 @@ object DT {
       conf = ConfigFactory.load() // load application.conf
     conf = conf.getConfig("DT")
     val outputconfig = conf.getConfig("output")
-    if(!outputconfig.hasPath("jb") && !outputconfig.hasPath("dt"))
-      return
 
     // set up the execution environment
     val env = ExecutionEnvironment.getExecutionEnvironment
 
+    def writeIfExists(conf_path:String, ds:DataSet[JoBim]): Unit ={
+      if(outputconfig.hasPath(conf_path)){
+        val o = ds.map(jb => (jb.jo, jb.bim, jb.freq_cooc, jb.freq_jo, jb.freq_bim, f"${jb.freq_sig}%.4f", jb.freq_distinct_jo, jb.freq_distinct_bim, f"${jb.freq_distinct_sig}%.4f"))
+        if(outputconfig.getString(conf_path) equals "stdout")
+          o.print()
+        else{
+          o.writeAsCsv(outputconfig.getString(conf_path), "\n", "\t")
+          if(!outputconfig.hasPath("dt")) {
+            env.execute("JOBIMS")
+            return
+          }
+        }
+      }
+    }
+
     // get input data
-    val in = conf.getString("input")
+    val in = conf.getString("input.text")
 
     var text:DataSet[String] = null
     if(new File(in).exists)
@@ -64,23 +77,31 @@ object DT {
     val jobims_raw = text
       .filter(_ != null)
       .filter(!_.trim().isEmpty())
-//      .filter(_.split("\\W+").length >= 5)
       .flatMap(Text2JoBim.patterns(_))
-//      .map(_.flip())
+
+    writeIfExists("jbraw", jobims_raw)
 
     val jobims_accumulated = jobims_raw.groupBy("jo","bim")
       .sum("freq_cooc")
       .filter(_.freq_cooc > 1)
 
-    val jos_accumulated = jobims_raw.groupBy("jo")
-      .reduce((j1,j2)=>j1.copy(freq_jo=j1.freq_jo+j2.freq_jo, freq_distinct_jo=j1.freq_distinct_jo+j2.freq_distinct_jo))
-      .map(_.copy(bim="@"))
+    writeIfExists("jbacc", jobims_accumulated)
+
+    val jos_accumulated = jobims_raw.map(jb => {jb.freq_jo=jb.freq_cooc; jb})
+      .groupBy("jo")
+      .reduce((j1,j2)=> j1.copy(freq_jo=j1.freq_jo+j2.freq_jo, freq_distinct_jo=j1.freq_distinct_jo+j2.freq_distinct_jo))
+      .map(jb => {jb.bim="@"; jb})
       .filter(_.freq_jo > 1)
 
-    val bims_accumulated = jobims_raw.groupBy("bim")
+    writeIfExists("joacc", jos_accumulated)
+
+    val bims_accumulated = jobims_raw.map(jb => {jb.freq_bim=jb.freq_cooc; jb})
+      .groupBy("bim")
       .reduce((j1,j2)=>j1.copy(freq_bim=j1.freq_bim+j2.freq_bim, freq_distinct_bim=j1.freq_distinct_bim+j2.freq_distinct_bim))
-      .map(_.copy(jo="@"))
+      .map(jb => {jb.jo="@"; jb})
       .filter(jb => jb.freq_bim > 1)
+
+    writeIfExists("bimacc", bims_accumulated)
 
     def lmi(jb: JoBim, n:Long, n_distinct:Long):JoBim = {
       val pmi = (log(jb.freq_cooc) + log(n)) - (log(jb.freq_jo) + log(jb.freq_bim))
@@ -89,7 +110,10 @@ object DT {
       val distinct_pmi = (log(jb.freq_cooc) + log(n_distinct)) - (log(jb.freq_distinct_jo) + log(jb.freq_distinct_bim))
       val distinct_lmi = jb.freq_cooc * distinct_pmi
 
-      jb.copy(freq_sig = pmi)
+      jb.freq_sig = pmi
+      jb.freq_distinct_sig = distinct_pmi
+
+      jb
     }
 
     val (n,n_distinct) = jobims_accumulated.map(jb => (jb.freq_cooc,1)).reduce((f1,f2) => (f1._1+f2._1, f1._2+f2._2)).collect()(0);
@@ -99,24 +123,17 @@ object DT {
     val jobimsall = jobims_accumulated
       .joinWithHuge(jos_accumulated)
       .where("jo")
-      .equalTo("jo")((jb1, jb2) => jb1.copy(freq_jo=jb2.freq_jo))
+      .equalTo("jo")((jb1, jb2) => {jb1.freq_jo=jb2.freq_jo; jb1.freq_distinct_jo=jb2.freq_distinct_jo; jb1})
       .joinWithHuge(bims_accumulated)
       .where("bim")
-      .equalTo("bim")((jb1, jb2) => jb1.copy(freq_bim = jb2.freq_bim))
+      .equalTo("bim")((jb1, jb2) => {jb1.freq_bim=jb2.freq_bim; jb1.freq_distinct_bim=jb2.freq_distinct_bim; jb1})
       .map(lmi(_, n, n_distinct))
 
-    if(outputconfig.hasPath("jb")){
-      val o = jobimsall.map(jb => (jb.jo, jb.bim, jb.freq_cooc, jb.freq_jo, jb.freq_bim, f"${jb.freq_sig}%.4f"))
-      if(outputconfig.getString("jb") equals "stdout")
-        o.print()
-      else{
-        o.writeAsCsv(outputconfig.getString("jb"), "\n", "\t")
-        if(!outputconfig.hasPath("dt")) {
-          env.execute("JOBIMS")
-          return
-        }
-      }
-    }
+
+    writeIfExists("jbaccall", jobimsall)
+
+    env.execute("DT")
+    return
 
     val jobimsall_filtered = jobimsall.filter(jb => jb.freq_bim > 1 && jb.freq_bim <= 1000)
       .groupBy("jo")

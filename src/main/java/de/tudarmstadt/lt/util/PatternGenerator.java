@@ -30,15 +30,9 @@ import org.apache.commons.lang.StringUtils;
  **/
 public class PatternGenerator<O> {
 
+    public static PatternGenerator<String> STRING_GENERATOR =  new PatternGenerator<>("*");
+
     private static int[] EMPTY_ARR = new int[0];
-
-    public String WILDCARD = "*";
-
-    public boolean SORT_OUTPUT = false;
-
-    public boolean REMOVE_LEADING_WILDCARDS = false;
-
-    public boolean REMOVE_TRAILING_WILDCARDS = false;
 
     private static Comparator<int[]> _comb_comparator = new Comparator<int[]>(){
         @Override
@@ -52,37 +46,58 @@ public class PatternGenerator<O> {
         }
     };
 
-    public String[] get_patterns(String str){
+    public static String[] get_patterns(String str){
         List<String> words = Arrays.asList(str.split("\\s+"));
         List<String> patterns = new ArrayList<String>();
         for(int i = 1; i < words.size(); i++){
-            for(List<String> pattern : get_merged_patterns(words, i))
+            for(List<String> pattern : STRING_GENERATOR.get_merged_patterns(words, i))
                 patterns.add(StringUtils.join(pattern, " "));
         }
         return patterns.toArray(new String[0]);
     }
 
-    public List<List<String>> get_merged_patterns(List<String> words, int num_wildcards){
+    public PatternGenerator(){
+        this((O)new Object(){
+            @Override
+            public String toString() {
+                return "*";
+            }
+        });
+    }
+
+    public PatternGenerator(O wildcard){
+        WILDCARD = wildcard;
+    }
+
+    public O WILDCARD;
+
+    public boolean SORT_OUTPUT = false;
+
+    public boolean REMOVE_LEADING_WILDCARDS = false;
+
+    public boolean REMOVE_TRAILING_WILDCARDS = false;
+
+    public List<List<O>> get_merged_patterns(List<O> words, int num_wildcards){
         return get_merged_patterns(words, num_wildcards, EMPTY_ARR);
     }
 
-    public List<List<String>> get_merged_patterns(List<String> words, int num_wildcards, int[] fixed){
-        List<List<String>> raw_patterns = get_raw_patterns(words, num_wildcards, fixed);
-        List<List<String>> merged_patterns = merge_wildcards(raw_patterns);
+    public List<List<O>> get_merged_patterns(List<O> words, int num_wildcards, int[] fixed){
+        List<List<O>> raw_patterns = get_raw_patterns(words, num_wildcards, fixed);
+        List<List<O>> merged_patterns = merge_wildcards(raw_patterns);
         return merged_patterns;
 
     }
 
-    public List<List<String>> merge_wildcards(List<List<String>> patterns){
-        List<List<String>> merged_patterns = new ArrayList<List<String>>(patterns.size());
+    public List<List<O>> merge_wildcards(List<List<O>> patterns){
+        List<List<O>> merged_patterns = new ArrayList<List<O>>(patterns.size());
         for(int i = 0; i < patterns.size(); i++){
             merged_patterns.add(merge_wildcards_pattern(patterns.get(i)));
         }
         return merged_patterns;
     }
 
-    public List<String> merge_wildcards_pattern(List<String> pattern){
-        List<String> merged_pattern = new ArrayList<String>(pattern.size());
+    public List<O> merge_wildcards_pattern(List<O> pattern){
+        List<O> merged_pattern = new ArrayList<O>(pattern.size());
         int first = 0;
         while(REMOVE_LEADING_WILDCARDS && WILDCARD.equals(pattern.get(first)))
             first++;
@@ -98,12 +113,12 @@ public class PatternGenerator<O> {
         return merged_pattern;
     }
 
-    public List<List<String>> get_raw_patterns(List<String> words, int num_wildcards, int[] fixed){
+    public List<List<O>> get_raw_patterns(List<O> words, int num_wildcards, int[] fixed){
         List<int[]> combinations = comb(num_wildcards, words.size(), fixed);
-        List<List<String>> patterns = new ArrayList<List<String>>(combinations.size());
+        List<List<O>> patterns = new ArrayList<List<O>>(combinations.size());
         for(int c = 0; c < combinations.size(); c++){
             int[] comb = combinations.get(c);
-            List<String> pattern = new ArrayList<String>(words);
+            List<O> pattern = new ArrayList<O>(words);
             for(int i = 0; i < comb.length; i++){
                 pattern.set(comb[i], WILDCARD);
             }
@@ -169,7 +184,7 @@ public class PatternGenerator<O> {
 //            System.out.println(Arrays.toString(r));
 //        }
 
-        for(List<String> pattern : new PatternGenerator<String>().get_merged_patterns(Arrays.asList("The quick brown fox.".split("\\s+")), 2, new int[]{0})) {
+        for(List<String> pattern : STRING_GENERATOR.get_merged_patterns(Arrays.asList("The quick brown fox.".split("\\s+")), 2, new int[]{0})) {
             System.out.println(pattern);
         }
     }
