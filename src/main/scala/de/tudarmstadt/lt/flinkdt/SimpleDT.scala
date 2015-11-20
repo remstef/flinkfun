@@ -61,7 +61,7 @@ object SimpleDT {
     val jobims_raw = text
       .filter(_ != null)
       .filter(!_.trim().isEmpty())
-      .flatMap(Text2JoBim.patterns(_))
+      .flatMap(Text2JoBim.ngram_patterns(_))
 
     val jobims_accumulated = jobims_raw
       .groupBy("jo","bim")
