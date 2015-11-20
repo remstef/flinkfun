@@ -23,6 +23,9 @@ import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import scala.collection.Iterator;
+import scala.collection.Seq;
+import scala.collection.immutable.Range;
 
 /**
  *
@@ -157,26 +160,31 @@ public class PatternGenerator<O> {
         return s;
     }
 
-    public static List<int[]> index_combinations(int max_index, int n_indices){
-        List<int[]> result = new ArrayList<int[]>();
-        index_combinations(max_index, n_indices, new int[n_indices], 0, result);
-        return result;
+    public List<int[]> scalacomb(int k, int n, int[] fixed){
+        //
+        // Range(0,n).combinations(k).filter(_.intersect(fixed).isEmpty).foreach(println)
+        //
+        List<int[]> s = new ArrayList<>();
+        Range r = new Range(0,n,1);
+        Iterator<Seq<Object>> comb = r.combinations(k);
+        outer: while(comb.hasNext()){
+            Seq<Object> current = comb.next();
+            Iterator<Object> i = current.iterator();
+            int[] intcomb = new int[k];
+            int c = 0;
+            while(i.hasNext()){
+                Integer l = (Integer)i.next();
+                if(ArrayUtils.contains(fixed, l))
+                    continue outer;
+                intcomb[c++] = l;
+            }
+            s.add(intcomb);
+        }
+        if(SORT_OUTPUT)
+            Collections.sort(s, _comb_comparator);
+        return s;
     }
 
-    private static void index_combinations(int max_index, int n_indices, int[] current_combination, int current_combination_index, List<int[]> result) {
-        if(current_combination_index == n_indices) {
-            result.add(current_combination);
-        } else {
-            for(int i = 0; i < max_index; i++) {
-                int[] old_combination = ArrayUtils.clone(current_combination);
-                int old_combination_index = current_combination_index;
-                current_combination[current_combination_index++] = i;
-                index_combinations(max_index, n_indices, current_combination, current_combination_index, result);
-                current_combination = old_combination;
-                current_combination_index = old_combination_index;
-            }
-        }
-    }
 
 
     public static void main(String[] args) {
