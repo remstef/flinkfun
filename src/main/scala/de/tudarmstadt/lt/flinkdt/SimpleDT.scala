@@ -57,32 +57,25 @@ object SimpleDT {
 
     val text = env.readTextFile("/Volumes/ExtendedHD/Users/stevo/Documents/corpora/simplewiki/simplewikipedia_sent_tok.txt")
 //    val text = env.readTextFile("/Volumes/ExtendedHD/Users/stevo/Documents/corpora/simplewiki/simplewikipedia_sent_tok_fruits.txt")
-    case class JoBim (jo: String, bim: String, freq: Int)
 
     val jobims_raw = text
       .filter(_ != null)
       .filter(!_.trim().isEmpty())
-      .filter(_.split("\\W+").length >= 3)
-      .flatMap(_.split("\\W+")
-        .sliding(3)
-        .map{ x => JoBim(x(1), x(0) + " @ "  + x(2), 1)})
+      .flatMap(Text2JoBim.patterns(_))
 
     val jobims_accumulated = jobims_raw
       .groupBy("jo","bim")
-      .sum("freq")
-      .filter(_.freq > 1)
+      .sum("freq_cooc")
+      .filter(_.freq_cooc > 1)
 
-    jobims_accumulated.map(jb => (jb.jo, jb.bim, jb.freq)).writeAsCsv("simplewiki.jobims.tsv", "\n", "\t")
+    //jobims_accumulated.map(jb => (jb.jo, jb.bim, jb.freq_cooc)).writeAsCsv("simplewiki.jobims.tsv", "\n", "\t")
 
     val joined = jobims_accumulated
       .joinWithHuge(jobims_accumulated)
       .where("bim")
       .equalTo("bim")
-//      .filter(join => !(join._1.jo equals join._2.jo))
 
-//    //joined.print()
-
-    joined.map(j => (j._1.jo, j._2.jo, j._1.bim, j._1.freq, j._2.freq)).writeAsCsv("s1_simplewiki.joined_jobims.tsv", "\n", "\t")
+     //joined.map(j => (j._1.jo, j._2.jo, j._1.bim, j._1.freq_cooc, j._2.freq_cooc)).writeAsCsv("s1_simplewiki.joined_jobims.tsv", "\n", "\t")
 
     case class DTEntry(jo1 : String, jo2 : String, freq : Int)
     val dt = joined.map(x=>((x._1.jo, x._2.jo), 1))
@@ -96,7 +89,9 @@ object SimpleDT {
       .sortGroup("freq", Order.DESCENDING)
       .first(100)
 
-    dtsort.map(dt => (dt.jo1, dt.jo2, dt.freq)).writeAsCsv("s1_simplewiki.dt.tsv", "\n", "\t")
+    dtsort.map(dt => (dt.jo1, dt.jo2, dt.freq)).writeAsCsv("data/s1patterns.dt.tsv", "\n", "\t")
+
+    dtsort.print()
 
     env.execute("DT")
 
