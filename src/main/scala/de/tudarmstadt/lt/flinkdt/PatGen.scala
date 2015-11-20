@@ -33,12 +33,6 @@ class PatGen[O](wildcard:O) extends Serializable {
 
   def merge_wildcards(pattern:Seq[O]): Seq[O] = {
     var merged:Seq[O] = pattern.getClass.newInstance()
-//    var first:Int = 0
-//    while (remove_leading_wildcards && (wildcard == pattern(first)))
-//      first += 1
-//    var last:Int = pattern.length - 1
-//    while (remove_trailing_wildcards && (wildcard == pattern(last)))
-//      last -= 1
     merged :+= pattern(0)
     for(i <- 1 until pattern.length if !(wildcard == pattern(i) && wildcard == pattern(i-1))) // for(i = first+1; i <= last; i++)
       merged :+= pattern(i)
