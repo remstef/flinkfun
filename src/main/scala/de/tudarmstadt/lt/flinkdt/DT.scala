@@ -45,7 +45,7 @@ object DT {
     else
       conf = ConfigFactory.load() // load application.conf
     conf = conf.getConfig("DT")
-    val outputconfig = conf.getConfig("output")
+    val outputconfig = conf.getConfig("output.jb")
 
     // set up the execution environment
     val env = ExecutionEnvironment.getExecutionEnvironment
