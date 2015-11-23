@@ -18,7 +18,7 @@ object TextToCT2 {
 
   val pat = new PatGen("*")
 
-  def ngrams(text:String, n:Int): TraversableOnce[CT2[String]] = {
+  def ngrams(text:String, n:Int=5): TraversableOnce[CT2[String]] = {
     val nh = n/2;
     val seq = ("^ "*(nh) + text + " $"*(nh)).split("\\s+")
     seq.sliding(n)

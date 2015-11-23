@@ -14,6 +14,9 @@ object CT2Test {
     TextToCT2.ngram_patterns("The quick brown fox jumps over the lazy dog").filter(_.A.equals("fox")).foreach(a => println(a))
     println("--- kskipngrams n=3 k=2 ---")
     TextToCT2.kSkipNgram("insurgents killed in ongoing fighting",3,2).foreach(a => println(a))
+    println("--- kskipngrams n=5 k=3 ---")
+    TextToCT2.kSkipNgram("insurgents",5,3).foreach(a => println(a))
+    TextToCT2.kSkipNgram("a b c d e f g h i j k l m n o p q r s t u v w x y z",5,3).foreach(a => println(a))
 
     //    val writer = File("test.tsv").printWriter()
     //    File("/Volumes/ExtendedHD/Users/stevo/Documents/corpora/simplewiki/simplewikipedia_sent_tok.txt")
