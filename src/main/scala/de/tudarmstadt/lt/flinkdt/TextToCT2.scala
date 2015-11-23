@@ -39,21 +39,7 @@ object TextToCT2 {
       .map(x => CT2(x(nh), x.slice(0,nh).mkString(" ") + " @ "  + x.slice(n-nh,n).mkString(" ")))
   }
 
-  def main(args: Array[String]) {
-    println("--- ngrams n=3 ---")
-    TextToCT2.ngrams("insurgents killed in ongoing fighting",3).foreach(a => println(a))
-    println("--- ngram patterns n=5 wildcards=2 ---")
-    TextToCT2.ngram_patterns("The quick brown fox jumps over the lazy dog").filter(_.A.equals("fox")).foreach(a => println(a))
-    println("--- kskipngrams n=3 k=2 ---")
-    TextToCT2.kSkipNgram("insurgents killed in ongoing fighting",3,2).foreach(a => println(a))
 
-//    val writer = File("test.tsv").printWriter()
-//    File("/Volumes/ExtendedHD/Users/stevo/Documents/corpora/simplewiki/simplewikipedia_sent_tok.txt")
-//      .lines()
-//      .flatMap(line => patterns(line))
-//      .foreach(writer.println(_))
-
-  }
 
 }
 

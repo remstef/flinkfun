@@ -1,6 +1,6 @@
 package de.tudarmstadt.lt.flinkdt
 
-import scala.collection.mutable
+import scala.collection.{mutable}
 
 /**
   * Created by sr on 11/20/15.
@@ -24,11 +24,11 @@ class PatGen[O](wildcard:O, __debug:Boolean = false) extends Serializable {
     d.getOrElse(0) > 0
   })
 
-  def raw_patterns(seq: Seq[O], num_wildcards:Int = 1, fixed_indices:Seq[Int] = NO_FIXED):TraversableOnce[Pat] = {
+  def raw_patterns(seq: IndexedSeq[O], num_wildcards:Int = 1, fixed_indices:Seq[Int] = NO_FIXED):TraversableOnce[Pat] = {
     val index_combinations = comb(seq.length, num_wildcards, fixed_indices)
     val patterns = for(comb <- index_combinations) yield {
       var pattern = seq
-      var filler:Seq[O] = Vector()
+      var filler:Seq[O] = IndexedSeq()
       for (i <- comb) {
         filler :+= pattern(i)
         pattern = pattern.updated(i, wildcard)
@@ -38,7 +38,7 @@ class PatGen[O](wildcard:O, __debug:Boolean = false) extends Serializable {
     patterns
   }
 
-  def merged_patterns(seq: Seq[O], num_wildcards:Int = 1, fixed_indices:Seq[Int] = NO_FIXED, remove_leading_wildcards:Boolean = true, remove_trailing_wildcards:Boolean = true):TraversableOnce[Pat] = {
+  def merged_patterns(seq: IndexedSeq[O], num_wildcards:Int = 1, fixed_indices:Seq[Int] = NO_FIXED, remove_leading_wildcards:Boolean = true, remove_trailing_wildcards:Boolean = true):TraversableOnce[Pat] = {
     if(num_wildcards < 1)
       return Seq(seq).map(s => Pat(seq,Array[Int](),Seq[O]()))
     val rpatterns = raw_patterns(seq, num_wildcards, fixed_indices)
@@ -70,7 +70,7 @@ class PatGen[O](wildcard:O, __debug:Boolean = false) extends Serializable {
     pattern.slice(first, last+1)
   }
 
-  def skip_patterns(seq: Seq[O], skip:Int = 1):TraversableOnce[Pat] = {
+  def skip_patterns(seq: IndexedSeq[O], skip:Int = 1):TraversableOnce[Pat] = {
     val rpatterns = raw_patterns(seq, skip, NO_FIXED)
     val skipgrams = rpatterns.map(pat => {
       pat.pattern = remove_leading_and_trailing_wildcards(pat.pattern, true, true)
@@ -81,7 +81,7 @@ class PatGen[O](wildcard:O, __debug:Boolean = false) extends Serializable {
     skipgrams
   }
 
-  def kSkipNgrams(seq: Seq[O], n:Int = 3, skip:Int = 1):TraversableOnce[Seq[O]] = {
+  def kSkipNgrams(seq: IndexedSeq[O], n:Int = 3, skip:Int = 1):TraversableOnce[Seq[O]] = {
     var rpatterns:mutable.Set[Seq[O]] = mutable.Set()
     for(ngram <- seq.sliding(n+skip))
       rpatterns ++= raw_patterns(ngram, skip, NO_FIXED)
