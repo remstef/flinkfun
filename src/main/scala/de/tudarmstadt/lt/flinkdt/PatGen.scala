@@ -82,17 +82,22 @@ class PatGen[O](wildcard:O, __debug:Boolean = false) extends Serializable {
   }
 
   def kSkipNgrams(seq: IndexedSeq[O], n:Int = 3, skip:Int = 1):TraversableOnce[Seq[O]] = {
+    val patterns = kWildcardNgramPatterns(seq, n=n, wildcards=skip)
+    val skipgrams = patterns.map(remove_wildcards(_))
+    skipgrams
+  }
+
+  def kWildcardNgramPatterns(seq: IndexedSeq[O], n:Int = 3, wildcards:Int = 1):TraversableOnce[Seq[O]] = {
     if (seq.length <= n)
       return Set(seq)
-    val skip_correct  = Math.min(seq.length-n, skip)
+    val wildcards_correct  = Math.min(seq.length-n, wildcards)
     var rpatterns:mutable.Set[Seq[O]] = mutable.Set()
-    for(ngram <- seq.sliding(n+skip_correct))
-      rpatterns ++= raw_patterns(ngram, skip_correct, NO_FIXED)
+    for(ngram <- seq.sliding(n+wildcards_correct))
+      rpatterns ++= raw_patterns(ngram, wildcards_correct, NO_FIXED)
         .map(_.pattern)
         .map(remove_leading_and_trailing_wildcards(_,true,true))
     val patterns = rpatterns.toSeq.map(merge_wildcards(_))
-    val skipgrams = patterns.map(remove_wildcards(_))
-    skipgrams
+    patterns
   }
 
   def remove_wildcards(pattern:Seq[O]): Seq[O] = pattern.filter(_ != wildcard)

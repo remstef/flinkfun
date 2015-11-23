@@ -56,4 +56,12 @@ object PatGenTest extends App {
   skipgrams = p.kSkipNgrams("insurgents killed in ongoing fighting".split("\\s+"), n=3, skip=2)
   skipgrams.foreach(x => println(x.mkString(" ")))
 
+  println("--- 3skip5grams ---")
+  skipgrams = p.kSkipNgrams("a b c d e f g".split("\\s+"), n=5, skip=3)
+  skipgrams.foreach(x => println(x.mkString(" ")))
+
+  println("--- kWildcardsNgramPatterns n=5 k=3 ---")
+  val patterns = p.kWildcardNgramPatterns("a b c d e f g".split("\\s+"), n=5, wildcards=3)
+  patterns.foreach(x => println(x.mkString(" ")))
+
 }
