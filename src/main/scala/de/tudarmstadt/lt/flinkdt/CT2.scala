@@ -67,7 +67,7 @@ object CT2 {
  *
  */
 @SerialVersionUID(42L)
-case class CT2[T](A:T, B:T,
+case class CT2[T](var A:T, var B:T,
                   var n11:Float   = 1f,
                   var n1dot:Float = 1f,
                   var ndot1:Float = 1f,
@@ -80,9 +80,8 @@ case class CT2[T](A:T, B:T,
   def ndot2() = n     - ndot1
   def n22()   = ndot2 - n12 // n2dot - n21
 
-  def pmi() = (log(n11) + log(n)) - (log(n1dot) + log(ndot1))
-  def lmi() = n11 * pmi()
-
+  def pmi():Float = ((log(n11) + log(n)) - (log(n1dot) + log(ndot1))).toFloat
+  def lmi():Float = (n11 * pmi()).toFloat
 
   def +(other:CT2[T]):CT2[T] = {
     val newct:CT2[T] = clone().asInstanceOf[CT2[T]]
