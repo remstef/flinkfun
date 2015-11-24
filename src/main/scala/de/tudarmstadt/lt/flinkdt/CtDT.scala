@@ -19,19 +19,21 @@ object CtDT {
       conf = ConfigFactory.load() // load application.conf
     conf = conf.getConfig("DT")
     val outputconfig = conf.getConfig("output.ct")
+    val pipe = outputconfig.getStringList("pipeline").toArray
 
     // set up the execution environment
     val env = ExecutionEnvironment.getExecutionEnvironment
 
-    def writeIfExists[T <: Any](conf_path:String, ds:DataSet[CT2[T]]): Unit ={
+    def writeIfExists[T <: Any](conf_path:String, ds:DataSet[CT2[T]], stringfun:((CT2[T]) => String) = ((ct2:CT2[T]) => ct2.toString)): Unit = {
       if(outputconfig.hasPath(conf_path)){
-        val o = ds.map(_.toStringTuple())
+        val o = ds.map(stringfun).map(Tuple1(_))
         if(outputconfig.getString(conf_path) equals "stdout")
           o.print()
         else{
           o.writeAsCsv(outputconfig.getString(conf_path), "\n", "\t", writeMode = FileSystem.WriteMode.OVERWRITE)
-          if(!outputconfig.hasPath("dt") || conf_path == "dt") {
+          if(pipe(pipe.size-1) == conf_path) {
             env.execute("CtDT")
+            System.exit(0)
             return
           }
         }
