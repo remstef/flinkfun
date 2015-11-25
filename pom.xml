@@ -124,6 +124,12 @@ under the License.
 			<version>1.1.2</version>
 		</dependency>
 
+		<dependency>
+			<groupId>de.tudarmstadt</groupId>
+			<artifactId>lt.utilities.scala</artifactId>
+			<version>0.1</version>
+		</dependency>
+
 	</dependencies>
 
 	<!-- We use the maven-assembly plugin to create a fat jar that contains all dependencies
