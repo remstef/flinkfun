@@ -3,6 +3,7 @@ package de.tudarmstadt.lt.flinkdt
 import java.io.{FileReader, BufferedReader}
 import java.util
 
+import de.tudarmstadt.lt.scalautils.PatGen
 import de.tudarmstadt.lt.util.PatternGenerator
 import scala.collection.JavaConversions._
 import scala.collection.{immutable, mutable}
