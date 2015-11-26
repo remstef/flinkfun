@@ -13,13 +13,17 @@ import scala.util.Try
 object CtDT {
   def main(args: Array[String]) {
 
-    var conf:Config = null
+    val config:Config =
     if(args.length > 0)
-      conf = ConfigFactory.parseFile(new File(args(0))).resolve() // load conf
+      ConfigFactory.parseFile(new File(args(0))).withFallback(ConfigFactory.load()).resolve() // load conf with fallback to default application.conf
     else
-      conf = ConfigFactory.load() // load application.conf
-    conf = conf.getConfig("DT")
-    val outputconfig = conf.getConfig("output.ct")
+      ConfigFactory.load() // load default application.conf
+
+    val config_dt = config.getConfig("DT")
+    val outputconfig = config_dt.getConfig("output.ct")
+    val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./")
+    if(!outputbasedir.exists())
+      outputbasedir.mkdirs()
     val pipe = outputconfig.getStringList("pipeline").toArray
 
     // set up the execution environment
@@ -32,7 +36,7 @@ object CtDT {
           o.print()
         }
         else{
-          o.writeAsCsv(outputconfig.getString(conf_path), "\n", "\t", writeMode = FileSystem.WriteMode.OVERWRITE)
+          o.writeAsCsv(new File(outputbasedir, outputconfig.getString(conf_path)).getAbsolutePath, "\n", "\t", writeMode = FileSystem.WriteMode.OVERWRITE)
           if(pipe(pipe.size-1) == conf_path) {
             env.execute("CtDT")
             return
@@ -42,7 +46,7 @@ object CtDT {
     }
 
     // get input data
-    val in = conf.getString("input.text")
+    val in = config_dt.getString("input.text")
 
     val text:DataSet[String] = if(new File(in).exists) env.readTextFile(in) else env.fromCollection(in.split('\n'))
 
@@ -54,8 +58,8 @@ object CtDT {
 
     writeIfExists("raw", ct_raw)
 
-    val ct_raw_white = if(conf.hasPath("input.whitelist") && new File(conf.getString("input.whitelist")).exists) {
-      val whitelist = env.readTextFile(conf.getString("input.whitelist")).map(Tuple1(_)).distinct(0)
+    val ct_raw_white = if(config_dt.hasPath("input.whitelist") && new File(config_dt.getString("input.whitelist")).exists) {
+      val whitelist = env.readTextFile(config_dt.getString("input.whitelist")).map(Tuple1(_)).distinct(0)
       val white_cts_A = ct_raw // get all contexts of whitelist terms
         .joinWithTiny(whitelist)
         .where("A").equalTo(0)((x, y) =>  x )
