@@ -14,17 +14,17 @@ fi
 
 mkdir -p temp
 cd temp
-d=$(find . -type d -name "flink-*" -maxdepth 1 -mindepth 1 -print -quit)
+d=$(find . -maxdepth 1 -mindepth 1 -type d -name "flink-*" -print -quit | sed 's/.\///')
 
 if [[ -z ${d} ]]; then
   wget 'http://mirror.23media.de/apache/flink/flink-0.10.0/flink-0.10.0-bin-hadoop2-scala_2.10.tgz'
   tar -xzvf flink-*.tgz
-  d=$(find . -type d -name "flink-*" -maxdepth 1 -mindepth 1 -print -quit)
+  d=$(find . -maxdepth 1 -mindepth 1 -type d -name "flink-*" -print -quit | sed 's/.\///')
 fi
 
 echo "found $d"
 cd ..
-sh temp/${d}/bin/start-local.sh    # Start Flink
+source temp/${d}/bin/start-local.sh    # Start Flink
 
 # test wordcount example or run app.conf
 if [[ ! -z $1 && $1 == "test" ]] || [[ ! -z $2 && $2 == "test" ]]; then
@@ -33,4 +33,4 @@ else
   temp/${d}/bin/flink run -c de.tudarmstadt.lt.flinkdt.CtDT target/flinkdt-0.1.jar app.conf
 fi
 
-sh temp/${d}/bin/stop-local.sh
+source temp/${d}/bin/stop-local.sh
