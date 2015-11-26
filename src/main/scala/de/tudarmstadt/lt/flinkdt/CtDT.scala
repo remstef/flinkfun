@@ -61,7 +61,7 @@ object CtDT {
         .where("A").equalTo(0)((x, y) =>  x )
         .distinct(0)
       val white_cts_B_from_white_cts_A = ct_raw
-        .joinWithHuge(white_cts_A)
+        .joinWithTiny(white_cts_A)
         .where("B").equalTo("B")((x,y) => x) // get all terms of contexts of whitelist terms
       writeIfExists("whiteraw", white_cts_B_from_white_cts_A)
       white_cts_B_from_white_cts_A
@@ -95,10 +95,10 @@ object CtDT {
     println(n)
 
     val ct_all = ct_accumulated
-      .joinWithHuge(ct_accumulated_A)
+      .join(ct_accumulated_A)
       .where("A")
       .equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
-      .joinWithHuge(ct_accumulated_B)
+      .join(ct_accumulated_B)
       .where("B")
       .equalTo("B")((x, y) => { x.ndot1 = y.ndot1; x })
       .map(ct => {ct.n = n; ct.n11 = ct.lmi(); ct})
@@ -111,7 +111,7 @@ object CtDT {
       .first(1000)
 
     val joined = ct_all_filtered
-      .joinWithHuge(ct_all_filtered)
+      .join(ct_all_filtered)
       .where("B")
       .equalTo("B")
 
@@ -126,7 +126,7 @@ object CtDT {
       .filter(_.n1dot > 2)
 
     val dtsort = dt
-      .joinWithHuge(dtf)
+      .join(dtf)
       .where("A").equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
       .groupBy("A")
       .sortGroup("n11", Order.DESCENDING)

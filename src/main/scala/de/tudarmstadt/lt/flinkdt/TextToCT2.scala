@@ -41,7 +41,7 @@ object TextToCT2 {
   }
 
   def kWildcardNgramPatterns(text:String, n:Int=3, k:Int=2): TraversableOnce[CT2[String]] = {
-    throw new NotImplementedError("Not yet correctly implemented")
+    throw new NotImplementedError("Not yet implemented")
     val nh = n/2;
     val seq = ("^ "*(nh) + text + " $"*(nh)).split("\\s+")
     pat.kWildcardNgramPatterns(seq, n, k)

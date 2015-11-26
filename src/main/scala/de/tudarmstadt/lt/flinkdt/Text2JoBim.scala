@@ -1,16 +1,6 @@
 package de.tudarmstadt.lt.flinkdt
 
-import java.io.{FileReader, BufferedReader}
-import java.util
-
 import de.tudarmstadt.lt.scalautils.PatGen
-import de.tudarmstadt.lt.util.PatternGenerator
-import scala.collection.JavaConversions._
-import scala.collection.{immutable, mutable}
-
-import scala.collection.mutable.ListBuffer
-import scala.reflect.internal.util.HashSet
-import scala.reflect.io.File
 
 /**
  * Created by Steffen Remus.
