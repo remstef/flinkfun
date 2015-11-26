@@ -1,11 +1,11 @@
 #!/bin/bash
 
 wordcount () {
-  if [ ! -f temp/${d}/hamlet.txt ]; then
-    wget -O temp/${d}/hamlet.txt http://www.gutenberg.org/cache/epub/1787/pg1787.txt
+  if [ ! -f hamlet.txt ]; then
+    wget -O hamlet.txt http://www.gutenberg.org/cache/epub/1787/pg1787.txt
   fi
-  rm -r temp/${d}/wordcount-result.txt
-  temp/${d}/bin/flink run temp/${d}/examples/WordCount.jar "file://$(pwd)/temp/${d}/hamlet.txt" "file://$(pwd)/temp/${d}/wordcount-result.txt"
+  rm -r wordcount-result.txt
+  bin/flink run examples/WordCount.jar "file://$(pwd)/hamlet.txt" "file://$(pwd)/wordcount-result.txt"
 }
 
 if [[ ! -z $1 && $1 == "build" ]] || [[ ! -z $2 && $2 == "build" ]]; then
@@ -23,14 +23,17 @@ if [[ -z ${d} ]]; then
 fi
 
 echo "found $d"
-cd ..
-source temp/${d}/bin/start-local.sh    # Start Flink
+cd $d
+(exec "bin/start-local.sh")     # Start Flink in a new shell
 
 # test wordcount example or run app.conf
 if [[ ! -z $1 && $1 == "test" ]] || [[ ! -z $2 && $2 == "test" ]]; then
   wordcount
 else
+  cd ../..
   temp/${d}/bin/flink run -c de.tudarmstadt.lt.flinkdt.CtDT target/flinkdt-0.1.jar app.conf
+  cd temp/$d
 fi
 
-source temp/${d}/bin/stop-local.sh
+(exec "bin/stop-local.sh")     # Stop flink, run command in a new shell
+cd ../..
