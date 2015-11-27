@@ -20,8 +20,7 @@ package de.tudarmstadt.lt.flinkdt
 
 import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
 import java.text.DecimalFormat
-
-import ch.qos.logback.classic.pattern.ClassNameOnlyAbbreviator
+import de.tudarmstadt.lt.scalautils.FormatUtils
 
 import scala.math._
 
@@ -41,10 +40,6 @@ object CT2 {
       case _ => EMPTY_CT
     }
   }
-
-  val nf = new DecimalFormat("##0.######E00")
-
-  def format(number: Number):String = nf.format(number).replace("E00","")
 
 }
 
@@ -127,15 +122,15 @@ case class CT2[T](var A:T, var B:T,
 
   def prettyPrint():String = {
     val v = Array(
-      s"${CT2.format(n11)}",
-      s"${CT2.format(n12)}",
-      s"${CT2.format(n21)}",
-      s"${CT2.format(n22)}",
-      s"${CT2.format(n1dot)}",
-      s"${CT2.format(n2dot)}",
-      s"${CT2.format(ndot1)}",
-      s"${CT2.format(ndot2)}",
-      s"${CT2.format(n)}")
+      s"${FormatUtils.format(n11)}",
+      s"${FormatUtils.format(n12)}",
+      s"${FormatUtils.format(n21)}",
+      s"${FormatUtils.format(n22)}",
+      s"${FormatUtils.format(n1dot)}",
+      s"${FormatUtils.format(n2dot)}",
+      s"${FormatUtils.format(ndot1)}",
+      s"${FormatUtils.format(ndot2)}",
+      s"${FormatUtils.format(n)}")
     val maxwidth = v.map(_.length).max + 2
     val vf = v.map(x => ("%-"+maxwidth+"s").format(x)).toIndexedSeq
     val filler  = " "*maxwidth
@@ -155,10 +150,10 @@ case class CT2[T](var A:T, var B:T,
   def toStringTuple():(String, String, String, String, String, String) = (
     s"${A}",
     s"${B}",
-    s"${CT2.format(n11)}",
-    s"${CT2.format(n1dot)}",
-    s"${CT2.format(ndot1)}",
-    s"${CT2.format(n)}")
+    s"${FormatUtils.format(n11)}",
+    s"${FormatUtils.format(n1dot)}",
+    s"${FormatUtils.format(ndot1)}",
+    s"${FormatUtils.format(n)}")
 
   def toStringArray():Array[String] = {
     val t = toStringTuple()

@@ -27,14 +27,14 @@ object TextToCT2 {
   }
 
   def ngram_patterns(text:String, n:Int=5, num_wildcards:Int=2): TraversableOnce[CT2[String]] = {
-    val f = Array(n/2)
+    val f = Array(n/2) // 5/2 = 2 => 0 1 @ 3 4
     val ngram_jbs = ngrams(text, n)
     val jb = ngram_jbs.flatMap(ct => pat.merged_patterns(ct.B.split(" "), num_wildcards, f).map(pat => pat.pattern).map(p => ct.copy(B=p.mkString(" "))))
     jb
   }
 
   def kSkipNgram(text:String, n:Int=3, k:Int=2): TraversableOnce[CT2[String]] = {
-    val nh = n/2;
+    val nh = n/2; // 3/2 = 1 => 0 @ 2
     val seq = ("^ "*(nh) + text + " $"*(nh)).split("\\s+")
     pat.kSkipNgrams(seq, n, k)
       .map(x => CT2(x(nh), x.slice(0,nh).mkString(" ") + " @ "  + x.slice(n-nh,n).mkString(" ")))

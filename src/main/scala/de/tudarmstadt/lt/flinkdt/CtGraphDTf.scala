@@ -10,6 +10,7 @@ import org.apache.flink.core.fs.FileSystem
 import org.apache.flink.util.Collector
 
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 /**
   * Created by Steffen Remus
@@ -63,6 +64,9 @@ object CtGraphDTf extends App {
     .sum("n11")
     .filter(_.n11 > 1)
 
+  val n = Try(ct_raw.map(ct => ct.n11).reduce(_+_).collect()(0) / 2f).getOrElse(0f)
+  println(n)
+
   val adjacencyLists = ct_raw
     .groupBy("A","isflipped")
     .reduceGroup(new GroupReduceFunction[CT2[String], AdjacencyList[String]]() {
@@ -75,6 +79,7 @@ object CtGraphDTf extends App {
             temp.n1dot += t.n11
             t })
           .map(t => {
+            t.n = n
             if(t.isflipped){
               t.A = t.B
               t.B = temp.A

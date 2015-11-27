@@ -67,34 +67,10 @@ object CtGraphDT extends App {
     .filter(_.n11 > 1)
     .map(c => {c.n = 0; c}) // set n to zero, it would be wrong anyways
 
-//  val n = Try(ct_raw.map(ct => ct.n11).reduce(_+_).collect()(0)).getOrElse(0f)
-//  println(n)
-//
-//  val adjacencyLists = ct_raw
-//    .groupBy("A")
-//    .reduceGroup(new GroupReduceFunction[CT2[String], TraversableOnce[CT2[String]]]() {
-//      override def reduce(values: Iterable[CT2[String]], out: Collector[TraversableOnce[CT2[String]]]): Unit = {
-//        val temp:CT2[String] = CT2(null,null, n11 = 0, ndot1 = 0, n1dot = 0, n = 0)
-//        val l = values.asScala
-//          .map(t => {
-//            temp.A = t.A
-//            temp.n11 += t.n11
-//            temp.n1dot += t.n11
-//            t })
-//          .map(t => {
-//            t.n = n
-//            t.n1dot = temp.n1dot
-//            t })
-//        // TODO: filter by too many contexts
-//        out.collect(l)
-//      }
-//    })
-//
-//  val adjacencyListsRev = adjacencyLists.flatMap(l => l)
     val adjacencyListsRev = ct_raw
     .groupBy("B")
-    .reduceGroup(new GroupReduceFunction[CT2[String], CT2[String]]() {
-      override def reduce(values: Iterable[CT2[String]], out: Collector[CT2[String]]): Unit = {
+    .reduceGroup(new GroupReduceFunction[CT2[String], TraversableOnce[CT2[String]]]() {
+      override def reduce(values: Iterable[CT2[String]], out: Collector[TraversableOnce[CT2[String]]]): Unit = {
         val temp:CT2[String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
         val l = values.asScala
           .map(t => {
@@ -105,32 +81,15 @@ object CtGraphDT extends App {
           .map(t => {
             t.ndot1 = temp.ndot1
             t })
-          // TODO: filter by pmi, ndot1, and so on
-        // TODO: ll might be a bottleneck, it creates multiple new sequences (one per entry)
-        l.foreach(ct_x => (l.foreach(ct_y => out.collect(CT2(ct_x.A, ct_y.A))))) // this could by optimized due to symmetry
+        // TODO: might be a bottleneck, it creates multiple new sequences (one new sequence per each entry)
+        l.foreach(ct_x => out.collect(l.map(ct_y => CT2(ct_x.A, ct_y.A)))) // this could by optimized due to symmetry
       }
     })
 
-  val dt = adjacencyListsRev
+  val dt = adjacencyListsRev.flatMap(l => l)
     .groupBy("A","B")
     .sum("n11")
-// evrything from here is from CtDT and can be optimized
-    .filter(_.n11 > 1)
 
-  val dtf = dt
-    .groupBy("A")
-    .sum("n1dot")
-    .filter(_.n1dot > 2)
+  writeIfExists("dt", dt)
 
-  val dtsort = dt
-    .join(dtf)
-    .where("A").equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
-    .groupBy("A")
-    .sortGroup("n11", Order.DESCENDING)
-    .first(100)
-
-  writeIfExists("dt", dtsort)
-
-
-//  env.execute()
 }

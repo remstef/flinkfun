@@ -82,7 +82,7 @@ object CtDT extends App {
     .groupBy("A")
     .reduce((x,y) => x.copy(n11 = x.n1dot+y.n1dot))
     .map(ct => {ct.B = "@"; ct})
-    .filter(_.ndot1 > 1)
+    .filter(_.n1dot > 1)
 
   writeIfExists("accA", ct_accumulated_A)
 
@@ -90,7 +90,7 @@ object CtDT extends App {
     .groupBy("B")
     .reduce((x,y) => x.copy(ndot1 = x.ndot1 + y.ndot1))
     .map(ct => {ct.A = "@"; ct})
-    .filter(ct => ct.ndot1 > 1)
+    .filter(ct => ct.ndot1 > 1 && ct.ndot1 <= 1000)
 
   writeIfExists("accB", ct_accumulated_B)
 
@@ -108,7 +108,7 @@ object CtDT extends App {
 
   writeIfExists("accall", ct_all)
 
-  val ct_all_filtered = ct_all.filter(ct => ct.ndot1 > 1 && ct.ndot1 <= 1000)
+  val ct_all_filtered = ct_all
     .groupBy("A")
     .sortGroup("n11", Order.DESCENDING)
     .first(1000)
