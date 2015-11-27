@@ -4,6 +4,7 @@ import java.io.File
 import java.lang.Iterable
 
 import com.typesafe.config.{ConfigFactory, Config}
+import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.functions.GroupReduceFunction
 import org.apache.flink.api.common.operators.Order
 
@@ -19,8 +20,6 @@ import scala.util.Try
   * Created by Steffen Remus
   */
 object CtGraphDT extends App {
-
-  case class AdjacencyList[T](source: CT2[T], targets: Array[CT2[T]])
 
   val config:Config =
     if(args.length > 0)
@@ -62,7 +61,7 @@ object CtGraphDT extends App {
   val ct_raw:DataSet[CT2[String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
-    .flatMap(s => Util.collapse(TextToCT2.ngram_patterns(s,5,3)))
+    .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
     .groupBy("A","B")
     .sum("n11")
     .filter(_.n11 > 1)
@@ -73,8 +72,8 @@ object CtGraphDT extends App {
 //
 //  val adjacencyLists = ct_raw
 //    .groupBy("A")
-//    .reduceGroup(new GroupReduceFunction[CT2[String], AdjacencyList[String]]() {
-//      override def reduce(values: Iterable[CT2[String]], out: Collector[AdjacencyList[String]]): Unit = {
+//    .reduceGroup(new GroupReduceFunction[CT2[String], TraversableOnce[CT2[String]]]() {
+//      override def reduce(values: Iterable[CT2[String]], out: Collector[TraversableOnce[CT2[String]]]): Unit = {
 //        val temp:CT2[String] = CT2(null,null, n11 = 0, ndot1 = 0, n1dot = 0, n = 0)
 //        val l = values.asScala
 //          .map(t => {
@@ -87,15 +86,15 @@ object CtGraphDT extends App {
 //            t.n1dot = temp.n1dot
 //            t })
 //        // TODO: filter by too many contexts
-//        out.collect(AdjacencyList(temp, l.toArray))
+//        out.collect(l)
 //      }
 //    })
-
-//  val adjacencyListsRev = adjacencyLists.flatMap(_.targets)
+//
+//  val adjacencyListsRev = adjacencyLists.flatMap(l => l)
     val adjacencyListsRev = ct_raw
     .groupBy("B")
-    .reduceGroup(new GroupReduceFunction[CT2[String], AdjacencyList[String]]() {
-      override def reduce(values: Iterable[CT2[String]], out: Collector[AdjacencyList[String]]): Unit = {
+    .reduceGroup(new GroupReduceFunction[CT2[String], CT2[String]]() {
+      override def reduce(values: Iterable[CT2[String]], out: Collector[CT2[String]]): Unit = {
         val temp:CT2[String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
         val l = values.asScala
           .map(t => {
@@ -107,12 +106,12 @@ object CtGraphDT extends App {
             t.ndot1 = temp.ndot1
             t })
           // TODO: filter by pmi, ndot1, and so on
-        val ll = l.flatMap(ct_x => l.map(ct_y => CT2(ct_x.A, ct_y.A)).toSeq) // this could by optimized due to symmetry
-        out.collect(AdjacencyList(temp, ll.toArray))
+        // TODO: ll might be a bottleneck, it creates multiple new sequences (one per entry)
+        l.foreach(ct_x => (l.foreach(ct_y => out.collect(CT2(ct_x.A, ct_y.A))))) // this could by optimized due to symmetry
       }
     })
 
-  val dt = adjacencyListsRev.flatMap(_.targets)
+  val dt = adjacencyListsRev
     .groupBy("A","B")
     .sum("n11")
 // evrything from here is from CtDT and can be optimized
