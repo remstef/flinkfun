@@ -72,7 +72,8 @@ case class CT2[T](var A:T, var B:T,
                   var n1dot:Float = 1f,
                   var ndot1:Float = 1f,
                   var n:Float     = 1f,
-                  val srcid:Option[Any] = None) extends Serializable with Cloneable {
+                  val srcid:Option[Any] = None,
+                  val isflipped:Boolean = false) extends Serializable with Cloneable {
 
   def n12()   = n1dot - n11
   def n21()   = ndot1 - n11
@@ -191,6 +192,19 @@ case class CT2[T](var A:T, var B:T,
     new ObjectOutputStream(serialize).writeObject(this)
     val deserialize = new ByteArrayInputStream(serialize.toByteArray());
     return new ObjectInputStream(deserialize).readObject().asInstanceOf[CT2[T]];
+  }
+
+  def flipped():CT2[T] = {
+    copy(
+      this.B,
+      this.A,
+      this.n11,
+      this.ndot1,
+      this.n1dot,
+      this.n,
+      this.srcid,
+      true
+    )
   }
 
 }
