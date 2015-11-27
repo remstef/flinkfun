@@ -68,30 +68,31 @@ object CtGraphDT extends App {
     .filter(_.n11 > 1)
     .map(c => {c.n = 0; c}) // set n to zero, it would be wrong anyways
 
-  val n = Try(ct_raw.map(ct => ct.n11).reduce(_+_).collect()(0)).getOrElse(0f)
-  println(n)
+//  val n = Try(ct_raw.map(ct => ct.n11).reduce(_+_).collect()(0)).getOrElse(0f)
+//  println(n)
+//
+//  val adjacencyLists = ct_raw
+//    .groupBy("A")
+//    .reduceGroup(new GroupReduceFunction[CT2[String], AdjacencyList[String]]() {
+//      override def reduce(values: Iterable[CT2[String]], out: Collector[AdjacencyList[String]]): Unit = {
+//        val temp:CT2[String] = CT2(null,null, n11 = 0, ndot1 = 0, n1dot = 0, n = 0)
+//        val l = values.asScala
+//          .map(t => {
+//            temp.A = t.A
+//            temp.n11 += t.n11
+//            temp.n1dot += t.n11
+//            t })
+//          .map(t => {
+//            t.n = n
+//            t.n1dot = temp.n1dot
+//            t })
+//        // TODO: filter by too many contexts
+//        out.collect(AdjacencyList(temp, l.toArray))
+//      }
+//    })
 
-  val adjacencyLists = ct_raw
-    .groupBy("A")
-    .reduceGroup(new GroupReduceFunction[CT2[String], AdjacencyList[String]]() {
-      override def reduce(values: Iterable[CT2[String]], out: Collector[AdjacencyList[String]]): Unit = {
-        val temp:CT2[String] = CT2(null,null, n11 = 0, ndot1 = 0, n1dot = 0, n = 0)
-        val l = values.asScala
-          .map(t => {
-            temp.A = t.A
-            temp.n11 += t.n11
-            temp.n1dot += t.n11
-            t })
-          .map(t => {
-            t.n = n
-            t.n1dot = temp.n1dot
-            t })
-        // TODO: filter by too many contexts
-        out.collect(AdjacencyList(temp, l.toArray))
-      }
-    })
-
-  val adjacencyListsRev = adjacencyLists.flatMap(_.targets)
+//  val adjacencyListsRev = adjacencyLists.flatMap(_.targets)
+    val adjacencyListsRev = ct_raw
     .groupBy("B")
     .reduceGroup(new GroupReduceFunction[CT2[String], AdjacencyList[String]]() {
       override def reduce(values: Iterable[CT2[String]], out: Collector[AdjacencyList[String]]): Unit = {
