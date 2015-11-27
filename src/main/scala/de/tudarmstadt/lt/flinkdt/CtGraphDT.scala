@@ -5,12 +5,15 @@ import java.lang.Iterable
 
 import com.typesafe.config.{ConfigFactory, Config}
 import org.apache.flink.api.common.functions.GroupReduceFunction
+import org.apache.flink.api.common.operators.Order
 
 import org.apache.flink.api.scala.{ExecutionEnvironment, DataSet}
 import org.apache.flink.core.fs.FileSystem
 import org.apache.flink.util.Collector
 import scala.collection.JavaConverters._
 import org.apache.flink.api.scala._
+
+import scala.util.Try
 
 /**
   * Created by Steffen Remus
@@ -65,45 +68,69 @@ object CtGraphDT extends App {
     .filter(_.n11 > 1)
     .map(c => {c.n = 0; c}) // set n to zero, it would be wrong anyways
 
-    val adjacencyLists = ct_raw
-      .groupBy("A")
-      .reduceGroup(new GroupReduceFunction[CT2[String], AdjacencyList[String]]() {
-        override def reduce(values: Iterable[CT2[String]], out: Collector[AdjacencyList[String]]): Unit = {
-          val temp:CT2[String] = CT2("","@", n11 = 0, ndot1 = 0, n1dot = 0, n = 0)
-          val l = values.asScala
-            .map(t => {
-              temp.A = t.A
-              temp.n11 += t.n11
-              temp.n1dot += t.n11
-              t })
-            .map(t => {
-              t.n1dot = temp.n1dot
-              t })
-          out.collect(AdjacencyList(temp, l.toArray))
-        }
-      })
+  val n = Try(ct_raw.map(ct => ct.n11).reduce(_+_).collect()(0)).getOrElse(0f)
+  println(n)
 
-    val adjacencyListsRev = adjacencyLists.flatMap(_.targets)
-      .groupBy("B")
-      .reduceGroup(new GroupReduceFunction[CT2[String], AdjacencyList[String]]() {
-        override def reduce(values: Iterable[CT2[String]], out: Collector[AdjacencyList[String]]): Unit = {
-          val temp:CT2[String] = CT2("@","", n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
-          val l = values.asScala
-            .map(t => {
-              temp.B = t.B
-              temp.n11 += t.n11
-              temp.ndot1 += t.n11
-              t })
-            .map(t => {
-              t.ndot1 = temp.ndot1
-              t })
-          out.collect(AdjacencyList(temp, l.toArray))
-        }
-      })
+  val adjacencyLists = ct_raw
+    .groupBy("A")
+    .reduceGroup(new GroupReduceFunction[CT2[String], AdjacencyList[String]]() {
+      override def reduce(values: Iterable[CT2[String]], out: Collector[AdjacencyList[String]]): Unit = {
+        val temp:CT2[String] = CT2(null,null, n11 = 0, ndot1 = 0, n1dot = 0, n = 0)
+        val l = values.asScala
+          .map(t => {
+            temp.A = t.A
+            temp.n11 += t.n11
+            temp.n1dot += t.n11
+            t })
+          .map(t => {
+            t.n = n
+            t.n1dot = temp.n1dot
+            t })
+        // TODO: filter by too many contexts
+        out.collect(AdjacencyList(temp, l.toArray))
+      }
+    })
 
-    val a = adjacencyListsRev.flatMap(_.targets)
+  val adjacencyListsRev = adjacencyLists.flatMap(_.targets)
+    .groupBy("B")
+    .reduceGroup(new GroupReduceFunction[CT2[String], AdjacencyList[String]]() {
+      override def reduce(values: Iterable[CT2[String]], out: Collector[AdjacencyList[String]]): Unit = {
+        val temp:CT2[String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
+        val l = values.asScala
+          .map(t => {
+            temp.B = t.B
+            temp.n11 += t.n11
+            temp.ndot1 += t.n11
+            t })
+          .map(t => {
+            t.ndot1 = temp.ndot1
+            t })
+          // TODO: filter by pmi, ndot1, and so on
+        val ll = l.flatMap(ct_x => l.map(ct_y => CT2(ct_x.A, ct_y.A)).toSeq) // this could by optimized due to symmetry
+        out.collect(AdjacencyList(temp, ll.toArray))
+      }
+    })
 
-  writeIfExists("accall",a)
+  val dt = adjacencyListsRev.flatMap(_.targets)
+    .groupBy("A","B")
+    .sum("n11")
+// evrything from here is from CtDT and can be optimized
+    .filter(_.n11 > 1)
 
-  env.execute()
+  val dtf = dt
+    .groupBy("A")
+    .sum("n1dot")
+    .filter(_.n1dot > 2)
+
+  val dtsort = dt
+    .join(dtf)
+    .where("A").equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
+    .groupBy("A")
+    .sortGroup("n11", Order.DESCENDING)
+    .first(100)
+
+  writeIfExists("dt", dtsort)
+
+
+//  env.execute()
 }
