@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # PARALLELISM=4
-MAIN_CLASS=${de.tudarmstadt.lt.flinkdt.CtGraphDT}
+MAIN_CLASS="de.tudarmstadt.lt.flinkdt.CtGraphDT"
 if [[ ! -z ${PARALLELISM} ]]; then
-  PARALLELISM_PARM = "-p ${PARALLELISM}"
+  PARALLELISM_PARM="-p ${PARALLELISM}"
 fi
 
 wordcount () {
@@ -32,7 +32,7 @@ echo "found $d"
 cd $d
 (exec "bin/start-local.sh")     # Start Flink in a new shell
 echo "Check webgui on http://localhost:8081"
-sleep 5
+sleep 20
 
 # test wordcount example or run app.conf
 if [[ ! -z $1 && $1 == "test" ]] || [[ ! -z $2 && $2 == "test" ]]; then
