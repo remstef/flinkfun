@@ -82,14 +82,14 @@ object CT2Test {
     println("--- test collapsing ---")
     val ct2s = Seq(CT2("a", "a", n11=2, n1dot=2, ndot1=2, n=2), CT2("a", "a"), CT2("a", "b"), CT2("a", "a"), CT2("a", "b"), CT2("a", "a", n11=11, n1dot=11, ndot1=11, n=11), CT2("b","a", n11=4, n1dot=4, ndot1=4, n=4), CT2("b", "b"))
     println(s"${ct2s.size} == ${ct2s.size}")
-    val collapsed_ct2s = Util.collapse(ct2s)
+    val collapsed_ct2s = Util.collapseCT2(ct2s)
     println(s"${collapsed_ct2s.size} == ${collapsed_ct2s.size}")
     collapsed_ct2s.foreach(x=>println(x.prettyPrint()))
 
     println("--- test collapsing more ---")
     val ct2sm = TextToCT2.ngrams("a a a a a b a a a a a",3).toIterable
     println(s"${ct2sm.size} == ${ct2sm.size}")
-    val collapsed_ct2sm = Util.collapse(ct2sm)
+    val collapsed_ct2sm = Util.collapseCT2Min(ct2sm)
     println(s"${collapsed_ct2sm.size} == ${collapsed_ct2sm.size}")
     collapsed_ct2sm.foreach(println _)
   }

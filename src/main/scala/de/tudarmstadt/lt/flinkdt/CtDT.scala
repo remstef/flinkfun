@@ -52,8 +52,8 @@ object CtDT extends App {
   val ct_raw:DataSet[CT2[String,String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
-    .map(TextToCT2.ngram_patterns(_,5,3))
-    .flatMap(s => Util.collapse(s))
+    .map(TextToCT2.ngram_patterns(_,5,3).map(_.toCT2()))
+    .flatMap(s => Util.collapseCT2(s))
 
   writeIfExists("raw", ct_raw)
 

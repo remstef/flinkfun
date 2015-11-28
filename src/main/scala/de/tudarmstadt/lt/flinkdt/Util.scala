@@ -12,9 +12,12 @@ object Util {
     * @param cts a sequence of CT2 objects (not necessarily distinct)
     * @return a sequence of distinct CT2 objects where CT2s are collapsed
     */
-  def collapse[T1, T2](cts:TraversableOnce[CT2[T1, T2]]):TraversableOnce[CT2[T1, T2]] = {
-    return collapse_foldleft_set(cts)
-//    return collapse_foldleft_set(cts)
+  def collapseCT2[T1, T2](cts:TraversableOnce[CT2[T1, T2]]):TraversableOnce[CT2[T1, T2]] = {
+    return collapse_foldleft_set_CT2(cts)
+  }
+
+  def collapseCT2Min[T1, T2](cts:TraversableOnce[CT2Min[T1, T2]]):TraversableOnce[CT2Min[T1, T2]] = {
+    return collapse_foldleft_set_CT2Min(cts)
   }
 
   def collapse_foldleft[T1, T2](cts:Traversable[CT2[T1, T2]]):TraversableOnce[CT2[T1, T2]] = {
@@ -73,7 +76,15 @@ object Util {
 
   }
 
-  def collapse_foldleft_set[T1, T2](cts:TraversableOnce[CT2[T1, T2]]):TraversableOnce[CT2[T1, T2]] = {
+  def collapse_foldleft_set_CT2Min[T1, T2](cts:TraversableOnce[CT2Min[T1, T2]]):TraversableOnce[CT2Min[T1, T2]] = {
+    cts.foldLeft(Set[CT2Min[T1, T2]]())((s, x) => {
+      val t:CT2Min[T1, T2] = x.copy()
+      s.foreach(y => {x += y; y += t })
+      s + x
+    })
+  }
+
+  def collapse_foldleft_set_CT2[T1, T2](cts:TraversableOnce[CT2[T1, T2]]):TraversableOnce[CT2[T1, T2]] = {
     cts.foldLeft(Set[CT2[T1, T2]]())((s, x) => {
       val t:CT2[T1, T2] = x.copy()
       s.foreach(y => {x += y; y += t })

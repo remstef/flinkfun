@@ -59,7 +59,7 @@ object CtGraphDTf extends App {
   val ct_raw:DataSet[CT2[String,String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
-    .flatMap(s => Util.collapse(TextToCT2.ngram_patterns(s,5,3)).flatMap(c => Seq(c, c.flipped())))
+    .flatMap(s => Util.collapseCT2(TextToCT2.ngram_patterns(s,5,3).map(_.toCT2())).flatMap(c => Seq(c, c.flipped())))
     .groupBy("A","B")
     .sum("n11")
     .filter(_.n11 > 1)
