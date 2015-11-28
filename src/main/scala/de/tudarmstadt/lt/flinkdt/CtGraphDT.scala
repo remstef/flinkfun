@@ -78,9 +78,9 @@ object CtGraphDT extends App {
 
     val adjacencyListsRev = ctagg
     .groupBy("B")
-    .reduceGroup(new GroupReduceFunction[CT2[Int, Int], TraversableOnce[CT2[Int, Int]]]() {
-      override def reduce(values: Iterable[CT2[Int, Int]], out: Collector[TraversableOnce[CT2[Int, Int]]]): Unit = {
-        val temp:CT2[Int, Int] = CT2(0,0, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
+    .reduceGroup(new GroupReduceFunction[CT2[Int, Int], CT2[Int, Int]]() {
+      override def reduce(values: Iterable[CT2[Int, Int]], out: Collector[CT2[Int, Int]]): Unit = {
+        val temp:CT2[Int, Int] = CT2(0, 0, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
         val l = values.asScala
           .map(t => {
             temp.B = t.B
@@ -89,13 +89,13 @@ object CtGraphDT extends App {
             t })
           .map(t => {
             t.ndot1 = temp.ndot1
-            t })
+            t }).toSeq
         // TODO: might be a bottleneck, it creates multiple new sequences (one new sequence per each entry)
-        l.par.foreach(ct_x => out.collect(l.map(ct_y => CT2(ct_x.A, ct_y.A)))) // this could by optimized due to symmetry
+        l.par.foreach(ct_x => l.par.foreach(ct_y => synchronized(out.collect(CT2(ct_x.A, ct_y.A))))) // this could by optimized due to symmetry
       }
     })
 
-  val dt_int = adjacencyListsRev.flatMap(l => l)
+  val dt_int = adjacencyListsRev
     .groupBy("A","B")
     .sum("n11")
 
