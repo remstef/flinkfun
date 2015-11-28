@@ -80,16 +80,14 @@ object CtDT extends App {
 
   val ct_accumulated_A = ct_raw_white.map(ct => {ct.n1dot=ct.n11; ct})
     .groupBy("A")
-    .reduce((x,y) => x.copy(n11 = x.n1dot+y.n1dot))
-    .map(ct => {ct.B = "@"; ct})
+    .reduce((x,y) => x.copy(B="@", n1dot = x.n1dot+y.n1dot))
     .filter(_.n1dot > 1)
 
   writeIfExists("accA", ct_accumulated_A)
 
   val ct_accumulated_B = ct_raw_white.map(ct => {ct.ndot1 = ct.n11; ct})
     .groupBy("B")
-    .reduce((x,y) => x.copy(ndot1 = x.ndot1 + y.ndot1))
-    .map(ct => {ct.A = "@"; ct})
+    .reduce((x,y) => x.copy(A="@", ndot1 = x.ndot1 + y.ndot1))
     .filter(ct => ct.ndot1 > 1 && ct.ndot1 <= 1000)
 
   writeIfExists("accB", ct_accumulated_B)
