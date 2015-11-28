@@ -4,20 +4,21 @@ import java.io.File
 import java.lang.Iterable
 
 import com.typesafe.config.{Config, ConfigFactory}
+import de.tudarmstadt.lt.scalautils.FixedSizeTreeSet
 import org.apache.flink.api.common.functions.GroupReduceFunction
+import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala.{DataSet, _}
 import org.apache.flink.core.fs.FileSystem
 import org.apache.flink.util.Collector
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.util.Try
 
 /**
   * Created by Steffen Remus
   */
 object CtGraphDTf extends App {
-
-  case class AdjacencyList[T1, T2](source: CT2[T1, T2], targets: Array[CT2[T1, T2]])
 
   val config:Config =
     if(args.length > 0)
@@ -56,61 +57,92 @@ object CtGraphDTf extends App {
 
   val text:DataSet[String] = if(new File(in).exists) env.readTextFile(in) else env.fromCollection(in.split('\n'))
 
-  val ct_raw:DataSet[CT2[String,String]] = text
+  val ct_raw:DataSet[CT2[String, String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
-    .flatMap(s => Util.collapseCT2(TextToCT2.ngram_patterns(s,5,3).map(_.toCT2())).flatMap(c => Seq(c, c.flipped())))
+    .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
     .groupBy("A","B")
     .sum("n11")
     .filter(_.n11 > 1)
+    .map(_.toCT2())
 
-  val n = Try(ct_raw.map(ct => ct.n11).reduce(_+_).collect()(0) / 2f).getOrElse(0f)
+  val n = Try(ct_raw.map(ct => ct.n11).reduce(_+_).collect()(0)).getOrElse(0f)
   println(n)
 
   val adjacencyLists = ct_raw
-    .groupBy("A","isflipped")
-    .reduceGroup(new GroupReduceFunction[CT2[String,String], AdjacencyList[String, String]]() {
-      override def reduce(values: Iterable[CT2[String,String]], out: Collector[AdjacencyList[String, String]]): Unit = {
-        val temp:CT2[String,String] = CT2(null,null, n11 = 0, ndot1 = 0, n1dot = 0, n = 0)
-        val l = values.asScala
-          .map(t => {
-            temp.A = t.A
-            temp.n11 += t.n11
-            temp.n1dot += t.n11
-            t })
-          .map(t => {
-            t.n = n
-            if(t.isflipped){
-              t.A = t.B
-              t.B = temp.A
-              t.ndot1 = temp.n1dot
-            }else{
-              t.n1dot = temp.n1dot
-            }
-            t
+    .groupBy("A")
+    .reduceGroup((iter, out:Collector[CT2[String, String]]) => {
+      var n1dot:Float = 0f
+      val seen:mutable.Set[String] = mutable.Set()
+      val l = iter.map(t => {
+        n1dot += t.n11
+        seen += t.B
+        t })
+      val o1dot:Int = seen.size
+      if(o1dot > 1 && o1dot < 1000)
+        l.foreach(t => {
+          t.n = n
+          t.n1dot = n1dot
+          out.collect(t)
+        })
+    })
+
+  val descending_ordering = new Ordering[CT2[String,String]] {
+    def compare(o1:CT2[String,String], o2:CT2[String,String]): Int = {
+      val r = o1.lmi().compareTo(o2.lmi())
+      if(r != 0)
+        return -r
+      return -o1.lmi().compareTo(o2.lmi())
+    }
+  }
+
+  val adjacencyListsRev = adjacencyLists
+    .groupBy("B")
+    .reduceGroup((iter, out:Collector[CT2[String, String]]) => {
+      val temp:CT2[String,String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
+      val s:FixedSizeTreeSet[CT2[String,String]] = FixedSizeTreeSet.empty(descending_ordering, 1000)
+      val seen:mutable.Set[String] = mutable.Set()
+      val l = iter
+        .map(t => {
+          temp.B = t.B
+          temp.n11 += t.n11
+          temp.ndot1 += t.n11
+          seen += t.A
+          t })
+        .map(t => {
+          t.ndot1 = temp.ndot1
+          s += t
+          t })
+
+      if(seen.size < 1000)
+        s.foreach(ct_x =>
+          s.foreach(ct_y => {
+            if(ct_y.lmi() > 0)
+              out.collect(CT2(ct_x.A, ct_y.A))
           })
-        out.collect(AdjacencyList(temp, l.toArray))
-      }
+        )
     })
 
-  val a = adjacencyLists.flatMap(_.targets)
+  val dt = adjacencyListsRev
     .groupBy("A","B")
-    .reduceGroup(new GroupReduceFunction[CT2[String,String], CT2[String,String]]() {
-      override def reduce(values: Iterable[CT2[String,String]], out: Collector[CT2[String,String]]): Unit = {
-        val s = values.asScala.toSeq
-        assert(s.length == 2)
-        assert(s(0).isflipped ^ s(1).isflipped)
-        assert(s(0).n11 == s(1).n11)
-        val flipped_index = if(s(0).isflipped) 0 else 1
-        val orig = s((flipped_index+1)%2)
-        orig.ndot1 = s(flipped_index).ndot1
-        orig.n = 0
-        out.collect(orig)
-      }
-    })
+    .sum("n11")
+    // evrything from here is from CtDT and can be optimized
+    .filter(_.n11 > 1)
+
+  val dtf = dt
+    .groupBy("A")
+    .sum("n1dot")
+    .filter(_.n1dot > 2)
+
+  val dtsort = dt
+    .join(dtf)
+    .where("A").equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
+    .groupBy("A")
+    .sortGroup("n11", Order.DESCENDING)
+    .first(200)
+
+  writeIfExists("dt", dtsort)
 
 
-  writeIfExists("accall",a)
-
-  env.execute()
+  //  env.execute()
 }
