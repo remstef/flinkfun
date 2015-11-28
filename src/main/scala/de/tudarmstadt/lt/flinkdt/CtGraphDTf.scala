@@ -17,7 +17,7 @@ import scala.util.Try
   */
 object CtGraphDTf extends App {
 
-  case class AdjacencyList[T](source: CT2[T], targets: Array[CT2[T]])
+  case class AdjacencyList[T1, T2](source: CT2[T1, T2], targets: Array[CT2[T1, T2]])
 
   val config:Config =
     if(args.length > 0)
@@ -32,7 +32,7 @@ object CtGraphDTf extends App {
     outputbasedir.mkdirs()
   val pipe = outputconfig.getStringList("pipeline").toArray
 
-  def writeIfExists[T <: Any](conf_path:String, ds:DataSet[CT2[T]], stringfun:((CT2[T]) => String) = ((ct2:CT2[T]) => ct2.toString)): Unit = {
+  def writeIfExists[T1 <: Any, T2 <: Any](conf_path:String, ds:DataSet[CT2[T1, T2]], stringfun:((CT2[T1, T2]) => String) = ((ct2:CT2[T1, T2]) => ct2.toString)): Unit = {
     if(outputconfig.hasPath(conf_path)){
       val o = ds.map(stringfun).map(Tuple1(_))
       if(outputconfig.getString(conf_path) equals "stdout") {
@@ -56,7 +56,7 @@ object CtGraphDTf extends App {
 
   val text:DataSet[String] = if(new File(in).exists) env.readTextFile(in) else env.fromCollection(in.split('\n'))
 
-  val ct_raw:DataSet[CT2[String]] = text
+  val ct_raw:DataSet[CT2[String,String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
     .flatMap(s => Util.collapse(TextToCT2.ngram_patterns(s,5,3)).flatMap(c => Seq(c, c.flipped())))
@@ -69,9 +69,9 @@ object CtGraphDTf extends App {
 
   val adjacencyLists = ct_raw
     .groupBy("A","isflipped")
-    .reduceGroup(new GroupReduceFunction[CT2[String], AdjacencyList[String]]() {
-      override def reduce(values: Iterable[CT2[String]], out: Collector[AdjacencyList[String]]): Unit = {
-        val temp:CT2[String] = CT2(null,null, n11 = 0, ndot1 = 0, n1dot = 0, n = 0)
+    .reduceGroup(new GroupReduceFunction[CT2[String,String], AdjacencyList[String, String]]() {
+      override def reduce(values: Iterable[CT2[String,String]], out: Collector[AdjacencyList[String, String]]): Unit = {
+        val temp:CT2[String,String] = CT2(null,null, n11 = 0, ndot1 = 0, n1dot = 0, n = 0)
         val l = values.asScala
           .map(t => {
             temp.A = t.A
@@ -95,8 +95,8 @@ object CtGraphDTf extends App {
 
   val a = adjacencyLists.flatMap(_.targets)
     .groupBy("A","B")
-    .reduceGroup(new GroupReduceFunction[CT2[String], CT2[String]]() {
-      override def reduce(values: Iterable[CT2[String]], out: Collector[CT2[String]]): Unit = {
+    .reduceGroup(new GroupReduceFunction[CT2[String,String], CT2[String,String]]() {
+      override def reduce(values: Iterable[CT2[String,String]], out: Collector[CT2[String,String]]): Unit = {
         val s = values.asScala.toSeq
         assert(s.length == 2)
         assert(s(0).isflipped ^ s(1).isflipped)

@@ -29,11 +29,11 @@ import scala.math._
   */
 object CT2 {
 
-  val EMPTY_CT = new CT2[String](A = "", B = "", n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
+  val EMPTY_CT = new CT2[String, String](A = "", B = "", n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
 
-  def fromString(ct2AsString:String):CT2[String] = fromStringArray(ct2AsString.split("\t"))
+  def fromString(ct2AsString:String):CT2[String,String] = fromStringArray(ct2AsString.split("\t"))
 
-  def fromStringArray(ct2AsStringArray:Array[String]):CT2[String] = {
+  def fromStringArray(ct2AsStringArray:Array[String]):CT2[String,String] = {
     ct2AsStringArray match {
       case  Array(_A,_B,n11,n1dot,ndot1,n,ndocs) => new CT2(_A,_B,n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
       case  Array(_A,_B,n11,n1dot,ndot1,n)       => new CT2(_A,_B,n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
@@ -62,7 +62,7 @@ object CT2 {
  *
  */
 @SerialVersionUID(42L)
-case class CT2[T](var A:T, var B:T,
+case class CT2[T1,T2](var A:T1, var B:T2,
                   var n11:Float   = 1f,
                   var n1dot:Float = 1f,
                   var ndot1:Float = 1f,
@@ -79,8 +79,8 @@ case class CT2[T](var A:T, var B:T,
   def pmi():Float = ((log(n11) + log(n)) - (log(n1dot) + log(ndot1))).toFloat
   def lmi():Float = (n11 * pmi()).toFloat
 
-  def +(other:CT2[T]):CT2[T] = {
-    val newct:CT2[T] = clone().asInstanceOf[CT2[T]]
+  def +(other:CT2[T1, T2]):this.type = {
+    val newct:this.type = this.clone().asInstanceOf[this.type]
     newct.n += other.n11
     if(A == other.A) {
       if(B == other.B){
@@ -103,7 +103,7 @@ case class CT2[T](var A:T, var B:T,
     * @param other
     * @return
     */
-  def +=(other:CT2[T]):CT2[T] = synchronized {
+  def +=(other:CT2[T1, T2]):this.type = synchronized {
     this.n += other.n11
     if(this.A == other.A) {
       if(this.B == other.B){
@@ -167,8 +167,8 @@ case class CT2[T](var A:T, var B:T,
   override def hashCode():Int = basicHashCode()
 
   def basicEquals(that:Any):Boolean = {
-    if(that.isInstanceOf[CT2[T]]) {
-      val ct2 = that.asInstanceOf[CT2[T]]
+    if(that.isInstanceOf[this.type ]) {
+      val ct2 = that.asInstanceOf[this.type]
       return  ((this.A == ct2.A) && (this.B == ct2.B))
     }
     return false
@@ -180,16 +180,16 @@ case class CT2[T](var A:T, var B:T,
       ) + (if(null == B) 0 else  B.hashCode)
   }
 
-  def copyClone():CT2[T] = clone().asInstanceOf[CT2[T]]
+  def copyClone():this.type = clone().asInstanceOf[this.type]
 
-  def copyDeep():CT2[T] = {
+  def copyDeep():this.type = {
     val serialize = new ByteArrayOutputStream()
     new ObjectOutputStream(serialize).writeObject(this)
     val deserialize = new ByteArrayInputStream(serialize.toByteArray());
-    return new ObjectInputStream(deserialize).readObject().asInstanceOf[CT2[T]];
+    return new ObjectInputStream(deserialize).readObject().asInstanceOf[this.type];
   }
 
-  def flipped():CT2[T] = {
+  def flipped():CT2[T2,T1] = {
     copy(
       this.B,
       this.A,

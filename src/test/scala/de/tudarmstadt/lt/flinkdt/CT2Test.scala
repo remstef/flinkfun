@@ -68,7 +68,7 @@ object CT2Test {
     set.foreach(println _)
 
     println("--- test ct2 mutable sets ---")
-    val mset:mutable.Set[CT2[String]] = mutable.Set()
+    val mset:mutable.Set[CT2[String, String]] = mutable.Set()
     mset += CT2("a", "a")
     mset += CT2("a", "a", 2)
     mset += CT2("a", "b")

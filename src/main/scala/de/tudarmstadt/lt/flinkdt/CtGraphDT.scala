@@ -30,7 +30,7 @@ object CtGraphDT extends App {
     outputbasedir.mkdirs()
   val pipe = outputconfig.getStringList("pipeline").toArray
 
-  def writeIfExists[T <: Any](conf_path:String, ds:DataSet[CT2[T]], stringfun:((CT2[T]) => String) = ((ct2:CT2[T]) => ct2.toString)): Unit = {
+  def writeIfExists[T1 <: Any, T2 <: Any](conf_path:String, ds:DataSet[CT2[T1, T2]], stringfun:((CT2[T1, T2]) => String) = ((ct2:CT2[T1, T2]) => ct2.toString)): Unit = {
     if(outputconfig.hasPath(conf_path)){
       val o = ds.map(stringfun).map(Tuple1(_))
       if(outputconfig.getString(conf_path) equals "stdout") {
@@ -54,7 +54,7 @@ object CtGraphDT extends App {
 
   val text:DataSet[String] = if(new File(in).exists) env.readTextFile(in) else env.fromCollection(in.split('\n'))
 
-  val ct_raw:DataSet[CT2[String]] = text
+  val ct_raw:DataSet[CT2[String,String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
     .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
@@ -78,9 +78,9 @@ object CtGraphDT extends App {
 
     val adjacencyListsRev = ctagg
     .groupBy("B")
-    .reduceGroup(new GroupReduceFunction[CT2[Int], TraversableOnce[CT2[Int]]]() {
-      override def reduce(values: Iterable[CT2[Int]], out: Collector[TraversableOnce[CT2[Int]]]): Unit = {
-        val temp:CT2[Int] = CT2(0,0, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
+    .reduceGroup(new GroupReduceFunction[CT2[Int, Int], TraversableOnce[CT2[Int, Int]]]() {
+      override def reduce(values: Iterable[CT2[Int, Int]], out: Collector[TraversableOnce[CT2[Int, Int]]]): Unit = {
+        val temp:CT2[Int, Int] = CT2(0,0, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
         val l = values.asScala
           .map(t => {
             temp.B = t.B
@@ -91,7 +91,7 @@ object CtGraphDT extends App {
             t.ndot1 = temp.ndot1
             t })
         // TODO: might be a bottleneck, it creates multiple new sequences (one new sequence per each entry)
-        l.foreach(ct_x => out.collect(l.map(ct_y => CT2(ct_x.A, ct_y.A)))) // this could by optimized due to symmetry
+        l.par.foreach(ct_x => out.collect(l.map(ct_y => CT2(ct_x.A, ct_y.A)))) // this could by optimized due to symmetry
       }
     })
 
@@ -101,7 +101,7 @@ object CtGraphDT extends App {
 
   val dt = dt_int
     .join(id2string).where("A").equalTo(0)((ct,tup) => (ct, tup._2))
-    .join(id2string).where("_1.B").equalTo(0)((ct_tup,tup) => CT2[String](ct_tup._2, tup._2, ct_tup._1.n11))
+    .join(id2string).where("_1.B").equalTo(0)((ct_tup,tup) => CT2[String,String](ct_tup._2, tup._2, ct_tup._1.n11))
 
   writeIfExists("dt", dt)
 
