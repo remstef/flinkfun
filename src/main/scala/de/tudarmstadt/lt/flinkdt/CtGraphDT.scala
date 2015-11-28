@@ -72,13 +72,13 @@ object CtGraphDT extends App {
 
   val adjacencyListsRev = ctagg
     .groupBy("B")
-    .reduceGroup((iter, out:Collector[CT2Min[Int, Int]]) => {
+    .reduceGroup((iter, out:Collector[TraversableOnce[CT2Min[Int, Int]]]) => {
       val l = iter.map(_.A).toIterable
       // TODO: might be a bottleneck, it creates multiple new sequences (one new sequence per each entry)
-      l.foreach(a => l.foreach(b => out.collect(CT2Min(a, b)))) // this could by optimized due to symmetry
+      l.foreach(a => out.collect(l.map(b => CT2Min(a, b)))) // this could by optimized due to symmetry
     })
 
-  val dt_int = adjacencyListsRev
+  val dt_int = adjacencyListsRev.flatMap(l => l)
     .groupBy("A","B")
     .sum("n11")
 
