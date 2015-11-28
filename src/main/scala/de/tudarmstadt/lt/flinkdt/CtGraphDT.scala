@@ -1,16 +1,11 @@
 package de.tudarmstadt.lt.flinkdt
 
 import java.io.File
-import java.lang.Iterable
 
-import com.typesafe.config.{ConfigFactory, Config}
-import org.apache.flink.api.common.functions.GroupReduceFunction
-
-import org.apache.flink.api.scala.DataSet
+import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.FileSystem
 import org.apache.flink.util.Collector
-import scala.collection.JavaConverters._
-import org.apache.flink.api.scala._
 
 /**
   * Created by Steffen Remus
@@ -60,11 +55,11 @@ object CtGraphDT extends App {
     .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
 
   val mapStringCtToInt = ct_raw.map(ct => {
-      val id_A:Int = ct.A.hashCode
-      val id_B:Int = ct.B.hashCode
-      val newct = CT2(id_A, id_B, ct.n11, ct.n1dot, ct.ndot1, ct.n)
-      (newct, Seq((id_A, ct.A), (id_B, ct.B)))
-    })
+    val id_A:Int = ct.A.hashCode
+    val id_B:Int = ct.B.hashCode
+    val newct = CT2(id_A, id_B, ct.n11, ct.n1dot, ct.ndot1, ct.n)
+    (newct, Seq((id_A, ct.A), (id_B, ct.B)))
+  })
 
   val id2string = mapStringCtToInt.map(_._2).flatMap(l => l).distinct(0)
 
@@ -76,33 +71,48 @@ object CtGraphDT extends App {
     .filter(_.n11 > 1)
     .map(c => {c.n = 0; c}) // set n to zero, it would be wrong anyways
 
-    val adjacencyListsRev = ctagg
+  val adjacencyListsRev = ctagg
     .groupBy("B")
-    .reduceGroup(new GroupReduceFunction[CT2[Int, Int], CT2[Int, Int]]() {
-      override def reduce(values: Iterable[CT2[Int, Int]], out: Collector[CT2[Int, Int]]): Unit = {
-        val temp:CT2[Int, Int] = CT2(0, 0, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
-        val l = values.asScala
-          .map(t => {
-            temp.B = t.B
-            temp.n11 += t.n11
-            temp.ndot1 += t.n11
-            t })
-          .map(t => {
-            t.ndot1 = temp.ndot1
-            t }).toSeq
-        // TODO: might be a bottleneck, it creates multiple new sequences (one new sequence per each entry)
-        l.par.foreach(ct_x => l.par.foreach(ct_y => synchronized(out.collect(CT2(ct_x.A, ct_y.A))))) // this could by optimized due to symmetry
-      }
+    .reduceGroup((iter, out:Collector[CT2[Int, Int]]) => {
+      val temp:CT2[Int, Int] = CT2(0, 0, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
+      val l = iter
+        .map(t => {
+          temp.B = t.B
+          temp.n11 += t.n11
+          temp.ndot1 += t.n11
+          t })
+        .map(t => {
+          t.ndot1 = temp.ndot1
+          t }).toIterable
+      // TODO: might be a bottleneck, it creates multiple new sequences (one new sequence per each entry)
+      l.foreach(ct_x => l.foreach(ct_y => out.collect(CT2(ct_x.A, ct_y.A)))) // this could by optimized due to symmetry
     })
 
-  val dt_int = adjacencyListsRev
-    .groupBy("A","B")
-    .sum("n11")
+    val dt_int = adjacencyListsRev
+      .groupBy("A","B")
+      .sum("n11")
 
-  val dt = dt_int
-    .join(id2string).where("A").equalTo(0)((ct,tup) => (ct, tup._2))
-    .join(id2string).where("_1.B").equalTo(0)((ct_tup,tup) => CT2[String,String](ct_tup._2, tup._2, ct_tup._1.n11))
+    val dt = dt_int
+      .join(id2string).where("A").equalTo(0)((ct,tup) => (ct, tup._2))
+      .join(id2string).where("_1.B").equalTo(0)((ct_tup,tup) => CT2[String,String](ct_tup._2, tup._2, ct_tup._1.n11))
 
-  writeIfExists("dt", dt)
+    writeIfExists("dt", dt)
+
+//      // evrything from here is from CtDT and can be optimized
+//      .filter(_.n11 > 1)
+//
+//  val dtf = dt
+//    .groupBy("A")
+//    .sum("n1dot")
+//    .filter(_.n1dot > 2)
+//
+//  val dtsort = dt
+//    .join(dtf)
+//    .where("A").equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
+//    .groupBy("A")
+//    .sortGroup("n11", Order.DESCENDING)
+//    .first(10)
+//
+//  writeIfExists("dt", dtsort)
 
 }
