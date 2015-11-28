@@ -4,17 +4,13 @@ import java.io.File
 import java.lang.Iterable
 
 import com.typesafe.config.{ConfigFactory, Config}
-import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.functions.GroupReduceFunction
-import org.apache.flink.api.common.operators.Order
 
-import org.apache.flink.api.scala.{ExecutionEnvironment, DataSet}
+import org.apache.flink.api.scala.DataSet
 import org.apache.flink.core.fs.FileSystem
 import org.apache.flink.util.Collector
 import scala.collection.JavaConverters._
 import org.apache.flink.api.scala._
-
-import scala.util.Try
 
 /**
   * Created by Steffen Remus
@@ -62,16 +58,29 @@ object CtGraphDT extends App {
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
     .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
+
+  val mapStringCtToInt = ct_raw.map(ct => {
+      val id_A:Int = ct.A.hashCode
+      val id_B:Int = ct.B.hashCode
+      val newct = CT2(id_A, id_B, ct.n11, ct.n1dot, ct.ndot1, ct.n)
+      (newct, Seq((id_A, ct.A), (id_B, ct.B)))
+    })
+
+  val id2string = mapStringCtToInt.map(_._2).flatMap(l => l).distinct(0)
+
+  val ct_raw_int = mapStringCtToInt.map(_._1)
+
+  val ctagg = ct_raw_int
     .groupBy("A","B")
     .sum("n11")
     .filter(_.n11 > 1)
     .map(c => {c.n = 0; c}) // set n to zero, it would be wrong anyways
 
-    val adjacencyListsRev = ct_raw
+    val adjacencyListsRev = ctagg
     .groupBy("B")
-    .reduceGroup(new GroupReduceFunction[CT2[String], TraversableOnce[CT2[String]]]() {
-      override def reduce(values: Iterable[CT2[String]], out: Collector[TraversableOnce[CT2[String]]]): Unit = {
-        val temp:CT2[String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
+    .reduceGroup(new GroupReduceFunction[CT2[Int], TraversableOnce[CT2[Int]]]() {
+      override def reduce(values: Iterable[CT2[Int]], out: Collector[TraversableOnce[CT2[Int]]]): Unit = {
+        val temp:CT2[Int] = CT2(0,0, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
         val l = values.asScala
           .map(t => {
             temp.B = t.B
@@ -86,9 +95,13 @@ object CtGraphDT extends App {
       }
     })
 
-  val dt = adjacencyListsRev.flatMap(l => l)
+  val dt_int = adjacencyListsRev.flatMap(l => l)
     .groupBy("A","B")
     .sum("n11")
+
+  val dt = dt_int
+    .join(id2string).where("A").equalTo(0)((ct,tup) => (ct, tup._2))
+    .join(id2string).where("_1.B").equalTo(0)((ct_tup,tup) => CT2[String](ct_tup._2, tup._2, ct_tup._1.n11))
 
   writeIfExists("dt", dt)
 
