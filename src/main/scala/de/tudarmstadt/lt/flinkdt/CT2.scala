@@ -80,7 +80,7 @@ case class CT2[T1,T2](var A:T1, var B:T2,
   def lmi():Float = (n11 * pmi()).toFloat
 
   def +(other:CT2[T1, T2]):this.type = {
-    val newct:this.type = this.clone().asInstanceOf[this.type]
+    val newct:this.type = copy().asInstanceOf[this.type]
     newct.n += other.n11
     if(A == other.A) {
       if(B == other.B){
