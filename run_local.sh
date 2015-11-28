@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# PARALLELISM=4
+MAIN_CLASS=${de.tudarmstadt.lt.flinkdt.CtGraphDT}
+if [[ ! -z ${PARALLELISM} ]]; then
+  PARALLELISM_PARM = "-p ${PARALLELISM}"
+fi
+
 wordcount () {
   if [ ! -f hamlet.txt ]; then
     wget -O hamlet.txt http://www.gutenberg.org/cache/epub/1787/pg1787.txt
@@ -25,13 +31,15 @@ fi
 echo "found $d"
 cd $d
 (exec "bin/start-local.sh")     # Start Flink in a new shell
+echo "Check webgui on http://localhost:8081"
+sleep 5
 
 # test wordcount example or run app.conf
 if [[ ! -z $1 && $1 == "test" ]] || [[ ! -z $2 && $2 == "test" ]]; then
   wordcount
 else
   cd ../..
-  temp/${d}/bin/flink run -c de.tudarmstadt.lt.flinkdt.CtDT target/flinkdt-0.1.jar app.conf
+  temp/${d}/bin/flink run ${PARALLELISM_PARM} -c ${MAIN_CLASS} target/flinkdt-0.1.jar app.conf
   cd temp/$d
 fi
 
