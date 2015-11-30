@@ -112,7 +112,7 @@ object CtGraphDTf extends App {
 
       val wc = ll.count(x => true)
       if(wc > 1 && wc <= 1000) {
-        val lll = ll.sortBy(-_._2).take(1000)
+        val lll = ll.sortBy(-_._2).take(1000) // sort descending
         lll.foreach(ct_x => {
           lll.foreach(ct_y => {
             if (ct_y._2 > 0)
