@@ -17,9 +17,10 @@ object CtDT extends App {
     else
       ConfigFactory.load() // load default application.conf
 
+  val jobname = s"out-${getClass.getSimpleName.replaceAllLiterally("$","")}"
   val config_dt = config.getConfig("DT")
   val outputconfig = config_dt.getConfig("output.ct")
-  val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", s"out-${getClass.getSimpleName.replaceAllLiterally("$","")}")
+  val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", jobname)
   if(!outputbasedir.exists())
     outputbasedir.mkdirs()
   val pipe = outputconfig.getStringList("pipeline").toArray
@@ -33,7 +34,7 @@ object CtDT extends App {
       else{
         o.writeAsCsv(new File(outputbasedir, outputconfig.getString(conf_path)).getAbsolutePath, "\n", "\t", writeMode = FileSystem.WriteMode.OVERWRITE)
         if(pipe(pipe.size-1) == conf_path) {
-          env.execute("CtDT")
+          env.execute(jobname)
           return
         }
       }
