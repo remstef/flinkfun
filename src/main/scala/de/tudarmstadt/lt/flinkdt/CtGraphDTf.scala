@@ -3,7 +3,7 @@ package de.tudarmstadt.lt.flinkdt
 import java.io.File
 
 import com.typesafe.config.{Config, ConfigFactory}
-import de.tudarmstadt.lt.scalautils.FixedSizeTreeSet
+import de.tudarmstadt.lt.scalautils.{FormatUtils, FixedSizeTreeSet}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala.{DataSet, _}
 import org.apache.flink.core.fs.FileSystem
@@ -64,8 +64,10 @@ object CtGraphDTf extends App {
 
   writeIfExists("accAB", ct_accumulated)
 
-  val n = Try(ct_accumulated.map(ct => ct.n11).reduce(_+_).collect()(0)).getOrElse(0f)
-  println(n)
+  val temp_n = ct_accumulated.map(ct => ct.n11).reduce(_+_)
+  temp_n.map(i => Tuple1(s"N=${FormatUtils.format(i)}")).print()
+  val n = Try(temp_n.collect()(0)).getOrElse(0f)
+  println(s"N=${FormatUtils.format(n)}")
 
   val adjacencyLists = ct_accumulated
     .groupBy("A")
