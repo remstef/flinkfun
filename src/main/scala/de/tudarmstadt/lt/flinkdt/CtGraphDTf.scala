@@ -79,12 +79,12 @@ object CtGraphDTf extends App {
 
       if(n1dot > 1) {
         l.foreach(t => {
-          t.n = n
           t.n1dot = n1dot
           out.collect(t)
         })
       }
     })
+    .map(ct => {ct.n = n; ct})
 
   writeIfExists("accA", adjacencyLists)
 
