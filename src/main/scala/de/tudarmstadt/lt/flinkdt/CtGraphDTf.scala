@@ -1,17 +1,14 @@
 package de.tudarmstadt.lt.flinkdt
 
 import java.io.File
-import java.lang.Iterable
 
 import com.typesafe.config.{Config, ConfigFactory}
 import de.tudarmstadt.lt.scalautils.FixedSizeTreeSet
-import org.apache.flink.api.common.functions.GroupReduceFunction
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala.{DataSet, _}
 import org.apache.flink.core.fs.FileSystem
 import org.apache.flink.util.Collector
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.Try
 
