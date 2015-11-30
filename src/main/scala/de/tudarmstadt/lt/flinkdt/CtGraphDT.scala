@@ -20,7 +20,7 @@ object CtGraphDT extends App {
 
   val config_dt = config.getConfig("DT")
   val outputconfig = config_dt.getConfig("output.ct")
-  val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./")
+  val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", s"out-${getClass.getSimpleName.replaceAllLiterally("$","")}")
   if(!outputbasedir.exists())
     outputbasedir.mkdirs()
   val pipe = outputconfig.getStringList("pipeline").toArray
@@ -34,7 +34,7 @@ object CtGraphDT extends App {
       else{
         o.writeAsCsv(new File(outputbasedir, outputconfig.getString(conf_path)).getAbsolutePath, "\n", "\t", writeMode = FileSystem.WriteMode.OVERWRITE)
         if(pipe(pipe.size-1) == conf_path) {
-          env.execute("CtDT")
+          env.execute(getClass.getSimpleName)
           return
         }
       }
@@ -72,13 +72,13 @@ object CtGraphDT extends App {
 
   val adjacencyListsRev = ctagg
     .groupBy("B")
-    .reduceGroup((iter, out:Collector[TraversableOnce[CT2Min[Int, Int]]]) => {
+    .reduceGroup((iter, out:Collector[CT2Min[Int, Int]]) => {
       val l = iter.map(_.A).toIterable
       // TODO: might be a bottleneck, it creates multiple new sequences (one new sequence per each entry)
-      l.foreach(a => out.collect(l.map(b => CT2Min(a, b)))) // this could by optimized due to symmetry
+      l.foreach(a => l.map(b => out.collect(CT2Min(a, b)))) // this could by optimized due to symmetry
     })
 
-  val dt_int = adjacencyListsRev.flatMap(l => l)
+  val dt_int = adjacencyListsRev
     .groupBy("A","B")
     .sum("n11")
 

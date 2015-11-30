@@ -25,7 +25,7 @@ object CtGraphDTf extends App {
 
   val config_dt = config.getConfig("DT")
   val outputconfig = config_dt.getConfig("output.ct")
-  val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./")
+  val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", s"out-${getClass.getSimpleName.replaceAllLiterally("$","")}")
   if(!outputbasedir.exists())
     outputbasedir.mkdirs()
   val pipe = outputconfig.getStringList("pipeline").toArray
@@ -39,8 +39,7 @@ object CtGraphDTf extends App {
       else{
         o.writeAsCsv(new File(outputbasedir, outputconfig.getString(conf_path)).getAbsolutePath, "\n", "\t", writeMode = FileSystem.WriteMode.OVERWRITE)
         if(pipe(pipe.size-1) == conf_path) {
-          env.execute("CtDT")
-          return
+          env.execute(getClass.getSimpleName)
         }
       }
     }
@@ -54,7 +53,7 @@ object CtGraphDTf extends App {
 
   val text:DataSet[String] = if(new File(in).exists) env.readTextFile(in) else env.fromCollection(in.split('\n'))
 
-  val ct_raw:DataSet[CT2[String, String]] = text
+  val ct_accumulated:DataSet[CT2[String, String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
     .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
@@ -63,58 +62,63 @@ object CtGraphDTf extends App {
     .filter(_.n11 > 1)
     .map(_.toCT2())
 
-  val n = Try(ct_raw.map(ct => ct.n11).reduce(_+_).collect()(0)).getOrElse(0f)
+  writeIfExists("accAB", ct_accumulated)
+
+  val n = Try(ct_accumulated.map(ct => ct.n11).reduce(_+_).collect()(0)).getOrElse(0f)
   println(n)
 
-  val adjacencyLists = ct_raw
+  val adjacencyLists = ct_accumulated
     .groupBy("A")
     .reduceGroup((iter, out:Collector[CT2[String, String]]) => {
       var n1dot:Float = 0f
-      val l = iter.map(t => {
-        n1dot += t.n11
-        t })
-      l.foreach(t => {
-        t.n = n
-        t.n1dot = n1dot
-        out.collect(t)
-      })
+      val l = iter.toIterable
+      l.foreach(t => n1dot += t.n11)
+
+      if(n1dot > 1) {
+        l.foreach(t => {
+          t.n = n
+          t.n1dot = n1dot
+          out.collect(t)
+        })
+      }
     })
 
-  val descending_ordering = new Ordering[CT2[String,String]] {
-    def compare(o1:CT2[String,String], o2:CT2[String,String]): Int = {
-      val r = o1.lmi().compareTo(o2.lmi())
-      if(r != 0)
-        return r
-      return (o1.lmi().compareTo(o2.lmi()))
-    }
-  }
+  writeIfExists("accA", adjacencyLists)
+
+//  val descending_ordering = new Ordering[CT2[String,String]] {
+//    def compare(o1:CT2[String,String], o2:CT2[String,String]): Int = {
+//      val r = o1.lmi().compareTo(o2.lmi())
+//      if(r != 0)
+//        return r
+//      return (o1.lmi().compareTo(o2.lmi()))
+//    }
+//  }
 
   val adjacencyListsRev = adjacencyLists
     .groupBy("B")
     .reduceGroup((iter, out:Collector[CT2[String, String]]) => {
       val temp:CT2[String,String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
-      val l = iter
-        .map(t => {
-          temp.B = t.B
-          temp.n11 += t.n11
-          temp.ndot1 += t.n11
-          t })
+      val l = iter.toSeq
+      l.foreach(t => {
+        temp.B = t.B
+        temp.n11 += t.n11
+        temp.ndot1 += t.n11
+      })
+      val ll = l
         .map(t => {
           t.ndot1 = temp.ndot1
           t })
         .map(t => (t, t.lmi()))
-        .toSeq
 
-      val wc = l.count(x => true)
-      val ll = l.sortBy(-_._2).take(1000)
-
+      val wc = ll.count(x => true)
       if(wc > 1 && wc <= 1000) {
-        ll.foreach(ct_x =>
-          ll.foreach(ct_y => {
+        val lll = ll.sortBy(-_._2).take(1000)
+        lll.foreach(ct_x => {
+          lll.foreach(ct_y => {
             if (ct_y._2 > 0)
               out.collect(CT2(ct_x._1.A, ct_y._1.A, 1f))
           })
-        )
+        })
       }
     })
 
@@ -138,6 +142,4 @@ object CtGraphDTf extends App {
 
   writeIfExists("dt", dtsort)
 
-
-  //  env.execute()
 }

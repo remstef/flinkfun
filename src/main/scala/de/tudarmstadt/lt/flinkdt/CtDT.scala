@@ -7,7 +7,6 @@ import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.FileSystem
 
-import scala.math._
 import scala.util.Try
 
 object CtDT extends App {
@@ -20,7 +19,7 @@ object CtDT extends App {
 
   val config_dt = config.getConfig("DT")
   val outputconfig = config_dt.getConfig("output.ct")
-  val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./")
+  val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", s"out-${getClass.getSimpleName.replaceAllLiterally("$","")}")
   if(!outputbasedir.exists())
     outputbasedir.mkdirs()
   val pipe = outputconfig.getStringList("pipeline").toArray
