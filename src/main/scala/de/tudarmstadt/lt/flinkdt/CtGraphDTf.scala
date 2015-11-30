@@ -84,7 +84,6 @@ object CtGraphDTf extends App {
         })
       }
     })
-    .map(ct => {ct.n = n; ct})
 
   writeIfExists("accA", adjacencyLists)
 
@@ -98,6 +97,7 @@ object CtGraphDTf extends App {
 //  }
 
   val adjacencyListsRev = adjacencyLists
+    .map(ct => {ct.n = n; ct})
     .groupBy("B")
     .reduceGroup((iter, out:Collector[CT2[String, String]]) => {
       val temp:CT2[String,String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
