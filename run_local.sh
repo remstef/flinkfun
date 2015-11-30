@@ -23,7 +23,7 @@ cd temp
 d=$(find . -maxdepth 1 -mindepth 1 -type d -name "flink-*" -print -quit | sed 's/.\///')
 
 if [[ -z ${d} ]]; then
-  wget 'http://www.apache.org/dyn/closer.lua/flink/flink-0.10.1/flink-0.10.1-bin-hadoop27-scala_2.11.tgz'
+  wget 'http://ftp.halifax.rwth-aachen.de/apache/flink/flink-0.10.1/flink-0.10.1-bin-hadoop27-scala_2.11.tgz'
   tar -xzvf flink-*.tgz
   ##
   #
