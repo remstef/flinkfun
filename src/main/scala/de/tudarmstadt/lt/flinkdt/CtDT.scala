@@ -49,60 +49,59 @@ object CtDT extends App {
 
   val text:DataSet[String] = if(new File(in).exists) env.readTextFile(in) else env.fromCollection(in.split('\n'))
 
-  val ct_raw:DataSet[CT2[String,String]] = text
+  val ct_accumulated:DataSet[CT2[String, String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
-    .map(TextToCT2.ngram_patterns(_,5,3).map(_.toCT2()))
-    .flatMap(s => Util.collapseCT2(s))
-
-  writeIfExists("raw", ct_raw)
-
-  val ct_raw_white = if(config_dt.hasPath("input.whitelist") && new File(config_dt.getString("input.whitelist")).exists) {
-    val whitelist = env.readTextFile(config_dt.getString("input.whitelist")).map(Tuple1(_)).distinct(0)
-    val white_cts_A = ct_raw // get all contexts of whitelist terms
-      .joinWithTiny(whitelist)
-      .where("A").equalTo(0)((x, y) =>  x )
-      .distinct(0)
-    val white_cts_B_from_white_cts_A = ct_raw
-      .joinWithTiny(white_cts_A)
-      .where("B").equalTo("B")((x,y) => x) // get all terms of contexts of whitelist terms
-    writeIfExists("whiteraw", white_cts_B_from_white_cts_A)
-    white_cts_B_from_white_cts_A
-  }else{
-    ct_raw
-  }
-
-  val ct_accumulated = ct_raw_white.groupBy("A","B")
+    .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
+    .groupBy("A","B")
     .sum("n11")
     .filter(_.n11 > 1)
+    .map(_.toCT2())
 
   writeIfExists("accAB", ct_accumulated)
 
-  val ct_accumulated_A = ct_raw_white.map(ct => {ct.n1dot=ct.n11; ct})
+  val n = Try(ct_accumulated.map(ct => ct.n11).reduce(_+_).collect()(0)).getOrElse(0f)
+  println(n)
+
+  val ct_accumulated_white = if(config_dt.hasPath("input.whitelist") && new File(config_dt.getString("input.whitelist")).exists) {
+    val whitelist = env.readTextFile(config_dt.getString("input.whitelist")).map(Tuple1(_)).distinct(0)
+    val white_cts_A = ct_accumulated // get all contexts of whitelist terms
+      .joinWithTiny(whitelist)
+      .where("A").equalTo(0)((x, y) =>  x )
+      .distinct(0)
+    val white_cts_B_from_white_cts_A = ct_accumulated
+      .joinWithTiny(white_cts_A)
+      .where("B").equalTo("B")((x,y) => x) // get all terms of contexts of whitelist terms
+    writeIfExists("accABwhite", white_cts_B_from_white_cts_A)
+    white_cts_B_from_white_cts_A
+  }else{
+    ct_accumulated
+  }
+
+  val ct_accumulated_A = ct_accumulated_white.map(ct => {ct.n1dot=ct.n11; ct})
     .groupBy("A")
     .reduce((x,y) => x.copy(B="@", n1dot = x.n1dot+y.n1dot))
     .filter(_.n1dot > 1)
 
   writeIfExists("accA", ct_accumulated_A)
 
-  val ct_accumulated_B = ct_raw_white.map(ct => {ct.ndot1 = ct.n11; ct})
+  val ct_accumulated_B = ct_accumulated_white
+    .map(ct => {ct.ndot1 = ct.n11; ct.n = 1f; ct}) // misuse n as odot1 i.e. the number of distinct occurrences of feature B (parameter wc=wordcount or wpfmax=wordsperfeature in traditional jobimtext)
     .groupBy("B")
-    .reduce((x,y) => x.copy(A="@", ndot1 = x.ndot1 + y.ndot1))
-    .filter(ct => ct.ndot1 > 1 && ct.ndot1 <= 1000)
+    .reduce((x,y) => x.copy(A="@", ndot1 = x.ndot1 + y.ndot1, n = x.n + y.n))
+    .filter(ct => ct.n <= 1000 && ct.n > 1)
 
   writeIfExists("accB", ct_accumulated_B)
 
-  val n = Try(ct_accumulated.map(ct => ct.n11).reduce(_+_).collect()(0)).getOrElse(0f)
-  println(n)
-
-  val ct_all = ct_accumulated
+  val ct_all = ct_accumulated_white
     .join(ct_accumulated_A)
     .where("A")
     .equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
     .join(ct_accumulated_B)
     .where("B")
     .equalTo("B")((x, y) => { x.ndot1 = y.ndot1; x })
-    .map(ct => {ct.n = n; ct.n11 = ct.lmi(); ct})
+    .map(ct => {ct.n = n; ct})
+    .map(ct => {ct.n11 = ct.lmi(); ct}) // misuse n11 as lmi score
 
   writeIfExists("accall", ct_all)
 
@@ -131,7 +130,7 @@ object CtDT extends App {
     .where("A").equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
     .groupBy("A")
     .sortGroup("n11", Order.DESCENDING)
-    .first(100)
+    .first(200)
 
   writeIfExists("dt", dtsort)
 

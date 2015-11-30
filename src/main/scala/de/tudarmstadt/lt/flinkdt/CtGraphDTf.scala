@@ -70,26 +70,22 @@ object CtGraphDTf extends App {
     .groupBy("A")
     .reduceGroup((iter, out:Collector[CT2[String, String]]) => {
       var n1dot:Float = 0f
-      val seen:mutable.Set[String] = mutable.Set()
       val l = iter.map(t => {
         n1dot += t.n11
-        seen += t.B
         t })
-      val o1dot:Int = seen.size
-      if(o1dot > 1 && o1dot < 1000)
-        l.foreach(t => {
-          t.n = n
-          t.n1dot = n1dot
-          out.collect(t)
-        })
+      l.foreach(t => {
+        t.n = n
+        t.n1dot = n1dot
+        out.collect(t)
+      })
     })
 
   val descending_ordering = new Ordering[CT2[String,String]] {
     def compare(o1:CT2[String,String], o2:CT2[String,String]): Int = {
       val r = o1.lmi().compareTo(o2.lmi())
       if(r != 0)
-        return -r
-      return -o1.lmi().compareTo(o2.lmi())
+        return r
+      return (o1.lmi().compareTo(o2.lmi()))
     }
   }
 
@@ -97,27 +93,29 @@ object CtGraphDTf extends App {
     .groupBy("B")
     .reduceGroup((iter, out:Collector[CT2[String, String]]) => {
       val temp:CT2[String,String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
-      val s:FixedSizeTreeSet[CT2[String,String]] = FixedSizeTreeSet.empty(descending_ordering, 1000)
-      val seen:mutable.Set[String] = mutable.Set()
       val l = iter
         .map(t => {
           temp.B = t.B
           temp.n11 += t.n11
           temp.ndot1 += t.n11
-          seen += t.A
           t })
         .map(t => {
           t.ndot1 = temp.ndot1
-          s += t
           t })
+        .map(t => (t, t.lmi()))
+        .toSeq
 
-      if(seen.size < 1000)
-        s.foreach(ct_x =>
-          s.foreach(ct_y => {
-            if(ct_y.lmi() > 0)
-              out.collect(CT2(ct_x.A, ct_y.A))
+      val wc = l.count(x => true)
+      val ll = l.sortBy(-_._2).take(1000)
+
+      if(wc > 1 && wc <= 1000) {
+        ll.foreach(ct_x =>
+          ll.foreach(ct_y => {
+            if (ct_y._2 > 0)
+              out.collect(CT2(ct_x._1.A, ct_y._1.A, 1f))
           })
         )
+      }
     })
 
   val dt = adjacencyListsRev
