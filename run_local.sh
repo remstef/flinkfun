@@ -23,8 +23,20 @@ cd temp
 d=$(find . -maxdepth 1 -mindepth 1 -type d -name "flink-*" -print -quit | sed 's/.\///')
 
 if [[ -z ${d} ]]; then
-  wget 'http://mirror.23media.de/apache/flink/flink-0.10.0/flink-0.10.0-bin-hadoop2-scala_2.10.tgz'
+  wget 'http://www.apache.org/dyn/closer.lua/flink/flink-0.10.1/flink-0.10.1-bin-hadoop27-scala_2.11.tgz'
   tar -xzvf flink-*.tgz
+  ##
+  #
+  # Note: consider to set some configuration parameter in conf/flink-conf.yaml
+  # e.g.
+  #   taskmanager.heap.mb: 20480
+  #   taskmanager.numberOfTaskSlots: 20
+  #   parallelism.default: 10
+  #   taskmanager.network.numberOfBuffers: 4096
+  #   taskmanager.tmp.dirs: ${HOME}/tmp
+  #   akka.watch.heartbeat.pause: 600s
+  #
+  ##
   d=$(find . -maxdepth 1 -mindepth 1 -type d -name "flink-*" -print -quit | sed 's/.\///')
 fi
 
