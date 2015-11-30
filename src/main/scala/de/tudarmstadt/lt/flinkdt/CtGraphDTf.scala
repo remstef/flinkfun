@@ -23,10 +23,10 @@ object CtGraphDTf extends App {
     else
       ConfigFactory.load() // load default application.conf
 
-  val jobname = s"out-${getClass.getSimpleName.replaceAllLiterally("$","")}"
+  val jobname = getClass.getSimpleName.replaceAllLiterally("$","")
   val config_dt = config.getConfig("DT")
   val outputconfig = config_dt.getConfig("output.ct")
-  val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", jobname)
+  val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", s"out-${jobname}")
   if(!outputbasedir.exists())
     outputbasedir.mkdirs()
   val pipe = outputconfig.getStringList("pipeline").toArray
