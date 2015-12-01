@@ -60,9 +60,6 @@ object CtDT extends App {
 
   writeIfExists("accAB", ct_accumulated)
 
-  val n = Try(ct_accumulated.map(ct => ct.n11).reduce(_+_).collect()(0)).getOrElse(0f)
-  println(n)
-
   val ct_accumulated_white = if(config_dt.hasPath("input.whitelist") && new File(config_dt.getString("input.whitelist")).exists) {
     val whitelist = env.readTextFile(config_dt.getString("input.whitelist")).map(Tuple1(_)).distinct(0)
     val white_cts_A = ct_accumulated // get all contexts of whitelist terms
@@ -93,14 +90,16 @@ object CtDT extends App {
 
   writeIfExists("accB", ct_accumulated_B)
 
-  val ct_all = ct_accumulated_white
+  val n = ct_accumulated_white.map(ct => ct.n11).reduce(_+_)
+  val ct_accumulated_n = ct_accumulated_white.crossWithTiny(n)((ct,n) => {ct.n = n; ct})
+
+  val ct_all = ct_accumulated_n
     .join(ct_accumulated_A)
     .where("A")
     .equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
     .join(ct_accumulated_B)
     .where("B")
     .equalTo("B")((x, y) => { x.ndot1 = y.ndot1; x })
-    .map(ct => {ct.n = n; ct})
     .map(ct => {ct.n11 = ct.lmi(); ct}) // misuse n11 as lmi score
 
   writeIfExists("accall", ct_all)

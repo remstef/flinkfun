@@ -65,12 +65,10 @@ object CtGraphDTf extends App {
 
   writeIfExists("accAB", ct_accumulated)
 
-  val temp_n = ct_accumulated.map(ct => ct.n11).reduce(_+_)
-  temp_n.map(i => Tuple1(s"N=${FormatUtils.format(i)}")).print()
-  val n = Try(temp_n.collect()(0)).getOrElse(0f)
-  println(s"N=${FormatUtils.format(n)}")
+  val n = ct_accumulated.map(ct => ct.n11).reduce(_+_)
+  val ct_accumulated_n = ct_accumulated.crossWithTiny(n)((ct,n) => {ct.n = n; ct})
 
-  val adjacencyLists = ct_accumulated
+  val adjacencyLists = ct_accumulated_n
     .groupBy("A")
     .reduceGroup((iter, out:Collector[CT2[String, String]]) => {
       var n1dot:Float = 0f
@@ -97,10 +95,9 @@ object CtGraphDTf extends App {
 //  }
 
   val adjacencyListsRev = adjacencyLists
-    .map(ct => {ct.n = n; ct})
     .groupBy("B")
     .reduceGroup((iter, out:Collector[CT2[String, String]]) => {
-      val temp:CT2[String,String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0, n = 0)
+      val temp:CT2[String,String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0)
       val l = iter.toSeq
       l.foreach(t => {
         temp.B = t.B
