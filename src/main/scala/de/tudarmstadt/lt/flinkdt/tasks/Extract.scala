@@ -4,9 +4,15 @@ import de.tudarmstadt.lt.flinkdt.{TextToCT2, CT2Min}
 import org.apache.flink.api.scala._
 
 /**
-  * Created by sr on 12/1/15.
+  * Created by Steffen Remus
   */
-class Extractor extends DtTask[String, CT2Min[String,String]] {
+object Extractor {
+
+  def apply() = new Extractor()
+
+}
+
+class Extractor extends DSTask[String, CT2Min[String,String]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[String] = lineDS
 
@@ -17,7 +23,5 @@ class Extractor extends DtTask[String, CT2Min[String,String]] {
       .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
     ct_raw
   }
-
-
 
 }
