@@ -11,9 +11,9 @@ import scala.reflect.ClassTag
   */
 object N11Sum {
 
-  def newString() = new N11Sum[String,String,CT2Min[String,String]]()
+  def String() = new N11Sum[String,String,CT2Min[String,String]]()
 
-  def newInt() = new N11Sum[Int,Int,CT2Min[Int,Int]]()
+  def Int() = new N11Sum[Int,Int,CT2Min[Int,Int]]()
 
 }
 

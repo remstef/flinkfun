@@ -30,15 +30,14 @@ object Executor extends App {
   // get input data
   val in = config_dt.getString("input.text")
 
-
   val ds = {
     DSReader(in,env) ~>
-    Extractor() ~>
-    N11Sum.newString() ~>
-    DSWriter(new File(outputbasedir, outputconfig.getString("dt")).getAbsolutePath)
+      Extractor() ~> DSWriter(new File(outputbasedir, outputconfig.getString("raw")).getAbsolutePath) ~>
+      N11Sum.String() ~> DSWriter(new File(outputbasedir, outputconfig.getString("accAB")).getAbsolutePath) ~>
+      WhiteListFilter(if(config_dt.hasPath("input.whitelist")) config_dt.getString("input.whitelist") else null, env) ~>
+      FilterSortDT.String() ~> DSWriter(new File(outputbasedir, outputconfig.getString("dt")).getAbsolutePath)
   }.process()
 
   env.execute(jobname)
-
 
 }
