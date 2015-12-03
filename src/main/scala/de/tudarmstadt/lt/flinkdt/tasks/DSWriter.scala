@@ -20,6 +20,8 @@ class DSWriter[T : TypeInformation](val out:String, val stringfun:(T => String))
   override def fromLines(lineDS: DataSet[String]): DataSet[T] = ???
 
   override def process(ds: DataSet[T]): DataSet[T] = {
+    if (out == null)
+      return ds
     val o = ds.map(stringfun(_)).map(Tuple1(_))
     if(out == "stdout")
       o.print()

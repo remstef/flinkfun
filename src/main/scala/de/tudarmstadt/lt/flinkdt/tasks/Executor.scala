@@ -11,40 +11,28 @@ import org.apache.flink.api.scala._
   */
 object Executor extends App {
 
-  val config:Config =
-    if(args.length > 0)
-      ConfigFactory.parseFile(new File(args(0))).withFallback(ConfigFactory.load()).resolve() // load conf with fallback to default application.conf
-    else
-      ConfigFactory.load() // load default application.conf
-
   val jobname = getClass.getSimpleName.replaceAllLiterally("$","")
-  val config_dt = config.getConfig("DT")
-  val outputconfig = config_dt.getConfig("output.ct")
-  val outputbasedir = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", s"out-${jobname}")
-  if(!outputbasedir.exists())
-    outputbasedir.mkdirs()
+  DSTaskConfig.load(args, jobname=jobname)
 
   // set up the execution environment
   val env = ExecutionEnvironment.getExecutionEnvironment
 
   // get input data
-  val in = config_dt.getString("input.text")
-
-  DSTaskConfig.load(args)
+  val in = DSTaskConfig.input
 
   val ds = {
 
-    Extractor() ~> DSWriter(new File(outputbasedir, outputconfig.getString("raw")).getAbsolutePath) ~>
+    Extractor() ~> DSWriter(DSTaskConfig.raw_output) ~>
 //
-    N11Sum() ~> DSWriter(new File(outputbasedir, outputconfig.getString("accAB")).getAbsolutePath) ~>
+    N11Sum() ~> DSWriter(DSTaskConfig.accumulated_AB_output) ~>
 //
-    WhiteListFilter(if(config_dt.hasPath("input.whitelist")) config_dt.getString("input.whitelist") else null, env) ~>
+    WhiteListFilter(DSTaskConfig.accumulated_AB_whitelisted_output, env) ~>
 //
-    ComputeCT2() ~> DSWriter(new File(outputbasedir, outputconfig.getString("accall")).getAbsolutePath) ~>
+    ComputeCT2() ~> DSWriter(DSTaskConfig.accumulated_CT_output) ~>
 //
     ComputeDT.fromCT2() ~>
 //
-    FilterSortDT.CT2Min() ~> DSWriter(new File(outputbasedir, outputconfig.getString("dt")).getAbsolutePath)
+    FilterSortDT.CT2Min() ~> DSWriter(DSTaskConfig.dt_sorted_output)
 
   }.process(env,in)
 
