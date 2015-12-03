@@ -19,7 +19,6 @@
 package de.tudarmstadt.lt.flinkdt
 
 import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
-import java.text.DecimalFormat
 import de.tudarmstadt.lt.scalautils.FormatUtils
 
 import scala.math._

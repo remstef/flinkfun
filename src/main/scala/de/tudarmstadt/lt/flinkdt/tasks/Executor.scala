@@ -40,11 +40,11 @@ object Executor extends App {
 //
     WhiteListFilter(if(config_dt.hasPath("input.whitelist")) config_dt.getString("input.whitelist") else null, env) ~>
 //
-    ComputeCT2() ~> DSWriter(new File(outputbasedir, outputconfig.getString("ctall")).getAbsolutePath) ~>
+    ComputeCT2() ~> DSWriter(new File(outputbasedir, outputconfig.getString("accall")).getAbsolutePath) ~>
 //
-//      ComputeDT() ~> DSWriter(new File(outputbasedir, outputconfig.getString("ctall")).getAbsolutePath) ~>
+    ComputeDT.fromCT2() ~>
 //
-    FilterSortDT.CT2() ~> DSWriter(new File(outputbasedir, outputconfig.getString("dt")).getAbsolutePath)
+    FilterSortDT.CT2Min() ~> DSWriter(new File(outputbasedir, outputconfig.getString("dt")).getAbsolutePath)
 
   }.process()
 
