@@ -39,8 +39,12 @@ object Executor extends App {
     N11Sum() ~> DSWriter(new File(outputbasedir, outputconfig.getString("accAB")).getAbsolutePath) ~>
 //
     WhiteListFilter(if(config_dt.hasPath("input.whitelist")) config_dt.getString("input.whitelist") else null, env) ~>
-    ComputeCT2() //~>
-//    FilterSortDT() ~> DSWriter(new File(outputbasedir, outputconfig.getString("dt")).getAbsolutePath)
+//
+    ComputeCT2() ~> DSWriter(new File(outputbasedir, outputconfig.getString("ctall")).getAbsolutePath) ~>
+//
+//      ComputeDT() ~> DSWriter(new File(outputbasedir, outputconfig.getString("ctall")).getAbsolutePath) ~>
+//
+    FilterSortDT.CT2() ~> DSWriter(new File(outputbasedir, outputconfig.getString("dt")).getAbsolutePath)
 
   }.process()
 
