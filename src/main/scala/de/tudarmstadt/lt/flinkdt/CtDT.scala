@@ -77,7 +77,7 @@ object CtDT extends App {
 
   val ct_accumulated_A = ct_accumulated_white.map(ct => {ct.n1dot=ct.n11; ct})
     .groupBy("A")
-    .reduce((x,y) => x.copy(B="@", n1dot = x.n1dot+y.n1dot))
+    .reduce((l,r) => {l.n1dot = l.n1dot+r.n1dot; l})
     .filter(_.n1dot > 1)
 
   writeIfExists("accA", ct_accumulated_A)
@@ -85,7 +85,7 @@ object CtDT extends App {
   val ct_accumulated_B = ct_accumulated_white
     .map(ct => {ct.ndot1 = ct.n11; ct.n = 1f; ct}) // misuse n as odot1 i.e. the number of distinct occurrences of feature B (parameter wc=wordcount or wpfmax=wordsperfeature in traditional jobimtext)
     .groupBy("B")
-    .reduce((x,y) => x.copy(A="@", ndot1 = x.ndot1 + y.ndot1, n = x.n + y.n))
+    .reduce((l,r) => {l.ndot1 = l.ndot1 + r.ndot1; l.n = l.n + r.n; l})
     .filter(ct => ct.n <= 1000 && ct.n > 1)
 
   writeIfExists("accB", ct_accumulated_B)

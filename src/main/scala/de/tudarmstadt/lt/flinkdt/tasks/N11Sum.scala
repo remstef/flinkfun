@@ -11,22 +11,20 @@ import scala.reflect.ClassTag
   */
 object N11Sum {
 
-  def String() = new N11Sum[String,String,CT2Min[String,String]]()
-
-  def Int() = new N11Sum[Int,Int,CT2Min[Int,Int]]()
+  def apply[T1 : TypeInformation, T2 : TypeInformation]() = new N11Sum[T1,T2]()
 
 }
 
-class N11Sum[T1, T2, K <: CT2Min[T1,T2] : ClassTag : TypeInformation] extends DSTask[K,K] {
+class N11Sum[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[K] = lineDS.map(l => l.split("\t") match {
-    case Array(a,b,n11) => CT2Min[T1,T2](a.asInstanceOf[T1], b.asInstanceOf[T2], n11.toFloat).asInstanceOf[K]
-    case _ => CT2Min[T1,T2](null.asInstanceOf[T1],null.asInstanceOf[T2],0f).asInstanceOf[K]
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(l => l.split("\t") match {
+    case Array(a,b,n11) => CT2Min[T1,T2](a.asInstanceOf[T1], b.asInstanceOf[T2], n11.toFloat)
+    case _ => CT2Min[T1,T2](null.asInstanceOf[T1],null.asInstanceOf[T2],0f)
   })
 
-  override def process(ds: DataSet[K]): DataSet[K] = {
+  override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2Min[T1,T2]] = {
     ds.groupBy("A","B")
-      .sum("n11")
+      .reduce((l,r) => {l.n11 += r.n11; l}) // .sum("n11")
       .filter(_.n11 > 1)
   }
 

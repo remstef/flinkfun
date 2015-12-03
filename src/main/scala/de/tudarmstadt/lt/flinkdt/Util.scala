@@ -86,7 +86,7 @@ object Util {
 
   def collapse_foldleft_set_CT2[T1, T2](cts:TraversableOnce[CT2[T1, T2]]):TraversableOnce[CT2[T1, T2]] = {
     cts.foldLeft(Set[CT2[T1, T2]]())((s, x) => {
-      val t:CT2[T1, T2] = x.copy()
+      val t:CT2[T1, T2] = x.copyDeep()
       s.foreach(y => {x += y; y += t })
       s + x
     })
@@ -96,7 +96,7 @@ object Util {
   def collapse_explicit_loop_mutable[T1, T2](cts:TraversableOnce[CT2[T1, T2]]):TraversableOnce[CT2[T1, T2]] = {
     val cts_collapsed:mutable.Set[CT2[T1, T2]] = mutable.Set()
     for(ct2_x <- cts){
-      val temp:CT2[T1, T2] = ct2_x.copy()
+      val temp:CT2[T1, T2] = ct2_x.copyDeep()
       for(ct2_y <- cts_collapsed){
         ct2_x.+=(ct2_y)
         ct2_y.+=(temp)

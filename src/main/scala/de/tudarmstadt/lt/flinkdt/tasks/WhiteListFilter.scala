@@ -13,18 +13,18 @@ import scala.reflect.ClassTag
   */
 object WhiteListFilter {
 
-  def apply(whitelist:String, env:ExecutionEnvironment) = new WhiteListFilter[String,CT2Min[String,String]](whitelist, env)
+  def apply(whitelist:String, env:ExecutionEnvironment) = new WhiteListFilter[String](whitelist, env)
 
 }
 
-class WhiteListFilter[T2, K <: CT2Min[String,T2] : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment) extends DSTask[K,K] {
+class WhiteListFilter[T2 : TypeInformation](whitelist:String, env:ExecutionEnvironment) extends DSTask[CT2Min[String,T2],CT2Min[String,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[K] = lineDS.map(l => l.split("\t") match {
-    case Array(a,b,n11) => CT2Min[String,T2](a, b.asInstanceOf[T2], n11.toFloat).asInstanceOf[K]
-    case _ => CT2Min[String,T2](null, null.asInstanceOf[T2], 0f).asInstanceOf[K]
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[String,T2]] = lineDS.map(l => l.split("\t") match {
+    case Array(a,b,n11) => CT2Min[String,T2](a, b.asInstanceOf[T2], n11.toFloat)
+    case _ => CT2Min[String,T2](null, null.asInstanceOf[T2], 0f)
   })
 
-  override def process(ds: DataSet[K]): DataSet[K] = {
+  override def process(ds: DataSet[CT2Min[String,T2]]): DataSet[CT2Min[String,T2]] = {
     if(whitelist == null)
       return ds
     val whiteterms = if(new File(whitelist).exists) env.readTextFile(whitelist) else env.fromCollection(whitelist.split('\n'))

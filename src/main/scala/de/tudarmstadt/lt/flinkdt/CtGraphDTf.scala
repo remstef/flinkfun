@@ -85,14 +85,11 @@ object CtGraphDTf extends App {
 
   writeIfExists("accA", adjacencyLists)
 
-//  val descending_ordering = new Ordering[CT2[String,String]] {
-//    def compare(o1:CT2[String,String], o2:CT2[String,String]): Int = {
-//      val r = o1.lmi().compareTo(o2.lmi())
-//      if(r != 0)
-//        return r
-//      return (o1.lmi().compareTo(o2.lmi()))
-//    }
-//  }
+  val descending_ordering = new Ordering[(CT2[String,String],Float)] {
+    def compare(o1:(CT2[String,String], Float), o2:(CT2[String,String], Float)): Int = {
+      -o1._2.compareTo(o2._2)
+    }
+  }
 
   val adjacencyListsRev = adjacencyLists
     .groupBy("B")
@@ -104,6 +101,26 @@ object CtGraphDTf extends App {
         temp.n11 += t.n11
         temp.ndot1 += t.n11
       })
+
+//      val s:FixedSizeTreeSet[(CT2[String,String],Float)] = FixedSizeTreeSet.empty(descending_ordering,1000)
+//      var wc = 0
+//      l.foreach(t => {
+//        t.ndot1 = temp.ndot1
+//        wc += 1
+//        val tup = (t, t.lmi())
+//        s += tup
+//      })
+//
+//      if(wc > 1 && wc <= 1000) {
+//        s.foreach(ct_x => {
+//          s.foreach(ct_y => {
+//            if (ct_y._2 > 0)
+//              out.collect(CT2(ct_x._1.A, ct_y._1.A, 1f))
+//          })
+//        })
+//      }
+
+
       val ll = l
         .map(t => {
           t.ndot1 = temp.ndot1
@@ -113,6 +130,7 @@ object CtGraphDTf extends App {
       val wc = ll.count(x => true)
       if(wc > 1 && wc <= 1000) {
         val lll = ll.sortBy(-_._2).take(1000) // sort descending
+     //   lll.foreach(println(_))
         lll.foreach(ct_x => {
           lll.foreach(ct_y => {
             if (ct_y._2 > 0)
@@ -120,6 +138,7 @@ object CtGraphDTf extends App {
           })
         })
       }
+
     })
 
   val dt = adjacencyListsRev

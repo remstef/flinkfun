@@ -5,19 +5,17 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.FileSystem
 
-import scala.reflect.ClassTag
-
 
 /**
   * Created by Steffen Remus
   */
 object DSWriter {
 
-  def apply[T : ClassTag : TypeInformation](out:String) = new DSWriter[T](out, _.toString)
+  def apply[T : TypeInformation](out:String) = new DSWriter[T](out, _.toString)
 
 }
 
-class DSWriter[T : ClassTag : TypeInformation](val out:String, val stringfun:(T => String)) extends DSTask[T,T] {
+class DSWriter[T : TypeInformation](val out:String, val stringfun:(T => String)) extends DSTask[T,T] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[T] = ???
 
