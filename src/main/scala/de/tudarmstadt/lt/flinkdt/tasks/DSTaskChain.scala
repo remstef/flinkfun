@@ -11,6 +11,4 @@ class DSTaskChain[I,O,X](f:DSTask[I,X], g:DSTask[X,O]) extends DSTask[I,O] {
 
   override def process(ds: DataSet[I]): DataSet[O] = g(f(ds))
 
-  override def process():DataSet[O] = g(f.process())
-
 }

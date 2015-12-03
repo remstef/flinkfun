@@ -6,7 +6,7 @@ import org.apache.flink.api.scala._
   * Created by Steffen Remus
   */
 @SerialVersionUID(42L)
-trait DSTask[I, O] extends (DataSet[I] => DataSet[O]) with Serializable { // later: [O :> CT]
+trait DSTask[I, O] extends (DataSet[I] => DataSet[O]) with Serializable  {
 
   def fromLines(lineDS:DataSet[String]):DataSet[I]
 
@@ -14,7 +14,9 @@ trait DSTask[I, O] extends (DataSet[I] => DataSet[O]) with Serializable { // lat
 
   def process(ds:DataSet[I]):DataSet[O]
 
-  def process():DataSet[O] = throw new IllegalStateException(s"${getClass.toString}: Method cannot be executed on this task.")
+  def process(env:ExecutionEnvironment = null, inputtext:String = null):DataSet[O] = {
+    process(fromLines(DSReader(inputtext,env).process(null)))
+  }
 
   override def apply(ds: DataSet[I]): DataSet[O] = process(ds)
 

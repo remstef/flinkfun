@@ -30,10 +30,10 @@ object Executor extends App {
   // get input data
   val in = config_dt.getString("input.text")
 
+  DSTaskConfig.load(args)
+
   val ds = {
 
-    DSReader(in,env) ~>
-//
     Extractor() ~> DSWriter(new File(outputbasedir, outputconfig.getString("raw")).getAbsolutePath) ~>
 //
     N11Sum() ~> DSWriter(new File(outputbasedir, outputconfig.getString("accAB")).getAbsolutePath) ~>
@@ -46,7 +46,7 @@ object Executor extends App {
 //
     FilterSortDT.CT2Min() ~> DSWriter(new File(outputbasedir, outputconfig.getString("dt")).getAbsolutePath)
 
-  }.process()
+  }.process(env,in)
 
   env.execute(jobname)
 
