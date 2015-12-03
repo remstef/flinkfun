@@ -37,8 +37,8 @@ import java.io.File
   * min_sim      == -ms      (2)
   *
   * exclusively for jbtct:
-  *
-  * min_docs     (1)
+  * min_sim_distinct    (2) // number of distinct similar entries including the Jo itself
+  * [min_docs           (1)]
   *
   */
 @SerialVersionUID(42l)
@@ -48,16 +48,18 @@ object DSTaskConfig extends Serializable{
   var min_n1dot:Float = 2f
   var min_n11:Float   = 2f
   var min_odot1:Float = 2f
-  var max_odot1:Float = 1000f
+  var max_odot1:Int = 1000
 
-  var min_sig:Float   = 0f
-  var topn_f:Int      = 1000
-  var topn_s:Int      = 200
-  var min_sim:Float   = 2f
+  var min_sig:Float        = 0f
+  var topn_f:Int           = 1000
+  var topn_s:Int           = 200
+  var min_sim:Float        = 2f
+  var min_sim_distinct:Int = 2
 
   var jobname:String = "DTJOB"
   var outputbasedir:String = new File("./",jobname).getAbsolutePath
   var input:String = "!!NO INPUT DEFINED!!"
+  var input_whitelist:String = null
   var raw_output:String = null
   var accumulated_AB_output:String = null
   var accumulated_AB_whitelisted_output:String = null
@@ -91,15 +93,15 @@ object DSTaskConfig extends Serializable{
 
     // get input data and output data
     input                             = config_dt.getString("input.text")
-    raw_output                        = new File(outputbasedir, outputconfig.getString("raw")).getAbsolutePath
-    raw_output                        = new File(outputbasedir, outputconfig.getString("raw")).getAbsolutePath
-    accumulated_AB_output             = new File(outputbasedir, outputconfig.getString("accAB")).getAbsolutePath
-    accumulated_AB_whitelisted_output = new File(outputbasedir, outputconfig.getString("accABwhite")).getAbsolutePath
-    accumulated_A_output              = new File(outputbasedir, outputconfig.getString("accA")).getAbsolutePath
-    accumulated_B_output              = new File(outputbasedir, outputconfig.getString("accB")).getAbsolutePath
-    accumulated_CT_output             = new File(outputbasedir, outputconfig.getString("accall")).getAbsolutePath
-    dt_output                         = new File(outputbasedir, outputconfig.getString("dt")).getAbsolutePath
-    dt_sorted_output                  = new File(outputbasedir, outputconfig.getString("dtsort")).getAbsolutePath
+    input_whitelist                   = if(config_dt.hasPath("input.whitelist")) config_dt.getString("input.whitelist") else null
+    raw_output                        = if(outputconfig.hasPath("raw"))             new File(outputbasedir, outputconfig.getString("raw")).getAbsolutePath else null
+    accumulated_AB_output             = if(outputconfig.hasPath("accAB"))           new File(outputbasedir, outputconfig.getString("accAB")).getAbsolutePath else null
+    accumulated_AB_whitelisted_output = if(outputconfig.hasPath("accABwhite"))      new File(outputbasedir, outputconfig.getString("accABwhite")).getAbsolutePath else null
+    accumulated_A_output              = if(outputconfig.hasPath("accA"))            new File(outputbasedir, outputconfig.getString("accA")).getAbsolutePath else null
+    accumulated_B_output              = if(outputconfig.hasPath("accB"))            new File(outputbasedir, outputconfig.getString("accB")).getAbsolutePath else null
+    accumulated_CT_output             = if(outputconfig.hasPath("accall"))          new File(outputbasedir, outputconfig.getString("accall")).getAbsolutePath else null
+    dt_output                         = if(outputconfig.hasPath("dt"))              new File(outputbasedir, outputconfig.getString("dt")).getAbsolutePath else null
+    dt_sorted_output                  = if(outputconfig.hasPath("dtsort"))          new File(outputbasedir, outputconfig.getString("dtsort")).getAbsolutePath else null
 
   }
 

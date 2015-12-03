@@ -29,7 +29,7 @@ class ComputeCT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2M
     val ct_accumulated_A = cts
       .groupBy("A")
       .reduce((l,r) => {l.n1dot = l.n1dot+r.n1dot; l})
-      .filter(_.n1dot > 1)
+      .filter(_.n1dot >= DSTaskConfig.min_n1dot)
 
 //    writeIfExists("accA", ct_accumulated_A)
 
@@ -37,7 +37,7 @@ class ComputeCT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2M
       .map(ct => {ct.ndot1 = ct.n11; ct.n = 1f; ct}) // misuse n as odot1 i.e. the number of distinct occurrences of feature B (parameter wc=wordcount or wpfmax=wordsperfeature in traditional jobimtext)
       .groupBy("B")
       .reduce((l,r) => {l.ndot1 = l.ndot1 + r.ndot1; l.n = l.n + r.n; l})
-      .filter(ct => ct.n <= 1000 && ct.n > 1)
+      .filter(ct => ct.n <= DSTaskConfig.max_odot1 && ct.n >= DSTaskConfig.min_odot1)
 
 //    writeIfExists("accB", ct_accumulated_B)
 
@@ -56,9 +56,10 @@ class ComputeCT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2M
 //    writeIfExists("accall", ct_all)
 
     val ct_all_filtered = ct_all
+      .filter(_._2 >= DSTaskConfig.min_sig)
       .groupBy("_1.A")
       .sortGroup("_2", Order.DESCENDING)
-      .first(1000)
+      .first(DSTaskConfig.topn_f)
       .map(_._1)
 
     ct_all_filtered

@@ -26,7 +26,7 @@ object Executor extends App {
 //
     N11Sum() ~> DSWriter(DSTaskConfig.accumulated_AB_output) ~>
 //
-    WhiteListFilter(DSTaskConfig.accumulated_AB_whitelisted_output, env) ~>
+    WhiteListFilter(DSTaskConfig.input_whitelist, env) ~>
 //
     ComputeCT2() ~> DSWriter(DSTaskConfig.accumulated_CT_output) ~>
 //
