@@ -32,7 +32,7 @@ object Executor extends App {
 //
     ComputeDT.fromCT2() ~>
 //
-    FilterSortDT.CT2Min() ~> DSWriter(DSTaskConfig.dt_sorted_output)
+    FilterSortDT.CT2Min_CT2() ~> DSWriter(DSTaskConfig.dt_sorted_output)
 
   }.process(env,in)
 

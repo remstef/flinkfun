@@ -28,12 +28,13 @@ class WhiteListFilter[T2 : TypeInformation](whitelist:String, env:ExecutionEnvir
     if(whitelist == null)
       return ds
     val whiteterms = if(new File(whitelist).exists) env.readTextFile(whitelist) else env.fromCollection(whitelist.split('\n'))
+      .filter(s => s.trim.length > 0)
       .map(Tuple1(_))
       .distinct(0)
     val white_cts_A = ds // get all contexts of whitelist terms
       .joinWithTiny(whiteterms) // assume that
       .where("A").equalTo(0)((x, y) =>  x )
-      .distinct(0)
+      .distinct("B")
     val white_cts_B_from_white_cts_A = ds
       .joinWithTiny(white_cts_A)
       .where("B").equalTo("B")((x,y) => x) // get all terms of contexts of whitelist terms
