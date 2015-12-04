@@ -58,7 +58,7 @@ object CtGraphDTf extends App {
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
     .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
-    .groupBy("A","B")
+    .groupBy("a","b")
     .sum("n11")
     .filter(_.n11 > 1)
     .map(_.toCT2())
@@ -69,7 +69,7 @@ object CtGraphDTf extends App {
   val ct_accumulated_n = ct_accumulated.crossWithTiny(n)((ct,n) => {ct.n = n; ct})
 
   val adjacencyLists = ct_accumulated_n
-    .groupBy("A")
+    .groupBy("a")
     .reduceGroup((iter, out:Collector[CT2[String, String]]) => {
       var n1dot:Float = 0f
       val l = iter.toIterable
@@ -92,7 +92,7 @@ object CtGraphDTf extends App {
   }
 
   val adjacencyListsRev = adjacencyLists
-    .groupBy("B")
+    .groupBy("b")
     .reduceGroup((iter, out:Collector[CT2[String, String]]) => {
       val temp:CT2[String,String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0)
       val l = iter.toSeq
@@ -115,7 +115,7 @@ object CtGraphDTf extends App {
 //        s.foreach(ct_x => {
 //          s.foreach(ct_y => {
 //            if (ct_y._2 > 0)
-//              out.collect(CT2(ct_x._1.A, ct_y._1.A, 1f))
+//              out.collect(CT2(ct_x._1.a, ct_y._1.a, 1f))
 //          })
 //        })
 //      }
@@ -142,20 +142,20 @@ object CtGraphDTf extends App {
     })
 
   val dt = adjacencyListsRev
-    .groupBy("A","B")
+    .groupBy("a","b")
     .sum("n11")
     // evrything from here is from CtDT and can be optimized
     .filter(_.n11 > 1)
 
   val dtf = dt
-    .groupBy("A")
+    .groupBy("a")
     .sum("n1dot")
     .filter(_.n1dot > 2)
 
   val dtsort = dt
     .join(dtf)
-    .where("A").equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
-    .groupBy("A")
+    .where("a").equalTo("a")((x, y) => { x.n1dot = y.n1dot; x })
+    .groupBy("a")
     .sortGroup("n11", Order.DESCENDING)
     .first(200)
 

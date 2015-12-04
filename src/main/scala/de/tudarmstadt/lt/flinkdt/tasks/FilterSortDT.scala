@@ -27,15 +27,15 @@ class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTa
 
     val dt_count = ds
       .map(ct => {ct.n1dot = ct.n11; ct.ndot1 = 1; ct}) // misuse ndot1 as o1dot
-      .groupBy("A")
+      .groupBy("a")
       .reduce((l,r) => {l.b = null.asInstanceOf[T2]; l.n1dot += l.n11; l.ndot1 += r.ndot1; l})
 
     val dtsort = ds
       .join(dt_count)
-      .where("A").equalTo("A")((l, r) => {l.n1dot = r.n1dot; l.ndot1 = r.ndot1; l})
+      .where("a").equalTo("a")((l, r) => {l.n1dot = r.n1dot; l.ndot1 = r.ndot1; l})
       .filter(_.n11 >= DSTaskConfig.param_min_sim) // number of co-occurrences
       .filter(_.ndot1 >= DSTaskConfig.param_min_sim_distinct) // number of distinct co-occurrences
-      .groupBy("A")
+      .groupBy("a")
       .sortGroup("n11", Order.DESCENDING)
       .first(DSTaskConfig.param_topn_s)
 
@@ -53,15 +53,15 @@ class FilterSortDT__CT2Min[T1 : TypeInformation, T2 : TypeInformation] extends D
 
     val dtf = ds
       .map((_,1))
-      .groupBy("_1.A")
+      .groupBy("_1.a")
       .sum("_2")
 
     val dtsort = ds
       .join(dtf)
-      .where("A").equalTo("_1.A")((x, y) => (x, y._2))
+      .where("a").equalTo("_1.a")((x, y) => (x, y._2))
       .filter(_._1.n11 >= DSTaskConfig.param_min_sim) // number of co-occurrences
       .filter(_._2 >= DSTaskConfig.param_min_sim_distinct) // number of distinct co-occurrences
-      .groupBy("_1.A")
+      .groupBy("_1.a")
       .sortGroup("_2", Order.DESCENDING)
       .first(DSTaskConfig.param_topn_s)
       .map(_._1)

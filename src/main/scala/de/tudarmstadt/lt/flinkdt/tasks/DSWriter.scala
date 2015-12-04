@@ -17,7 +17,7 @@ object DSWriter {
 
 class DSWriter[T : TypeInformation](out:String) extends DSTask[T,T] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[T] = lineDS.map(_.asInstanceOf[T])
+  override def fromLines(lineDS: DataSet[String]): DataSet[T] = ???
 
   override def process(ds: DataSet[T]): DataSet[T] = {
     if (out == null)

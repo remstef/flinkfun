@@ -58,12 +58,12 @@ object CtGraphDT_testPOJO extends App {
 
 
   val ctagg = ct_raw
-    .groupBy("A","B")
+    .groupBy("a","b")
     .reduce((l,r) => {l.n11 += r.n11; l})
     .filter(_.n11 > 1)
 
   val adjacencyListsRev = ctagg
-    .groupBy("B")
+    .groupBy("b")
     .reduceGroup((iter, out:Collector[CT2MinJ[String,String]]) => {
       val l = iter.map(_.A).toIterable
       // TODO: might be a bottleneck, it creates multiple new sequences (one new sequence per each entry)
@@ -71,7 +71,7 @@ object CtGraphDT_testPOJO extends App {
     })
 
   val dt = adjacencyListsRev
-    .groupBy("A","B")
+    .groupBy("a","b")
     .reduce((l,r) => {l.n11 += r.n11; l})
 
   writeIfExists("dt", dt)
@@ -80,14 +80,14 @@ object CtGraphDT_testPOJO extends App {
   //      .filter(_.n11 > 1)
   //
   //  val dtf = dt
-  //    .groupBy("A")
+  //    .groupBy("a")
   //    .sum("n1dot")
   //    .filter(_.n1dot > 2)
   //
   //  val dtsort = dt
   //    .join(dtf)
-  //    .where("A").equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
-  //    .groupBy("A")
+  //    .where("a").equalTo("a")((x, y) => { x.n1dot = y.n1dot; x })
+  //    .groupBy("a")
   //    .sortGroup("n11", Order.DESCENDING)
   //    .first(10)
   //

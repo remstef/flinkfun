@@ -19,7 +19,7 @@ object WhiteListFilter {
 
 class WhiteListFilter[T2 : TypeInformation](whitelist:String, env:ExecutionEnvironment) extends DSTask[CT2Min[String,T2],CT2Min[String,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[_,T2]] = lineDS.map(CT2Min.fromString(_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[String,T2]] = lineDS.map(l => CT2Min.fromString[String,T2](l))
 
   override def process(ds: DataSet[CT2Min[String,T2]]): DataSet[CT2Min[String,T2]] = {
     if(whitelist == null)
@@ -30,11 +30,11 @@ class WhiteListFilter[T2 : TypeInformation](whitelist:String, env:ExecutionEnvir
       .distinct(0)
     val white_cts_A = ds // get all contexts of whitelist terms
       .joinWithTiny(whiteterms) // assume that
-      .where("A").equalTo(0)((x, y) =>  x )
-      .distinct("B")
+      .where("a").equalTo(0)((x, y) =>  x )
+      .distinct("b")
     val white_cts_B_from_white_cts_A = ds
       .joinWithTiny(white_cts_A)
-      .where("B").equalTo("B")((x,y) => x) // get all terms of contexts of whitelist terms
+      .where("b").equalTo("b")((x,y) => x) // get all terms of contexts of whitelist terms
     white_cts_B_from_white_cts_A
   }
 

@@ -53,7 +53,7 @@ object CtDT extends App {
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
     .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
-    .groupBy("A","B")
+    .groupBy("a","b")
     .sum("n11")
     .filter(_.n11 > 1)
     .map(_.toCT2())
@@ -64,11 +64,11 @@ object CtDT extends App {
     val whitelist = env.readTextFile(config_dt.getString("input.whitelist")).map(Tuple1(_)).distinct(0)
     val white_cts_A = ct_accumulated // get all contexts of whitelist terms
       .joinWithTiny(whitelist)
-      .where("A").equalTo(0)((x, y) =>  x )
+      .where("a").equalTo(0)((x, y) =>  x )
       .distinct(0)
     val white_cts_B_from_white_cts_A = ct_accumulated
       .joinWithTiny(white_cts_A)
-      .where("B").equalTo("B")((x,y) => x) // get all terms of contexts of whitelist terms
+      .where("b").equalTo("b")((x,y) => x) // get all terms of contexts of whitelist terms
     writeIfExists("accABwhite", white_cts_B_from_white_cts_A)
     white_cts_B_from_white_cts_A
   }else{
@@ -76,7 +76,7 @@ object CtDT extends App {
   }
 
   val ct_accumulated_A = ct_accumulated_white.map(ct => {ct.n1dot=ct.n11; ct})
-    .groupBy("A")
+    .groupBy("a")
     .reduce((l,r) => {l.n1dot = l.n1dot+r.n1dot; l})
     .filter(_.n1dot > 1)
 
@@ -84,7 +84,7 @@ object CtDT extends App {
 
   val ct_accumulated_B = ct_accumulated_white
     .map(ct => {ct.ndot1 = ct.n11; ct.n = 1f; ct}) // misuse n as odot1 i.e. the number of distinct occurrences of feature B (parameter wc=wordcount or wpfmax=wordsperfeature in traditional jobimtext)
-    .groupBy("B")
+    .groupBy("b")
     .reduce((l,r) => {l.ndot1 = l.ndot1 + r.ndot1; l.n = l.n + r.n; l})
     .filter(ct => ct.n <= 1000 && ct.n > 1)
 
@@ -95,39 +95,39 @@ object CtDT extends App {
 
   val ct_all = ct_accumulated_n
     .join(ct_accumulated_A)
-    .where("A")
-    .equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
+    .where("a")
+    .equalTo("a")((x, y) => { x.n1dot = y.n1dot; x })
     .join(ct_accumulated_B)
-    .where("B")
-    .equalTo("B")((x, y) => { x.ndot1 = y.ndot1; x })
+    .where("b")
+    .equalTo("b")((x, y) => { x.ndot1 = y.ndot1; x })
     .map(ct => {ct.n11 = ct.lmi(); ct}) // misuse n11 as lmi score
 
   writeIfExists("accall", ct_all)
 
   val ct_all_filtered = ct_all
-    .groupBy("A")
+    .groupBy("a")
     .sortGroup("n11", Order.DESCENDING)
     .first(1000)
 
   val joined = ct_all_filtered
     .join(ct_all_filtered)
-    .where("B")
-    .equalTo("B")
+    .where("b")
+    .equalTo("b")
 
   val dt = joined.map(cts => CT2(cts._1.a, cts._2.a, n11=1f))
-    .groupBy("A", "B")
+    .groupBy("a", "b")
     .sum("n11")
     .filter(_.n11 > 1)
 
   val dtf = dt
-    .groupBy("A")
+    .groupBy("a")
     .sum("n1dot")
     .filter(_.n1dot > 2)
 
   val dtsort = dt
     .join(dtf)
-    .where("A").equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
-    .groupBy("A")
+    .where("a").equalTo("a")((x, y) => { x.n1dot = y.n1dot; x })
+    .groupBy("a")
     .sortGroup("n11", Order.DESCENDING)
     .first(200)
 

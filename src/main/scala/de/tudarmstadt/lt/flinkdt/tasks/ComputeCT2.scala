@@ -23,7 +23,7 @@ class ComputeCT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2M
     val cts:DataSet[CT2[T1,T2]] = ds.map(ct => CT2[T1,T2](ct.a, ct.b, n11 = ct.n11, n1dot = ct.n11, ndot1 = ct.n11, n = ct.n11))
 
     val ct_accumulated_A = cts
-      .groupBy("A")
+      .groupBy("a")
       .reduce((l,r) => {l.n1dot = l.n1dot+r.n1dot; l})
       .filter(_.n1dot >= DSTaskConfig.param_min_n1dot)
 
@@ -31,7 +31,7 @@ class ComputeCT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2M
 
     val ct_accumulated_B = cts
       .map(ct => {ct.ndot1 = ct.n11; ct.n = 1f; ct}) // misuse n as odot1 i.e. the number of distinct occurrences of feature B (parameter wc=wordcount or wpfmax=wordsperfeature in traditional jobimtext)
-      .groupBy("B")
+      .groupBy("b")
       .reduce((l,r) => {l.ndot1 = l.ndot1 + r.ndot1; l.n = l.n + r.n; l})
       .filter(ct => ct.n <= DSTaskConfig.param_max_odot1 && ct.n >= DSTaskConfig.param_min_odot1)
 
@@ -42,11 +42,11 @@ class ComputeCT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2M
 
     val ct_all = ct_accumulated_n
       .join(ct_accumulated_A)
-      .where("A")
-      .equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
+      .where("a")
+      .equalTo("a")((x, y) => { x.n1dot = y.n1dot; x })
       .join(ct_accumulated_B)
-      .where("B")
-      .equalTo("B")((x, y) => { x.ndot1 = y.ndot1; x })
+      .where("b")
+      .equalTo("b")((x, y) => { x.ndot1 = y.ndot1; x })
       .map(ct => (ct, ct.lmi()))
 
     ct_all.map(_._1.prettyPrint()).print()
@@ -54,7 +54,7 @@ class ComputeCT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2M
 
     val ct_all_filtered = ct_all
       .filter(_._2 >= DSTaskConfig.param_min_sig)
-      .groupBy("_1.A")
+      .groupBy("_1.a")
       .sortGroup("_2", Order.DESCENDING)
       .first(DSTaskConfig.param_topn_f)
       .map(_._1)

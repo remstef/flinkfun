@@ -67,12 +67,12 @@ object CtGraphDT extends App {
   val ct_raw_int = mapStringCtToInt.map(_._1)
 
   val ctagg = ct_raw_int
-    .groupBy("A","B")
+    .groupBy("a","b")
     .sum("n11")
     .filter(_.n11 > 1)
 
   val adjacencyListsRev = ctagg
-    .groupBy("B")
+    .groupBy("b")
     .reduceGroup((iter, out:Collector[CT2Min[Int, Int]]) => {
       val l = iter.map(_.a).toIterable
       // TODO: might be a bottleneck, it creates multiple new sequences (one new sequence per each entry)
@@ -80,12 +80,12 @@ object CtGraphDT extends App {
     })
 
   val dt_int = adjacencyListsRev
-    .groupBy("A","B")
+    .groupBy("a","b")
     .sum("n11")
 
   val dt = dt_int
-    .join(id2string).where("A").equalTo(0)((ct,tup) => (ct, tup._2))
-    .join(id2string).where("_1.B").equalTo(0)((ct_tup,tup) => CT2Min[String,String](ct_tup._2, tup._2, ct_tup._1.n11))
+    .join(id2string).where("a").equalTo(0)((ct,tup) => (ct, tup._2))
+    .join(id2string).where("_1.b").equalTo(0)((ct_tup,tup) => CT2Min[String,String](ct_tup._2, tup._2, ct_tup._1.n11))
 
   writeIfExists("dt", dt)
 
@@ -93,14 +93,14 @@ object CtGraphDT extends App {
   //      .filter(_.n11 > 1)
   //
   //  val dtf = dt
-  //    .groupBy("A")
+  //    .groupBy("a")
   //    .sum("n1dot")
   //    .filter(_.n1dot > 2)
   //
   //  val dtsort = dt
   //    .join(dtf)
-  //    .where("A").equalTo("A")((x, y) => { x.n1dot = y.n1dot; x })
-  //    .groupBy("A")
+  //    .where("a").equalTo("a")((x, y) => { x.n1dot = y.n1dot; x })
+  //    .groupBy("a")
   //    .sortGroup("n11", Order.DESCENDING)
   //    .first(10)
   //

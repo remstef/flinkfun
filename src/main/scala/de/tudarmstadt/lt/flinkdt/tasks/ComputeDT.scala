@@ -15,16 +15,16 @@ object ComputeDT {
 
 class ComputeDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2[T1,T2], CT2Min[T1,T1]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(l => CT2.fromString(l))
 
   override def process(ds: DataSet[CT2[T1, T2]]): DataSet[CT2Min[T1, T1]] = {
     val joined:DataSet[CT2Min[T1,T1]] = ds
       .join(ds)
-      .where("B")
-      .equalTo("B")((l,r) => CT2Min[T1,T1](l.a, r.a, n11=1f))
+      .where("b")
+      .equalTo("b")((l,r) => CT2Min[T1,T1](l.a, r.a, n11=1f))
 
     val dt = joined
-      .groupBy("A", "B")
+      .groupBy("a", "b")
       .sum("n11")
 
     dt

@@ -22,7 +22,7 @@ object Util {
 
   def collapse_foldleft[T1, T2](cts:Traversable[CT2[T1, T2]]):TraversableOnce[CT2[T1, T2]] = {
     throw new NotImplementedError()
-//    val partially_collapsed = cts.groupBy(ct => (ct.A, ct.B)).map({case ((a,b), ctlist) => {
+//    val partially_collapsed = cts.groupBy(ct => (ct.a, ct.b)).map({case ((a,b), ctlist) => {
 //      ctlist.foreach(ct_x => {
 //        val t:Float = ct_x.n11
 //        val l = ctlist.dropWhile(ct_y => ct_y eq ct_x)
@@ -37,7 +37,7 @@ object Util {
 //    partially_collapsed
 
     // group by all four cases and perform adding accordingly
-    //    val partially_collapsed = cts.groupBy(ct => (ct.A, ct.B)).map({case ((a,b), ctlist) => {
+    //    val partially_collapsed = cts.groupBy(ct => (ct.a, ct.b)).map({case ((a,b), ctlist) => {
     //      ctlist.foreach(ct_x => {
     //        val t:Float = ct_x.n11;
     //        ctlist.foreach(ct_y => {
@@ -46,7 +46,7 @@ object Util {
     //        })
     //      });
     //      ctlist.find(a=>true).get
-    //    }}).groupBy(_.A).flatMap({case ((a), ctlist) => {
+    //    }}).groupBy(_.a).flatMap({case ((a), ctlist) => {
     //      ctlist.foreach(ct_x => {
     //        val t:Float = ct_x.n11;
     //        ctlist.foreach(ct_y => {
@@ -55,7 +55,7 @@ object Util {
     //        })
     //      });
     //      ctlist}
-    //    }).groupBy(_.B).flatMap({ case ((b), ctlist) => {
+    //    }).groupBy(_.b).flatMap({ case ((b), ctlist) => {
     //      ctlist.foreach(ct_x => {
     //        val t: Float = ct_x.n11;
     //        ctlist.foreach(ct_y => {

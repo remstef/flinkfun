@@ -20,7 +20,7 @@ class N11Sum[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
 
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2Min[T1,T2]] = {
-    ds.groupBy("A","B")
+    ds.groupBy("a","b")
       .reduce((l,r) => {l.n11 += r.n11; l}) // .sum("n11")
       .filter(_.n11 >= DSTaskConfig.param_min_n11)
   }
