@@ -262,11 +262,19 @@ under the License.
 										<exclude>web-docs/**</exclude>
 									</excludes>
 								</filter>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
 							</filters>
 							<transformers>
 								<!-- add Main-Class to manifest file -->
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>de.tudarmstadt.lt.flinkdt.CtDT</mainClass>
+									<mainClass>de.tudarmstadt.lt.flinkdt.tasks.Executor</mainClass>
 								</transformer>
 							</transformers>
 							<createDependencyReducedPom>false</createDependencyReducedPom>
