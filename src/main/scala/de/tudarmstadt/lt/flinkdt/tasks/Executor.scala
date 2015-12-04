@@ -34,19 +34,19 @@ object Executor extends App {
 
   val ds = {
       //
-      Extractor() ~>
+//      Extractor() ~>
+//      //
+//      N11Sum()
+//      //
+      WhiteListFilter(DSTaskConfig.in_whitelist, env) ~> DSWriter(DSTaskConfig.out_accumulated_AB_whitelisted+"banana") ~>
       //
-      N11Sum() ~|~>
-      //
-      WhiteListFilter(DSTaskConfig.in_whitelist, env) ~|~>
-      //
-      ComputeCT2() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+      ComputeCT2() ~> DSWriter(DSTaskConfig.out_accumulated_CT+"banana") ~>
       //
       ComputeDT.fromCT2() ~>
       //
       FilterSortDT.CT2Min_CT2()
     //
-  }.process(env,in)
+  }.process(env,in, DSTaskConfig.out_dt_sorted+"banana")
 
 
   env.execute(jobname)

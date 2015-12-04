@@ -16,11 +16,7 @@ object ComputeCT2 {
 
 class ComputeCT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(l => l.split("\t") match {
-    case Array(a,b,n11) => CT2Min[T1,T2](a.asInstanceOf[T1], b.asInstanceOf[T2], n11.toFloat)
-    case _ => CT2Min[T1,T2](null.asInstanceOf[T1],null.asInstanceOf[T2],0f)
-  })
-
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
 
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2[T1,T2]] = {
 
@@ -53,6 +49,7 @@ class ComputeCT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2M
       .equalTo("B")((x, y) => { x.ndot1 = y.ndot1; x })
       .map(ct => (ct, ct.lmi()))
 
+    ct_all.map(_._1.prettyPrint()).print()
 //    writeIfExists("accall", ct_all)
 
     val ct_all_filtered = ct_all

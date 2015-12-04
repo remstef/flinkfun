@@ -9,15 +9,16 @@ import de.tudarmstadt.lt.scalautils.FormatUtils
   */
 object CT2Min {
 
-  val EMPTY_CT = new CT2Min[String, String](A = "", B = "", n11 = 0f)
 
-  def fromString(ct2AsString:String):CT2Min[String,String] = fromStringArray(ct2AsString.split("\t"))
+  def EMPTY_CT[T1,T2] = new CT2Min[T1, T2](A = null.asInstanceOf[T1], B = null.asInstanceOf[T2], n11 = 0f)
 
-  def fromStringArray(ct2AsStringArray:Array[String]):CT2Min[String,String] = {
+  def fromString[T1,T2](ct2AsString:String):CT2Min[T1,T2] = fromStringArray(ct2AsString.split("\t"))
+
+  def fromStringArray[T1,T2](ct2AsStringArray:Array[String]):CT2Min[T1,T2] = {
     ct2AsStringArray match {
-      case  Array(_A,_B,n11) => new CT2Min(_A, _B, n11.toFloat)
-      case  Array(_A,_B)     => new CT2Min(_A, _B, 1f)
-      case _ => EMPTY_CT
+      case  Array(_A,_B,n11,_*) => new CT2Min[T1,T2](_A.asInstanceOf[T1], _B.asInstanceOf[T2], n11.toFloat)
+      case  Array(_A,_B)     => new CT2Min(_A.asInstanceOf[T1], _B.asInstanceOf[T2], 1f)
+      case _ => EMPTY_CT:CT2Min[T1,T2]
     }
   }
 

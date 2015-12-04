@@ -19,10 +19,7 @@ object WhiteListFilter {
 
 class WhiteListFilter[T2 : TypeInformation](whitelist:String, env:ExecutionEnvironment) extends DSTask[CT2Min[String,T2],CT2Min[String,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[String,T2]] = lineDS.map(l => l.split("\t") match {
-    case Array(a,b,n11) => CT2Min[String,T2](a, b.asInstanceOf[T2], n11.toFloat)
-    case _ => CT2Min[String,T2](null, null.asInstanceOf[T2], 0f)
-  })
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[_,T2]] = lineDS.map(CT2Min.fromString(_))
 
   override def process(ds: DataSet[CT2Min[String,T2]]): DataSet[CT2Min[String,T2]] = {
     if(whitelist == null)

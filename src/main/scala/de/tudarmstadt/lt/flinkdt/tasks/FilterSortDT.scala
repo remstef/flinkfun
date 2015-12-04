@@ -20,10 +20,7 @@ object FilterSortDT {
 
 class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2[T1,T2],CT2[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(l => l.split("\t") match {
-    case Array(a,b,n11) => CT2[T1,T2](a.asInstanceOf[T1], b.asInstanceOf[T2], n11.toFloat, n11.toFloat, n11.toFloat, n11.toFloat)
-    case _ => CT2[T1,T2](null.asInstanceOf[T1],null.asInstanceOf[T2],0f)
-  })
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(CT2.fromString(_))
 
   // TODO: this can surely be optimized
   override def process(ds: DataSet[CT2[T1,T2]]): DataSet[CT2[T1,T2]] = {
@@ -49,10 +46,7 @@ class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTa
 
 class FilterSortDT__CT2Min[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(l => l.split("\t") match {
-    case Array(a,b,n11) => CT2Min[T1,T2](a.asInstanceOf[T1], b.asInstanceOf[T2], n11.toFloat)
-    case _ => CT2Min[T1,T2](null.asInstanceOf[T1],null.asInstanceOf[T2],0f)
-  })
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
 
   // TODO: this can surely be optimized
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2Min[T1,T2]] = {

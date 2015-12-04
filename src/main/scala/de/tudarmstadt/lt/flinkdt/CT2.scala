@@ -28,14 +28,13 @@ import scala.math._
   */
 object CT2 {
 
-  val EMPTY_CT = new CT2[String, String](A = "", B = "", n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
+  def EMPTY_CT[T1,T2] = new CT2[T1, T2](A = null.asInstanceOf[T1], B = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
 
-  def fromString(ct2AsString:String):CT2[String,String] = fromStringArray(ct2AsString.split("\t"))
+  def fromString[T1,T2](ct2AsString:String):CT2[T1,T2] = fromStringArray(ct2AsString.split("\t"))
 
-  def fromStringArray(ct2AsStringArray:Array[String]):CT2[String,String] = {
+  def fromStringArray[T1,T2](ct2AsStringArray:Array[String]):CT2[T1,T2] = {
     ct2AsStringArray match {
-      case  Array(_A,_B,n11,n1dot,ndot1,n,ndocs) => new CT2(_A,_B,n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
-      case  Array(_A,_B,n11,n1dot,ndot1,n)       => new CT2(_A,_B,n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
+      case  Array(_A,_B,n11,n1dot,ndot1,n,_*) => new CT2[T1,T2](_A.asInstanceOf[T1],_B.asInstanceOf[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
       case _ => EMPTY_CT
     }
   }
@@ -58,7 +57,6 @@ object CT2 {
  *             ---------------------------
  *                |  odot1  odot2  |  on
  *
- *
  */
 @SerialVersionUID(42L)
 case class CT2[T1,T2](var A:T1, var B:T2,
@@ -75,8 +73,22 @@ case class CT2[T1,T2](var A:T1, var B:T2,
   def ndot2() = n     - ndot1
   def n22()   = ndot2 - n12 // n2dot - n21
 
-  def pmi():Float = ((log(n11) + log(n)) - (log(n1dot) + log(ndot1))).toFloat
-  def lmi():Float = (n11 * pmi()).toFloat
+  def log_pA():Float = (log(n11) - log(n1dot)).toFloat
+  def log_pB():Float = (log(n11) - log(ndot1)).toFloat
+  def log_pAB():Float = (log(n11) - log(n)).toFloat
+  def log_pAgivenB():Float = (log(n11) - log(n1dot)).toFloat
+  def log_pBgivenA():Float = (log(n11) - log(ndot1)).toFloat
+
+  /**
+    * @return log( p(a,b) / p(a)p(b) )
+    */
+  def log_pmi():Float = ((log(n11) + log(n)) - (log(n1dot) + log(ndot1))).toFloat
+  def log2_pmi():Float = (((log(n11) + log(n)) - (log(n1dot) + log(ndot1))) / log(2)).toFloat
+
+  /**
+    * @return
+    */
+  def lmi():Float = n11 * log2_pmi()
 
   def +(other:CT2[T1, T2]):this.type = {
     val newct:this.type = copy().asInstanceOf[this.type]
@@ -120,22 +132,25 @@ case class CT2[T1,T2](var A:T1, var B:T2,
   }
 
   def prettyPrint():String = {
+    def f(v:Number) = s"${FormatUtils.format(v)}"
+
     val v = Array(
-      s"${FormatUtils.format(n11)}",
-      s"${FormatUtils.format(n12)}",
-      s"${FormatUtils.format(n21)}",
-      s"${FormatUtils.format(n22)}",
-      s"${FormatUtils.format(n1dot)}",
-      s"${FormatUtils.format(n2dot)}",
-      s"${FormatUtils.format(ndot1)}",
-      s"${FormatUtils.format(ndot2)}",
-      s"${FormatUtils.format(n)}")
+      f(n11),
+      f(n12),
+      f(n21),
+      f(n22),
+      f(n1dot),
+      f(n2dot),
+      f(ndot1),
+      f(ndot2),
+      f(n))
+
     val maxwidth = v.map(_.length).max + 2
     val vf = v.map(x => ("%-"+maxwidth+"s").format(x)).toIndexedSeq
     val filler  = " "*maxwidth
     val filler_ = "-"*2*maxwidth
     val source = if(srcid.isDefined) s"source = ${srcid.get}" else ""
-    s"""+++ ${getClass.getSimpleName}    ${source}
+    s"""+++ ${getClass.getSimpleName}    ${source}   +++
   A = ${A}     B = ${B}
                 |  B ${filler}        !B  ${filler}      | SUM
              ---------------------------------${filler_}
@@ -143,6 +158,16 @@ case class CT2[T1,T2](var A:T1, var B:T2,
              !A |  n21 = ${vf(2)}    n22 = ${vf(3)}    | n2dot = ${vf(5)}
              ---------------------------------${filler_}
                 |  ndot1 = ${vf(6)}  ndot2 = ${vf(7)}  | n = ${vf(8)}
+
+  log p(A,B)    = ${f(log_pAB)}
+  log p(A)      = ${f(log_pA)}
+  log p(B)      = ${f(log_pB)}
+  log p(A|B)    = ${f(log_pAgivenB)}
+  log p(B|A)    = ${f(log_pBgivenA)}
+  log pmi(A,B)  = ${f(log_pmi)}
+  log2 pmi(A,B) = ${f(log2_pmi)}
+  lmi(A,B)      = ${f(lmi)}
+
 """
   }
 
