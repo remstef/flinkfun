@@ -44,30 +44,34 @@ import java.io.File
 @SerialVersionUID(42l)
 object DSTaskConfig extends Serializable{
 
-  var min_ndot1:Float = 2f
-  var min_n1dot:Float = 2f
-  var min_n11:Float   = 2f
-  var min_odot1:Float = 2f
-  var max_odot1:Int = 1000
+  /* 2 */
+  var param_min_ndot1:Float                 = 2f
+  var param_min_n1dot:Float                 = 2f
+  var param_min_n11:Float                   = 2f
+  var param_min_odot1:Float                 = 2f
+  var param_max_odot1:Float                 = 1000f
 
-  var min_sig:Float        = 0f
-  var topn_f:Int           = 1000
-  var topn_s:Int           = 200
-  var min_sim:Float        = 2f
-  var min_sim_distinct:Int = 2
+  var param_min_sig:Float                   = 0f
+  var param_topn_f:Int                      = 1000
+  var param_topn_s:Int                      = 200
+  var param_min_sim:Float                   = 2f
+  var param_min_sim_distinct:Int            = 2
 
-  var jobname:String = "DTJOB"
-  var outputbasedir:String = new File("./",jobname).getAbsolutePath
-  var input:String = "!!NO INPUT DEFINED!!"
-  var input_whitelist:String = null
-  var raw_output:String = null
-  var accumulated_AB_output:String = null
-  var accumulated_AB_whitelisted_output:String = null
-  var accumulated_A_output:String = null
-  var accumulated_B_output:String = null
-  var accumulated_CT_output:String = null
-  var dt_output:String = null
-  var dt_sorted_output:String = null
+  var jobname:String                        = "DTJOB"
+
+  var in_text:String                        = "!!NO INPUT DEFINED!!"
+  var in_whitelist:String                   = null
+
+  var out_basedir:String                    = new File("./",jobname).getAbsolutePath
+  var out_raw:String                        = null
+  var out_accumulated_AB:String             = null
+  var out_accumulated_AB_whitelisted:String = null
+  var out_accumulated_A:String              = null
+  var out_accumulated_B:String              = null
+  var out_accumulated_CT:String             = null
+  var out_dt:String                         = null
+  var out_dt_sorted:String                  = null
+
 
   def load(args:Array[String], jobname:String = null, caller:Class[_] = null) = {
 
@@ -89,19 +93,19 @@ object DSTaskConfig extends Serializable{
     val outputbasedirfile = new File(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", s"out-${this.jobname}")
     if(!outputbasedirfile.exists())
       outputbasedirfile.mkdirs()
-    outputbasedir = outputbasedirfile.getAbsolutePath
+    out_basedir = outputbasedirfile.getAbsolutePath
 
     // get input data and output data
-    input                             = config_dt.getString("input.text")
-    input_whitelist                   = if(config_dt.hasPath("input.whitelist")) config_dt.getString("input.whitelist") else null
-    raw_output                        = if(outputconfig.hasPath("raw"))             new File(outputbasedir, outputconfig.getString("raw")).getAbsolutePath else null
-    accumulated_AB_output             = if(outputconfig.hasPath("accAB"))           new File(outputbasedir, outputconfig.getString("accAB")).getAbsolutePath else null
-    accumulated_AB_whitelisted_output = if(outputconfig.hasPath("accABwhite"))      new File(outputbasedir, outputconfig.getString("accABwhite")).getAbsolutePath else null
-    accumulated_A_output              = if(outputconfig.hasPath("accA"))            new File(outputbasedir, outputconfig.getString("accA")).getAbsolutePath else null
-    accumulated_B_output              = if(outputconfig.hasPath("accB"))            new File(outputbasedir, outputconfig.getString("accB")).getAbsolutePath else null
-    accumulated_CT_output             = if(outputconfig.hasPath("accall"))          new File(outputbasedir, outputconfig.getString("accall")).getAbsolutePath else null
-    dt_output                         = if(outputconfig.hasPath("dt"))              new File(outputbasedir, outputconfig.getString("dt")).getAbsolutePath else null
-    dt_sorted_output                  = if(outputconfig.hasPath("dtsort"))          new File(outputbasedir, outputconfig.getString("dtsort")).getAbsolutePath else null
+    in_text                        = config_dt.getString("input.text")
+    in_whitelist                   = if(config_dt.hasPath("input.whitelist"))    config_dt.getString("input.whitelist") else null
+    out_raw                        = if(outputconfig.hasPath("raw"))             new File(out_basedir, outputconfig.getString("raw")).getAbsolutePath else null
+    out_accumulated_AB             = if(outputconfig.hasPath("accAB"))           new File(out_basedir, outputconfig.getString("accAB")).getAbsolutePath else null
+    out_accumulated_AB_whitelisted = if(outputconfig.hasPath("accABwhite"))      new File(out_basedir, outputconfig.getString("accABwhite")).getAbsolutePath else null
+    out_accumulated_A              = if(outputconfig.hasPath("accA"))            new File(out_basedir, outputconfig.getString("accA")).getAbsolutePath else null
+    out_accumulated_B              = if(outputconfig.hasPath("accB"))            new File(out_basedir, outputconfig.getString("accB")).getAbsolutePath else null
+    out_accumulated_CT             = if(outputconfig.hasPath("accall"))          new File(out_basedir, outputconfig.getString("accall")).getAbsolutePath else null
+    out_dt                         = if(outputconfig.hasPath("dt"))              new File(out_basedir, outputconfig.getString("dt")).getAbsolutePath else null
+    out_dt_sorted                  = if(outputconfig.hasPath("dtsort"))          new File(out_basedir, outputconfig.getString("dtsort")).getAbsolutePath else null
 
   }
 

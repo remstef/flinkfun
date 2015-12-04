@@ -25,7 +25,7 @@ class N11Sum[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2Min[T1,T2]] = {
     ds.groupBy("A","B")
       .reduce((l,r) => {l.n11 += r.n11; l}) // .sum("n11")
-      .filter(_.n11 >= DSTaskConfig.min_n11)
+      .filter(_.n11 >= DSTaskConfig.param_min_n11)
   }
 
 }

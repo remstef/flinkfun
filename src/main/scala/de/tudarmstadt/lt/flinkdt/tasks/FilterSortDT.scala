@@ -25,22 +25,22 @@ class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTa
     case _ => CT2[T1,T2](null.asInstanceOf[T1],null.asInstanceOf[T2],0f)
   })
 
-  // TODO: this can be optimized
+  // TODO: this can surely be optimized
   override def process(ds: DataSet[CT2[T1,T2]]): DataSet[CT2[T1,T2]] = {
 
-    val dtf = ds
-      .filter(_.n11 >= DSTaskConfig.min_sim) // number of co-occurrences
+    val dt_count = ds
       .map(ct => {ct.n1dot = ct.n11; ct.ndot1 = 1; ct}) // misuse ndot1 as o1dot
       .groupBy("A")
-      .reduce((l,r) => {l.B = null.asInstanceOf[T2]; l.n1dot += l.n1dot; l.ndot1 += l.ndot1; l})
-      .filter(_.ndot1 >= DSTaskConfig.min_sim_distinct) // number of distinct co-occurrences
+      .reduce((l,r) => {l.B = null.asInstanceOf[T2]; l.n1dot += l.n11; l.ndot1 += r.ndot1; l})
 
-    val dtsort = dtf
-      .join(dtf)
-      .where("A").equalTo("A")((x, y) => x)
+    val dtsort = ds
+      .join(dt_count)
+      .where("A").equalTo("A")((l, r) => {l.n1dot = r.n1dot; l.ndot1 = r.ndot1; l})
+      .filter(_.n11 >= DSTaskConfig.param_min_sim) // number of co-occurrences
+      .filter(_.ndot1 >= DSTaskConfig.param_min_sim_distinct) // number of distinct co-occurrences
       .groupBy("A")
       .sortGroup("n11", Order.DESCENDING)
-      .first(DSTaskConfig.topn_s)
+      .first(DSTaskConfig.param_topn_s)
 
     dtsort
   }
@@ -54,23 +54,23 @@ class FilterSortDT__CT2Min[T1 : TypeInformation, T2 : TypeInformation] extends D
     case _ => CT2Min[T1,T2](null.asInstanceOf[T1],null.asInstanceOf[T2],0f)
   })
 
-  // TODO: this can be optimized
+  // TODO: this can surely be optimized
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2Min[T1,T2]] = {
 
     val dtf = ds
-      .filter(_.n11 >= DSTaskConfig.min_sim) // number of co-occurrences
       .map((_,1))
       .groupBy("_1.A")
       .sum("_2")
-      .filter(_._2 >= DSTaskConfig.min_sim_distinct) // number of distinct co-occurrences
-      .map(_._1)
 
-    val dtsort = dtf
+    val dtsort = ds
       .join(dtf)
-      .where("A").equalTo("A")((x, y) => x)
-      .groupBy("A")
-      .sortGroup("n11", Order.DESCENDING)
-      .first(DSTaskConfig.topn_s)
+      .where("A").equalTo("_1.A")((x, y) => (x, y._2))
+      .filter(_._1.n11 >= DSTaskConfig.param_min_sim) // number of co-occurrences
+      .filter(_._2 >= DSTaskConfig.param_min_sim_distinct) // number of distinct co-occurrences
+      .groupBy("_1.A")
+      .sortGroup("_2", Order.DESCENDING)
+      .first(DSTaskConfig.param_topn_s)
+      .map(_._1)
 
     dtsort
   }
@@ -80,31 +80,18 @@ class FilterSortDT__CT2Min[T1 : TypeInformation, T2 : TypeInformation] extends D
 
 class FilterSortDT__CT2Min_CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(l => l.split("\t") match {
-    case Array(a,b,n11) => CT2Min[T1,T2](a.asInstanceOf[T1], b.asInstanceOf[T2], n11.toFloat)
-    case _ => CT2Min[T1,T2](null.asInstanceOf[T1],null.asInstanceOf[T2],0f)
-  })
+  val wrapped_CT2    = new FilterSortDT__CT2[T1,T2]()
+  val wrapped_CT2Min = new FilterSortDT__CT2Min[T1,T2]()
 
-  // TODO: this can be optimized
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = wrapped_CT2Min.fromLines(lineDS)
+
+
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2[T1,T2]] = {
 
     val ds_ct2 = ds.map(ctm => CT2[T1,T2](ctm.A, ctm.B, ctm.n11, ctm.n11, ctm.n11, ctm.n11))
 
-    val dt_count = ds_ct2
-      .map(ct => {ct.n1dot = ct.n11; ct.ndot1 = 1; ct}) // misuse ndot1 as o1dot
-      .groupBy("A")
-      .reduce((l,r) => {l.B = null.asInstanceOf[T2]; l.n1dot += l.n11; l.ndot1 += r.ndot1; l})
+    return wrapped_CT2.process(ds_ct2)
 
-    val dtsort = ds_ct2
-      .join(dt_count)
-      .where("A").equalTo("A")((l, r) => {l.n1dot = r.n1dot; l.ndot1 = r.ndot1; l})
-      .filter(_.n11 >= DSTaskConfig.min_sim) // number of co-occurrences
-      .filter(_.ndot1 >= DSTaskConfig.min_sim_distinct) // number of distinct co-occurrences
-      .groupBy("A")
-      .sortGroup("n11", Order.DESCENDING)
-      .first(DSTaskConfig.topn_s)
-
-    dtsort
   }
 
 }
