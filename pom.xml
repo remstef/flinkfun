@@ -130,6 +130,12 @@ under the License.
 			<version>0.1</version>
 		</dependency>
 
+		<dependency>
+			<groupId>de.tudarmstadt</groupId>
+			<artifactId>lt.utilities</artifactId>
+			<version>0.3.6</version>
+		</dependency>
+
 		<!--<dependency>-->
 			<!--<groupId>org.scala-lang</groupId>-->
 			<!--<artifactId>scala-library</artifactId>-->

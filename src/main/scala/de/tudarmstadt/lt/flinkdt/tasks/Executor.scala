@@ -21,20 +21,21 @@ object Executor extends App {
   val in = DSTaskConfig.in_text
 
   val ds = {
-
-    Extractor() ~> DSWriter(DSTaskConfig.out_raw) ~>
-//
-    N11Sum() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
-//
-    WhiteListFilter(DSTaskConfig.in_whitelist, env) ~>
-//
-    ComputeCT2() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
-//
-    ComputeDT.fromCT2() ~>
-//
-    FilterSortDT.CT2Min_CT2() ~> DSWriter(DSTaskConfig.out_dt_sorted)
-
+      //
+      Extractor() ~>
+      //
+      N11Sum() ~|~>
+      //
+      WhiteListFilter(DSTaskConfig.in_whitelist, env) ~|~>
+      //
+      ComputeCT2() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+      //
+      ComputeDT.fromCT2() ~>
+      //
+      FilterSortDT.CT2Min_CT2()
+    //
   }.process(env,in)
+
 
   env.execute(jobname)
 

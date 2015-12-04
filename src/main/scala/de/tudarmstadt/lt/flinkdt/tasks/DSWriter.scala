@@ -11,18 +11,18 @@ import org.apache.flink.core.fs.FileSystem
   */
 object DSWriter {
 
-  def apply[T : TypeInformation](out:String) = new DSWriter[T](out, _.toString)
+  def apply[T : TypeInformation](out:String) = new DSWriter[T](out)
 
 }
 
-class DSWriter[T : TypeInformation](val out:String, val stringfun:(T => String)) extends DSTask[T,T] {
+class DSWriter[T : TypeInformation](out:String) extends DSTask[T,T] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[T] = ???
 
   override def process(ds: DataSet[T]): DataSet[T] = {
     if (out == null)
       return ds
-    val o = ds.map(stringfun(_)).map(Tuple1(_))
+    val o = ds.map(_.toString).map(Tuple1(_))
     if(out == "stdout")
       o.print()
     else
