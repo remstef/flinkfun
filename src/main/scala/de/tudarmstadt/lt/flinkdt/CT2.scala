@@ -28,7 +28,7 @@ import scala.math._
   */
 object CT2 {
 
-  def EMPTY_CT[T1,T2] = new CT2[T1, T2](A = null.asInstanceOf[T1], B = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
+  def EMPTY_CT[T1,T2] = new CT2[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
 
   def fromString[T1,T2](ct2AsString:String):CT2[T1,T2] = fromStringArray(ct2AsString.split("\t"))
 
@@ -59,13 +59,13 @@ object CT2 {
  *
  */
 @SerialVersionUID(42L)
-case class CT2[T1,T2](var A:T1, var B:T2,
-                  var n11:Float   = 1f,
-                  var n1dot:Float = 1f,
-                  var ndot1:Float = 1f,
-                  var n:Float     = 1f,
-                  val srcid:Option[Any] = None,
-                  val isflipped:Boolean = false) extends Serializable with Cloneable {
+case class CT2[T1,T2](var a:T1, var b:T2,
+                      var n11:Float   = 1f,
+                      var n1dot:Float = 1f,
+                      var ndot1:Float = 1f,
+                      var n:Float     = 1f,
+                      val srcid:Option[Any] = None,
+                      val isflipped:Boolean = false) extends Serializable with Cloneable {
 
   def n12()   = n1dot - n11
   def n21()   = ndot1 - n11
@@ -93,8 +93,8 @@ case class CT2[T1,T2](var A:T1, var B:T2,
   def +(other:CT2[T1, T2]):this.type = {
     val newct:this.type = copy().asInstanceOf[this.type]
     newct.n += other.n11
-    if(A == other.A) {
-      if(B == other.B){
+    if(a == other.a) {
+      if(b == other.b){
         newct.n11   += other.n11
         newct.n1dot += other.n11
         newct.ndot1 += other.n11
@@ -103,7 +103,7 @@ case class CT2[T1,T2](var A:T1, var B:T2,
       newct.n1dot += other.n11
       return newct
     }
-    if(this.B == other.B)
+    if(this.b == other.b)
       newct.ndot1 += other.n11
     return newct
   }
@@ -116,8 +116,8 @@ case class CT2[T1,T2](var A:T1, var B:T2,
     */
   def +=(other:CT2[T1, T2]):this.type = synchronized {
     this.n += other.n11
-    if(this.A == other.A) {
-      if(this.B == other.B){
+    if(this.a == other.a) {
+      if(this.b == other.b){
         this.n11   += other.n11
         this.n1dot += other.n11
         this.ndot1 += other.n11
@@ -126,7 +126,7 @@ case class CT2[T1,T2](var A:T1, var B:T2,
       this.n1dot += other.n11
       return this
     }
-    if(B == other.B)
+    if(b == other.b)
       this.ndot1 += other.n11
     return this
   }
@@ -151,7 +151,7 @@ case class CT2[T1,T2](var A:T1, var B:T2,
     val filler_ = "-"*2*maxwidth
     val source = if(srcid.isDefined) s"source = ${srcid.get}" else ""
     s"""+++ ${getClass.getSimpleName}    ${source}   +++
-  A = ${A}     B = ${B}
+  A = ${a}     B = ${b}
                 |  B ${filler}        !B  ${filler}      | SUM
              ---------------------------------${filler_}
   CT2(A,B) =  A |  n11 = ${vf(0)}    n12 = ${vf(1)}    | n1dot = ${vf(4)}
@@ -172,8 +172,8 @@ case class CT2[T1,T2](var A:T1, var B:T2,
   }
 
   def toStringTuple():(String, String, String, String, String, String) = (
-    s"${A}",
-    s"${B}",
+    s"${a}",
+    s"${b}",
     s"${FormatUtils.format(n11)}",
     s"${FormatUtils.format(n1dot)}",
     s"${FormatUtils.format(ndot1)}",
@@ -193,15 +193,15 @@ case class CT2[T1,T2](var A:T1, var B:T2,
   def basicEquals(that:Any):Boolean = {
     if(that.isInstanceOf[this.type ]) {
       val ct2 = that.asInstanceOf[this.type]
-      return  ((this.A == ct2.A) && (this.B == ct2.B))
+      return  ((this.a == ct2.a) && (this.b == ct2.b))
     }
     return false
   }
 
   def basicHashCode():Int = {
     41 * (
-      41 + (if(null == A) 0 else  A.hashCode)
-      ) + (if(null == B) 0 else  B.hashCode)
+      41 + (if(null == a) 0 else  a.hashCode)
+      ) + (if(null == b) 0 else  b.hashCode)
   }
 
   def copyClone():this.type = clone().asInstanceOf[this.type]
@@ -215,8 +215,8 @@ case class CT2[T1,T2](var A:T1, var B:T2,
 
   def flipped():CT2[T2,T1] = {
     copy(
-      this.B,
-      this.A,
+      this.b,
+      this.a,
       this.n11,
       this.ndot1,
       this.n1dot,

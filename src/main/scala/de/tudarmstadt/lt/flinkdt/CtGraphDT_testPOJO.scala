@@ -54,7 +54,7 @@ object CtGraphDT_testPOJO extends App {
   val ct_raw:DataSet[CT2MinJ[String,String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
-    .flatMap(s => TextToCT2.ngram_patterns(s,5,3).map(ct => {val r = new CT2MinJ[String,String](); r.A = ct.A; r.B = ct.B; r.n11 = ct.n11; r}))
+    .flatMap(s => TextToCT2.ngram_patterns(s,5,3).map(ct => {val r = new CT2MinJ[String,String](); r.A = ct.a; r.B = ct.b; r.n11 = ct.n11; r}))
 
 
   val ctagg = ct_raw

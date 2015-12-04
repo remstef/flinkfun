@@ -11,7 +11,7 @@ object CT2Test {
     println("--- ngrams n=3 ---")
     TextToCT2.ngrams("insurgents killed in ongoing fighting",3).foreach(a => println(a))
     println("--- ngram patterns n=5 wildcards=2 ---")
-    TextToCT2.ngram_patterns("The quick brown fox jumps over the lazy dog").filter(_.A.equals("fox")).foreach(a => println(a))
+    TextToCT2.ngram_patterns("The quick brown fox jumps over the lazy dog").filter(_.a.equals("fox")).foreach(a => println(a))
     println("--- kskipngrams n=3 k=2 ---")
     TextToCT2.kSkipNgram("insurgents killed in ongoing fighting",3,2).foreach(a => println(a))
     println("--- kskipngrams n=5 k=3 ---")

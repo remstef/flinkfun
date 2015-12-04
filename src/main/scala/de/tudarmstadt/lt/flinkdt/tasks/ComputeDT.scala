@@ -21,7 +21,7 @@ class ComputeDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[
     val joined:DataSet[CT2Min[T1,T1]] = ds
       .join(ds)
       .where("B")
-      .equalTo("B")((l,r) => CT2Min[T1,T1](l.A, r.A, n11=1f))
+      .equalTo("B")((l,r) => CT2Min[T1,T1](l.a, r.a, n11=1f))
 
     val dt = joined
       .groupBy("A", "B")

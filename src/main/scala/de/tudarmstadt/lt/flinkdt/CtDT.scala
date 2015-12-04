@@ -114,7 +114,7 @@ object CtDT extends App {
     .where("B")
     .equalTo("B")
 
-  val dt = joined.map(cts => CT2(cts._1.A, cts._2.A, n11=1f))
+  val dt = joined.map(cts => CT2(cts._1.a, cts._2.a, n11=1f))
     .groupBy("A", "B")
     .sum("n11")
     .filter(_.n11 > 1)

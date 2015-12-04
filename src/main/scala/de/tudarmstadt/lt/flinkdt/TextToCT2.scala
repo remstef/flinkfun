@@ -29,7 +29,7 @@ object TextToCT2 {
   def ngram_patterns(text:String, n:Int=5, num_wildcards:Int=2): TraversableOnce[CT2Min[String,String]] = {
     val f = Array(n/2) // 5/2 = 2 => 0 1 @ 3 4
     val ngram_jbs = ngrams(text, n)
-    val jb = ngram_jbs.flatMap(ct => pat.merged_patterns(ct.B.split(" "), num_wildcards, f).map(pat => pat.pattern).map(p => CT2Min(A=ct.A, B=p.mkString(" "), ct.n11)))
+    val jb = ngram_jbs.flatMap(ct => pat.merged_patterns(ct.b.split(" "), num_wildcards, f).map(pat => pat.pattern).map(p => CT2Min(a=ct.a, b=p.mkString(" "), ct.n11)))
     jb
   }
 

@@ -28,7 +28,7 @@ class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTa
     val dt_count = ds
       .map(ct => {ct.n1dot = ct.n11; ct.ndot1 = 1; ct}) // misuse ndot1 as o1dot
       .groupBy("A")
-      .reduce((l,r) => {l.B = null.asInstanceOf[T2]; l.n1dot += l.n11; l.ndot1 += r.ndot1; l})
+      .reduce((l,r) => {l.b = null.asInstanceOf[T2]; l.n1dot += l.n11; l.ndot1 += r.ndot1; l})
 
     val dtsort = ds
       .join(dt_count)
@@ -82,7 +82,7 @@ class FilterSortDT__CT2Min_CT2[T1 : TypeInformation, T2 : TypeInformation] exten
 
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2[T1,T2]] = {
 
-    val ds_ct2 = ds.map(ctm => CT2[T1,T2](ctm.A, ctm.B, ctm.n11, ctm.n11, ctm.n11, ctm.n11))
+    val ds_ct2 = ds.map(ctm => CT2[T1,T2](ctm.a, ctm.b, ctm.n11, ctm.n11, ctm.n11, ctm.n11))
 
     return wrapped_CT2.process(ds_ct2)
 

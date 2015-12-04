@@ -56,10 +56,10 @@ object CtGraphDT extends App {
     .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
 
   val mapStringCtToInt = ct_raw.map(ct => {
-    val id_A:Int = ct.A.hashCode
-    val id_B:Int = ct.B.hashCode
+    val id_A:Int = ct.a.hashCode
+    val id_B:Int = ct.b.hashCode
     val newct = CT2Min(id_A, id_B, ct.n11)
-    (newct, Seq((id_A, ct.A), (id_B, ct.B)))
+    (newct, Seq((id_A, ct.a), (id_B, ct.b)))
   })
 
   val id2string = mapStringCtToInt.map(_._2).flatMap(l => l).distinct(0)
@@ -74,7 +74,7 @@ object CtGraphDT extends App {
   val adjacencyListsRev = ctagg
     .groupBy("B")
     .reduceGroup((iter, out:Collector[CT2Min[Int, Int]]) => {
-      val l = iter.map(_.A).toIterable
+      val l = iter.map(_.a).toIterable
       // TODO: might be a bottleneck, it creates multiple new sequences (one new sequence per each entry)
       l.foreach(a => l.map(b => out.collect(CT2Min(a, b)))) // this could by optimized due to symmetry
     })

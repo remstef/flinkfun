@@ -1,7 +1,5 @@
 package de.tudarmstadt.lt.flinkdt
 
-import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
-
 import de.tudarmstadt.lt.scalautils.FormatUtils
 
 /**
@@ -10,7 +8,7 @@ import de.tudarmstadt.lt.scalautils.FormatUtils
 object CT2Min {
 
 
-  def EMPTY_CT[T1,T2] = new CT2Min[T1, T2](A = null.asInstanceOf[T1], B = null.asInstanceOf[T2], n11 = 0f)
+  def EMPTY_CT[T1,T2] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
 
   def fromString[T1,T2](ct2AsString:String):CT2Min[T1,T2] = fromStringArray(ct2AsString.split("\t"))
 
@@ -27,13 +25,13 @@ object CT2Min {
 
 
 @SerialVersionUID(42L)
-case class CT2Min[T1,T2](var A:T1,
-                    var B:T2,
-                    var n11:Float = 1f) extends Serializable with Cloneable {
+case class CT2Min[T1,T2](var a:T1,
+                         var b:T2,
+                         var n11:Float = 1f) extends Serializable with Cloneable {
 
   def +(other:CT2Min[T1, T2]):this.type = {
     val newct:this.type = copy().asInstanceOf[this.type]
-    if(A == other.A && B == other.B)
+    if(a == other.a && b == other.b)
       newct.n11 += other.n11
     return newct
   }
@@ -45,12 +43,12 @@ case class CT2Min[T1,T2](var A:T1,
     * @return
     */
   def +=(other:CT2Min[T1, T2]):this.type = synchronized {
-    if(A == other.A && B == other.B)
+    if(a == other.a && b == other.b)
       n11 += other.n11
     return this
   }
 
-  def toCT2():CT2[T1,T2] = CT2(A,B,n11)
+  def toCT2():CT2[T1,T2] = CT2(a,b,n11)
 
   def prettyPrint():String = {
     val v = s"${FormatUtils.format(n11)}"
@@ -60,7 +58,7 @@ case class CT2Min[T1,T2](var A:T1,
     val filler_ = "-"*width
 
     s"""+++ ${getClass.getSimpleName}
-  A = ${A}     B = ${B}
+  A = ${a}     B = ${b}
         |  B       ${filler}   !B        | SUM
              ---------------------------------${filler_}
   CT2(A,B) =  A |  n11 = ${v}    n12 = ?    | n1dot = ?
@@ -71,8 +69,8 @@ case class CT2Min[T1,T2](var A:T1,
   }
 
   def toStringTuple():(String, String, String) = (
-    s"${A}",
-    s"${B}",
+    s"${a}",
+    s"${b}",
     s"${FormatUtils.format(n11)}")
 
   def toStringArray():Array[String] = {
@@ -85,15 +83,15 @@ case class CT2Min[T1,T2](var A:T1,
   override def equals(that:Any):Boolean = {
     if(that.isInstanceOf[this.type ]) {
       val ct2 = that.asInstanceOf[this.type]
-      return  ((this.A == ct2.A) && (this.B == ct2.B))
+      return  ((this.a == ct2.a) && (this.b == ct2.b))
     }
     return false
   }
 
   override def hashCode():Int = {
     41 * (
-      41 + (if(null == A) 0 else  A.hashCode)
-      ) + (if(null == B) 0 else  B.hashCode)
+      41 + (if(null == a) 0 else  a.hashCode)
+      ) + (if(null == b) 0 else  b.hashCode)
   }
 
 

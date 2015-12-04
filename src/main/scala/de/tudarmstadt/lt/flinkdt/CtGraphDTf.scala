@@ -97,7 +97,7 @@ object CtGraphDTf extends App {
       val temp:CT2[String,String] = CT2(null,null, n11 = 0, n1dot = 0, ndot1 = 0)
       val l = iter.toSeq
       l.foreach(t => {
-        temp.B = t.B
+        temp.b = t.b
         temp.n11 += t.n11
         temp.ndot1 += t.n11
       })
@@ -134,7 +134,7 @@ object CtGraphDTf extends App {
         lll.foreach(ct_x => {
           lll.foreach(ct_y => {
             if (ct_y._2 > 0)
-              out.collect(CT2(ct_x._1.A, ct_y._1.A, 1f))
+              out.collect(CT2(ct_x._1.a, ct_y._1.a, 1f))
           })
         })
       }

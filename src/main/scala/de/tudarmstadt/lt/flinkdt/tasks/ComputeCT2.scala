@@ -20,7 +20,7 @@ class ComputeCT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2M
 
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2[T1,T2]] = {
 
-    val cts:DataSet[CT2[T1,T2]] = ds.map(ct => CT2[T1,T2](ct.A, ct.B, n11 = ct.n11, n1dot = ct.n11, ndot1 = ct.n11, n = ct.n11))
+    val cts:DataSet[CT2[T1,T2]] = ds.map(ct => CT2[T1,T2](ct.a, ct.b, n11 = ct.n11, n1dot = ct.n11, ndot1 = ct.n11, n = ct.n11))
 
     val ct_accumulated_A = cts
       .groupBy("A")
