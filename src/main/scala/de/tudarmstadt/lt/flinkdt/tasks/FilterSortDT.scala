@@ -4,6 +4,7 @@ import de.tudarmstadt.lt.flinkdt.{CT2, CT2Min}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
+import org.apache.flink.util.Collector
 
 /**
   * Created by Steffen Remus
@@ -36,8 +37,15 @@ class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTa
       .filter(_.n11 >= DSTaskConfig.param_min_sim) // number of co-occurrences
       .filter(_.ndot1 >= DSTaskConfig.param_min_sim_distinct) // number of distinct co-occurrences
       .groupBy("a")
-      .sortGroup("n11", Order.DESCENDING)
-      .first(DSTaskConfig.param_topn_s)
+//      .sortGroup("n11", Order.DESCENDING)
+//      .first(DSTaskConfig.param_topn_s)
+      .reduceGroup((iter, out:Collector[CT2[T1, T2]]) => {
+        val l = iter.toSeq
+        l.sortBy(ct => (-ct.n11, ct.b.toString)) // sort descending by value and ascending by B
+          .take(DSTaskConfig.param_topn_s)
+          .foreach(out.collect(_))
+      })
+
 
     dtsort
   }
@@ -46,28 +54,11 @@ class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTa
 
 class FilterSortDT__CT2Min[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
+  val wrapped_CT2Min_CT2    = new FilterSortDT__CT2Min_CT2[T1,T2]()
 
-  // TODO: this can surely be optimized
-  override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2Min[T1,T2]] = {
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = wrapped_CT2Min_CT2.fromLines(lineDS)
 
-    val dtf = ds
-      .map((_,1))
-      .groupBy("_1.a")
-      .sum("_2")
-
-    val dtsort = ds
-      .join(dtf)
-      .where("a").equalTo("_1.a")((x, y) => (x, y._2))
-      .filter(_._1.n11 >= DSTaskConfig.param_min_sim) // number of co-occurrences
-      .filter(_._2 >= DSTaskConfig.param_min_sim_distinct) // number of distinct co-occurrences
-      .groupBy("_1.a")
-      .sortGroup("_2", Order.DESCENDING)
-      .first(DSTaskConfig.param_topn_s)
-      .map(_._1)
-
-    dtsort
-  }
+  override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2Min[T1,T2]] = wrapped_CT2Min_CT2.process(ds).map(_.toCT2Min)
 
 }
 
@@ -75,18 +66,10 @@ class FilterSortDT__CT2Min[T1 : TypeInformation, T2 : TypeInformation] extends D
 class FilterSortDT__CT2Min_CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
 
   val wrapped_CT2    = new FilterSortDT__CT2[T1,T2]()
-  val wrapped_CT2Min = new FilterSortDT__CT2Min[T1,T2]()
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = wrapped_CT2Min.fromLines(lineDS)
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
 
-
-  override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2[T1,T2]] = {
-
-    val ds_ct2 = ds.map(ctm => CT2[T1,T2](ctm.a, ctm.b, ctm.n11, ctm.n11, ctm.n11, ctm.n11))
-
-    return wrapped_CT2.process(ds_ct2)
-
-  }
+  override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2[T1,T2]] = wrapped_CT2.process(ds.map(_.toCT2()))
 
 }
 

@@ -48,7 +48,7 @@ case class CT2Min[T1,T2](var a:T1,
     return this
   }
 
-  def toCT2():CT2[T1,T2] = CT2(a,b,n11)
+  def toCT2(n1dot:Float=n11,ndot1:Float=n11,n:Float=n11):CT2[T1,T2] = CT2(a,b,n11,n1dot,ndot1,n)
 
   def prettyPrint():String = {
     val v = s"${FormatUtils.format(n11)}"

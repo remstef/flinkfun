@@ -184,6 +184,8 @@ case class CT2[T1,T2](var a:T1, var b:T2,
     Array(t._1, t._2, t._3, t._4, t._5, t._6)
   }
 
+  def toCT2Min() = CT2Min[T1,T2](a,b,n11)
+
   override def toString():String = toStringArray().mkString("\t")
 
   override def equals(that:Any):Boolean = basicEquals(that)

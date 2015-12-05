@@ -32,21 +32,26 @@ object Executor extends App {
   // get input data
   val in = DSTaskConfig.in_text
 
+
+
   val ds = {
       //
-//      Extractor() ~>
+      Extractor() ~|~>
 //      //
-//      N11Sum()
+      N11Sum.toCT2withN[String,String]() ~|~>
 //      //
-      WhiteListFilter(DSTaskConfig.in_whitelist, env) ~> DSWriter(DSTaskConfig.out_accumulated_AB_whitelisted+"banana") ~>
-      //
-      ComputeCT2() ~> DSWriter(DSTaskConfig.out_accumulated_CT+"banana") ~>
-      //
-      ComputeDT.fromCT2() ~>
-      //
-      FilterSortDT.CT2Min_CT2()
     //
-  }.process(env,in, DSTaskConfig.out_dt_sorted+"banana")
+//      NSum.CT2Min[String, String]() ~>
+    //
+      WhiteListFilter.CT2[String](DSTaskConfig.in_whitelist, env) ~> DSWriter(DSTaskConfig.out_accumulated_AB_whitelisted) ~>
+      //
+      ComputeCT2.fromCT2withPartialN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+      //
+      ComputeDT.fromCT2[String,String]() ~>
+//      //
+      FilterSortDT.CT2Min_CT2[String,String]()
+    //
+  }.process(env,in, DSTaskConfig.out_dt_sorted)
 
 
   env.execute(jobname)
