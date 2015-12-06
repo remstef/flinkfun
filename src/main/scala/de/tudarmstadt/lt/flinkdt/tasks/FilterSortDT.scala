@@ -29,7 +29,7 @@ class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTa
     val dt_count = ds
       .map(ct => {ct.n1dot = ct.n11; ct.ndot1 = 1; ct}) // misuse ndot1 as o1dot
       .groupBy("a")
-      .reduce((l,r) => {l.b = null.asInstanceOf[T2]; l.n1dot += l.n11; l.ndot1 += r.ndot1; l})
+      .reduce((l,r) => {l.b = null.asInstanceOf[T2]; l.n1dot += r.n1dot; l.ndot1 += r.ndot1; l})
 
     val dtsort = ds
       .join(dt_count)
@@ -45,8 +45,6 @@ class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTa
           .take(DSTaskConfig.param_topn_s)
           .foreach(out.collect(_))
       })
-
-
     dtsort
   }
 

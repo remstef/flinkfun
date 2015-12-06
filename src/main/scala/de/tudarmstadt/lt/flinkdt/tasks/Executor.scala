@@ -39,15 +39,12 @@ object Executor extends App {
       Extractor() ~|~>
 //      //
       N11Sum.toCT2withN[String,String]() ~|~>
-//      //
-    //
-//      NSum.CT2Min[String, String]() ~>
     //
       WhiteListFilter.CT2[String](DSTaskConfig.in_whitelist, env) ~> DSWriter(DSTaskConfig.out_accumulated_AB_whitelisted) ~>
       //
       ComputeCT2.fromCT2withPartialN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       //
-      ComputeDT.fromCT2[String,String]() ~>
+      ComputeDT.fromCT2[String,String]() ~|~>
 //      //
       FilterSortDT.CT2Min_CT2[String,String]()
     //
