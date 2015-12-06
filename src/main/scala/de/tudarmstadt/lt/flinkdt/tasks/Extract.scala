@@ -8,11 +8,11 @@ import org.apache.flink.api.scala._
   */
 object Extractor {
 
-  def apply() = new Extractor()
+  def apply(extractorfun:String => TraversableOnce[CT2Min[String, String]] = s => Seq.empty[CT2Min[String,String]]) = new Extractor(extractorfun)
 
 }
 
-class Extractor extends DSTask[String, CT2Min[String,String]] {
+class Extractor(extractorfun:String => TraversableOnce[CT2Min[String, String]]) extends DSTask[String, CT2Min[String,String]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[String] = lineDS
 
@@ -20,7 +20,7 @@ class Extractor extends DSTask[String, CT2Min[String,String]] {
     val ct_raw:DataSet[CT2Min[String,String]] = ds
       .filter(_ != null)
       .filter(!_.trim().isEmpty())
-      .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
+      .flatMap(s => extractorfun(s))
     ct_raw
   }
 

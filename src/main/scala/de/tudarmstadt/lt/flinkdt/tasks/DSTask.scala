@@ -1,8 +1,5 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import java.io.File
-
-import de.tudarmstadt.lt.utilities.TimeUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 
@@ -19,19 +16,11 @@ abstract class DSTask[I:TypeInformation, O:TypeInformation] extends (DataSet[I] 
   def process(ds:DataSet[I]):DataSet[O]
 
   def process(env:ExecutionEnvironment, inputtext:String, outputlocation:String = null):DataSet[O] = {
-    val out =
-      if(outputlocation != null){
-        outputlocation
-      }else{
-        var t:DSTask[_,_] = this
-        while(t.isInstanceOf[DSTaskChain[_,_,_]] || t.isInstanceOf[DSTaskWriterChain[_,_,_]])
-          t = (t.asInstanceOf[DSTaskChain[I,_,O]]).g
-        val name = s"${TimeUtils.getSimple17}_${t.getClass.getSimpleName}"
-        new File(DSTaskConfig.out_basedir, name).getAbsolutePath
-      }
     val ds_out = process(fromLines(DSReader(inputtext,env).process(null)))
-    val writer:DSWriter[String] = new DSWriter[String](out)
-    writer.process(toLines(ds_out))
+    if(outputlocation != null && !outputlocation.isEmpty) {
+      val writer: DSWriter[String] = new DSWriter[String](outputlocation)
+      writer.process(toLines(ds_out))
+    }
     ds_out
   }
 

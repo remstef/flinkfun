@@ -9,7 +9,7 @@ import org.apache.flink.api.scala._
 /**
   * Created by Steffen Remus
   */
-object ComputeCT2 {
+object ComputeFilteredCT2s {
 
   def fromCT2Min[T1 : TypeInformation, T2 : TypeInformation]() = new Compute__CT2_from_CT2Min[T1,T2]()
 

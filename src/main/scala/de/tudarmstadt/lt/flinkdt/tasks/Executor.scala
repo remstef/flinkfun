@@ -16,6 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
+import de.tudarmstadt.lt.flinkdt.TextToCT2
 import org.apache.flink.api.scala._
 
 /**
@@ -32,24 +33,21 @@ object Executor extends App {
   // get input data
   val in = DSTaskConfig.in_text
 
-
-
   val ds = {
-      //
-      Extractor() ~|~>
-//      //
-      N11Sum.toCT2withN[String,String]() ~|~>
-    //
-      WhiteListFilter.CT2[String](DSTaskConfig.in_whitelist, env) ~> DSWriter(DSTaskConfig.out_accumulated_AB_whitelisted) ~>
-      //
-      ComputeCT2.fromCT2withPartialN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
-      //
-      ComputeDT.fromCT2[String,String]() ~|~>
-//      //
+      /*  */
+      Extractor(s => TextToCT2.kSkipNgram(s,5,3)) ~> DSWriter(DSTaskConfig.out_raw) ~>
+      /*  */
+      N11Sum.toCT2withN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
+      /* */
+      WhiteListFilter.CT2[String](DSTaskConfig.in_whitelist, env) ~>
+      /* */
+      ComputeFilteredCT2s.fromCT2withPartialN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+      /* */
+      ComputeDT.fromCT2[String,String]() ~>
+      /* */
       FilterSortDT.CT2Min_CT2[String,String]()
-    //
+      /* */
   }.process(env,in, DSTaskConfig.out_dt_sorted)
-
 
   env.execute(jobname)
 
