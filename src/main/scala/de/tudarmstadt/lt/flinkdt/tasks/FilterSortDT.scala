@@ -19,7 +19,7 @@ object FilterSortDT {
 
 }
 
-class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2[T1,T2],CT2[T1,T2]] {
+class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation](sort_B_by_string:Boolean = false) extends DSTask[CT2[T1,T2],CT2[T1,T2]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(CT2.fromString(_))
 
@@ -31,21 +31,29 @@ class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTa
       .groupBy("a")
       .reduce((l,r) => {l.b = null.asInstanceOf[T2]; l.n1dot += r.n1dot; l.ndot1 += r.ndot1; l})
 
-    val dtsort = ds
+    val dt_grouped_a = ds
       .join(dt_count)
       .where("a").equalTo("a")((l, r) => {l.n1dot = r.n1dot; l.ndot1 = r.ndot1; l})
       .filter(_.n11 >= DSTaskConfig.param_min_sim) // number of co-occurrences
       .filter(_.ndot1 >= DSTaskConfig.param_min_sim_distinct) // number of distinct co-occurrences
       .groupBy("a")
-//      .sortGroup("n11", Order.DESCENDING)
-//      .first(DSTaskConfig.param_topn_s)
-      .reduceGroup((iter, out:Collector[CT2[T1, T2]]) => {
-        val l = iter.toSeq
-        l.sortBy(ct => (-ct.n11, ct.b.toString)) // sort descending by value and ascending by B
-          .take(DSTaskConfig.param_topn_s)
-          .foreach(out.collect(_))
-      })
-    dtsort
+
+    val dt_sort =
+      if(sort_B_by_string) {
+        dt_grouped_a
+          .sortGroup("n11", Order.DESCENDING)
+          .first(DSTaskConfig.param_topn_s)
+      }else {
+        dt_grouped_a
+          .reduceGroup((iter, out: Collector[CT2[T1, T2]]) => {
+            val l = iter.toSeq
+            l.sortBy(ct => (-ct.n11, ct.b.toString)) // sort descending by value and ascending by B
+              .take(DSTaskConfig.param_topn_s)
+              .foreach(out.collect(_))
+          })
+      }
+
+    dt_sort
   }
 
 }
