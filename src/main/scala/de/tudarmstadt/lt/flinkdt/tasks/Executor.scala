@@ -24,8 +24,7 @@ import org.apache.flink.api.scala._
   */
 object Executor extends App {
 
-  val jobname = getClass.getSimpleName.replaceAllLiterally("$","")
-  DSTaskConfig.load(args, jobname=jobname)
+  DSTaskConfig.load(args)
 
   // set up the execution environment
   val env = ExecutionEnvironment.getExecutionEnvironment
@@ -35,7 +34,7 @@ object Executor extends App {
 
   val ds = {
       /*  */
-      Extractor(s => TextToCT2.kSkipNgram(s,5,3)) ~> DSWriter(DSTaskConfig.out_raw) ~>
+      Extractor(s => TextToCT2.ngram_patterns(s,5,3)) ~> DSWriter(DSTaskConfig.out_raw) ~>
       /*  */
       N11Sum.toCT2withN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
       /* */
@@ -45,10 +44,10 @@ object Executor extends App {
       /* */
       ComputeDT.fromCT2[String,String]() ~>
       /* */
-      FilterSortDT.CT2Min_CT2[String,String]()
+      FilterSortDT.CT2Min[String,String]()
       /* */
   }.process(env,in, DSTaskConfig.out_dt_sorted)
 
-  env.execute(jobname)
+  env.execute(DSTaskConfig.jobname)
 
 }

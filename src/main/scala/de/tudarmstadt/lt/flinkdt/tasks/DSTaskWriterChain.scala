@@ -38,7 +38,8 @@ class DSTaskWriterChain[I:TypeInformation,O:TypeInformation,X:TypeInformation](_
     new File(DSTaskConfig.out_basedir, name).getAbsolutePath
 
     val ds_intermediate = f.process(ds)
-    new DSWriter[String](new File(DSTaskConfig.out_basedir, name).getAbsolutePath).process(f.toLines(ds_intermediate))
+    val w = new DSWriter[String](new File(DSTaskConfig.out_basedir, name).getAbsolutePath)
+    w.process(f.toLines(ds_intermediate))
     g(ds_intermediate)
 
   }

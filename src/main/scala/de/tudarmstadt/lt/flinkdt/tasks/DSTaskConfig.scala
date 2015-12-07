@@ -18,7 +18,7 @@ package de.tudarmstadt.lt.flinkdt.tasks
 
 import java.io.File
 
-
+import de.tudarmstadt.lt.utilities.TimeUtils
 
 /**
   * Created by Steffen Remus.
@@ -44,7 +44,6 @@ import java.io.File
 @SerialVersionUID(42l)
 object DSTaskConfig extends Serializable{
 
-  /* 2 */
   var param_min_ndot1:Float                 = 2f
   var param_min_n1dot:Float                 = 2f
   var param_min_n11:Float                   = 2f
@@ -53,11 +52,12 @@ object DSTaskConfig extends Serializable{
 
   var param_min_sig:Float                   = 0f
   var param_topn_f:Int                      = 1000
-  var param_topn_s:Int                      = 200
-  var param_min_sim:Float                   = 2f
-  var param_min_sim_distinct:Int            = 2
 
-  var jobname:String                        = "DTJOB"
+  var param_min_sim:Float                   = 2f
+  var param_min_sim_ndistinct:Int           = 2
+  var param_topn_s:Int                      = 200
+
+  var jobname:String                        = "DT-job-flink"
 
   var in_text:String                        = "!!NO INPUT DEFINED!!"
   var in_whitelist:String                   = null
@@ -87,6 +87,10 @@ object DSTaskConfig extends Serializable{
       this.jobname = jobname
     else if(caller != null)
       this.jobname = caller.getSimpleName.replaceAllLiterally("$","")
+    else if(args.length > 1)
+      this.jobname = args(1)
+    else
+      this.jobname = s"${TimeUtils.getSimple17}_${this.jobname}"
 
     val config_dt = config.getConfig("DT")
     val outputconfig = config_dt.getConfig("output.ct")
@@ -106,6 +110,20 @@ object DSTaskConfig extends Serializable{
     out_accumulated_CT             = if(outputconfig.hasPath("accall"))          new File(out_basedir, outputconfig.getString("accall")).getAbsolutePath else null
     out_dt                         = if(outputconfig.hasPath("dt"))              new File(out_basedir, outputconfig.getString("dt")).getAbsolutePath else null
     out_dt_sorted                  = if(outputconfig.hasPath("dtsort"))          new File(out_basedir, outputconfig.getString("dtsort")).getAbsolutePath else null
+
+    // get filter config
+    val config_filter = config_dt.getConfig("filter")
+    param_min_ndot1         = config_filter.getDouble("min-ndot1").toFloat
+    param_min_n1dot         = config_filter.getDouble("min-n1dot").toFloat
+    param_min_n11           = config_filter.getDouble("min-n11").toFloat
+    param_min_odot1         = config_filter.getDouble("min-odot1").toFloat
+    param_max_odot1         = config_filter.getDouble("max-odot1").toFloat
+
+    param_min_sig           = config_filter.getDouble("min-sig").toFloat
+    param_topn_f            = config_filter.getInt("topn-f")
+    param_min_sim           = config_filter.getDouble("min-sim").toFloat
+    param_min_sim_ndistinct = config_filter.getInt("min-sim-ndistinct")
+    param_topn_s            = config_filter.getInt("topn-s")
 
   }
 
