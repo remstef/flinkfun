@@ -74,11 +74,10 @@ object TextToCT2 {
       .map(p => CT2Min(p.filler.mkString(" "), compress(p.pattern.toList).mkString(" "), 1f))
   }
 
-  def compress[T](l : List[T]) : List[T] = l match {
-    case head::next::tail if (head == next) => compress(next::tail)
-    case head::tail => head::compress(tail)
-    case nil => List()
+  def compress[T](l: List[T]):List[T] = l.foldRight(List[T]()) {
+    case (e, ls) if (ls.isEmpty || ls.head != e) => e::ls
+    case (e, ls) => ls
   }
-
+  
 }
 
