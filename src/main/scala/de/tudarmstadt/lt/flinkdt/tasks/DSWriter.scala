@@ -1,6 +1,9 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
 
+import java.io.File
+import java.net.URI
+
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.FileSystem
@@ -25,8 +28,11 @@ class DSWriter[T : TypeInformation](out:String) extends DSTask[T,T] {
     val o = ds.map(_.toString).map(Tuple1(_))
     if(out == "stdout")
       o.print()
-    else
+    else {
+      if(out.toLowerCase.startsWith("file:"))
+        new File(out).getParentFile.mkdirs() // ensure the parent directory exists
       o.writeAsCsv(out, "\n", "\t", writeMode = FileSystem.WriteMode.OVERWRITE)
+    }
     ds
   }
 

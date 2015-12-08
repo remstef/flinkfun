@@ -3,6 +3,7 @@ package de.tudarmstadt.lt.flinkdt.tasks
 import java.io.File
 
 import org.apache.flink.api.scala._
+import org.apache.flink.core.fs.FileSystem
 
 /**
   * Created by Steffen Remus
@@ -24,7 +25,7 @@ class DSReader(in: String, env: ExecutionEnvironment) extends DSTask[String, Str
   }
 
   def process(): DataSet[String] = {
-    if(new File(in).exists)
+    if(in.toLowerCase.startsWith("file:") || in.toLowerCase.startsWith("hdfs:"))
       env.readTextFile(in)
     else
       env.fromCollection(in.split('\n'))
