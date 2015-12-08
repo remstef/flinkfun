@@ -54,7 +54,7 @@ object TextToCT2 {
     pat_hole.kWildcardNgramPatterns(seq, n, k)
       .map(p => CT2Min(p.filler.mkString(" "),p.pattern.mkString(" "), 1f))
   }
-  
+
   def kWildcardNgramPatternsPlus(text:String, n:Int=3, k:Int=2): TraversableOnce[CT2Min[String,String]] = {
     val nh = n/2;
     val seq = ("^ "*(nh) + text + " $"*(nh)).split("\\s+")
