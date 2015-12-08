@@ -37,15 +37,15 @@ object Executor extends App {
       Extractor(s => TextToCT2.kWildcardNgramPatternsPlus(s,5,3)) ~> DSWriter(DSTaskConfig.out_raw) ~>
       /*  */
       N11Sum.toCT2withN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
-      /* */
+      /*  */
       WhiteListFilter.CT2[String](DSTaskConfig.in_whitelist, env) ~>
-      /* */
+      /*  */
       ComputeFilteredCT2s.fromCT2withPartialN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
-      /* */
+      /*  */
       ComputeDT.fromCT2[String,String]() ~>
-      /* */
+      /*  */
       FilterSortDT.CT2Min[String,String]()
-      /* */
+      /*  */
   }.process(env,in, DSTaskConfig.out_dt_sorted)
 
   env.execute(DSTaskConfig.jobname)

@@ -31,18 +31,20 @@ class Compute__CT2_from_CT2withPartialN[T1 : TypeInformation, T2 : TypeInformati
 
 //    cts.filter(_.a == "banana").map(_.prettyPrint()).print() // pretty-print for debugging purposes
 
-    val ct_accumulated_A = cts
+    val ctsf = cts.filter(_.n11 >= DSTaskConfig.param_min_n11)
+
+    val ct_accumulated_A = ctsf
       .groupBy("a")
       .reduce((l,r) => {l.n1dot = l.n1dot+r.n1dot; l})
       .filter(_.n1dot >= DSTaskConfig.param_min_n1dot)
 
-    val ct_accumulated_B = cts
+    val ct_accumulated_B = ctsf
       .map(ct => {ct.n = 1f; ct}) // misuse n as odot1 i.e. the number of distinct occurrences of feature B (parameter wc=wordcount or wpfmax=wordsperfeature in traditional jobimtext)
       .groupBy("b")
       .reduce((l,r) => {l.ndot1 += r.ndot1; l.n += r.n; l})
       .filter(ct => ct.n <= DSTaskConfig.param_max_odot1 && ct.n >= DSTaskConfig.param_min_odot1)
 
-    val ct_all = cts
+    val ct_all = ctsf
       .join(ct_accumulated_A)
       .where("a").equalTo("a")((x, y) => { x.n1dot = y.n1dot; x })
       .join(ct_accumulated_B)
@@ -84,18 +86,20 @@ class Compute__CT2_from_CT2Min[T1 : TypeInformation, T2 : TypeInformation] exten
 
     val cts:DataSet[CT2[T1,T2]] = ds.map(ct => CT2[T1,T2](ct.a, ct.b, n11 = ct.n11, n1dot = ct.n11, ndot1 = ct.n11, n = ct.n11))
 
-    val ct_accumulated_A = cts
+    val ctsf = cts.filter(_.n11 >= DSTaskConfig.param_min_n11)
+
+    val ct_accumulated_A = ctsf
       .groupBy("a")
       .reduce((l,r) => {l.n1dot = l.n1dot+r.n1dot; l})
       .filter(_.n1dot >= DSTaskConfig.param_min_n1dot)
 
-    val ct_accumulated_B = cts
+    val ct_accumulated_B = ctsf
       .map(ct => {ct.n = 1f; ct}) // misuse n as odot1 i.e. the number of distinct occurrences of feature B (parameter wc=wordcount or wpfmax=wordsperfeature in traditional jobimtext)
       .groupBy("b")
       .reduce((l,r) => {l.ndot1 += r.ndot1; l.n += r.n; l})
       .filter(ct => ct.n <= DSTaskConfig.param_max_odot1 && ct.n >= DSTaskConfig.param_min_odot1)
 
-    val ct_accumulated_n = cts.crossWithTiny(n)((ct,n) => {ct.n = n; ct})
+    val ct_accumulated_n = ctsf.crossWithTiny(n)((ct,n) => {ct.n = n; ct})
 
     val ct_all = ct_accumulated_n
       .join(ct_accumulated_A)
