@@ -16,17 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt
 
-import java.io.{FileReader, BufferedReader}
-import java.util
-
 import de.tudarmstadt.lt.scalautils.PatGen
-import de.tudarmstadt.lt.util.PatternGenerator
-import scala.collection.JavaConversions._
-import scala.collection.{immutable, mutable}
-
-import scala.collection.mutable.ListBuffer
-import scala.reflect.internal.util.HashSet
-import scala.reflect.io.File
 
 /**
  * Created by Steffen Remus.
@@ -64,20 +54,19 @@ object TextToCT2 {
     pat_hole.kWildcardNgramPatterns(seq, n, k)
       .map(p => CT2Min(p.filler.mkString(" "),p.pattern.mkString(" "), 1f))
   }
-
-
+  
   def kWildcardNgramPatternsPlus(text:String, n:Int=3, k:Int=2): TraversableOnce[CT2Min[String,String]] = {
     val nh = n/2;
     val seq = ("^ "*(nh) + text + " $"*(nh)).split("\\s+")
     pat_hole
       .kWildcardNgramPatternsPlus(seq, n, k)
-      .map(p => CT2Min(p.filler.mkString(" "), compress(p.pattern.toList).mkString(" "), 1f))
+      .map(p => CT2Min(p.filler.mkString(" "), compress(p.pattern).mkString(" "), 1f))
   }
 
-  def compress[T](l: List[T]):List[T] = l.foldRight(List[T]()) {
-    case (e, ls) if (ls.isEmpty || ls.head != e) => e::ls
+  def compress[T](l: Seq[T]):Seq[T] = l.foldRight(Seq[T]()) {
+    case (e, ls) if (ls.isEmpty || ls.head != e) => e +: ls
     case (e, ls) => ls
   }
-  
+
 }
 
