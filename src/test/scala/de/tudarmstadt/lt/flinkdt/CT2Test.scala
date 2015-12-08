@@ -92,6 +92,9 @@ object CT2Test {
     val collapsed_ct2sm = Util.collapseCT2Min(ct2sm)
     println(s"${collapsed_ct2sm.size} == ${collapsed_ct2sm.size}")
     collapsed_ct2sm.foreach(println _)
+
+    println("--- test Text2CT2 ---")
+    TextToCT2.kWildcardNgramPatternsPlus("a b c d e f g").foreach(println)
   }
 
 }

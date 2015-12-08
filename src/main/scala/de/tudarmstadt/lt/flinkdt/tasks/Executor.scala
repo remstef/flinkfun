@@ -34,7 +34,7 @@ object Executor extends App {
 
   val ds = {
       /*  */
-      Extractor(s => TextToCT2.ngram_patterns(s,5,3)) ~> DSWriter(DSTaskConfig.out_raw) ~>
+      Extractor(s => TextToCT2.kWildcardNgramPatternsPlus(s,5,3)) ~> DSWriter(DSTaskConfig.out_raw) ~>
       /*  */
       N11Sum.toCT2withN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
       /* */

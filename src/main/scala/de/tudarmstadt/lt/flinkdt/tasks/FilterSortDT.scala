@@ -21,20 +21,21 @@ object FilterSortDT {
 
 class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation](sort_B_by_string:Boolean = false) extends DSTask[CT2[T1,T2],CT2[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(CT2.fromString(_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(CT2.fromString[T1,T2](_))
 
   // TODO: this can surely be optimized
   override def process(ds: DataSet[CT2[T1,T2]]): DataSet[CT2[T1,T2]] = {
 
-    val dt_count = ds
+    val ds_f = ds.filter(_.n11 >= DSTaskConfig.param_min_sim) // number of co-occurrences
+
+    val dt_count = ds_f
       .map(ct => {ct.n1dot = ct.n11; ct.ndot1 = 1; ct}) // misuse ndot1 as o1dot
       .groupBy("a")
       .reduce((l,r) => {l.b = null.asInstanceOf[T2]; l.n1dot += r.n1dot; l.ndot1 += r.ndot1; l})
 
-    val dt_grouped_a = ds
+    val dt_grouped_a = ds_f
       .join(dt_count)
       .where("a").equalTo("a")((l, r) => {l.n1dot = r.n1dot; l.ndot1 = r.ndot1; l})
-      .filter(_.n11 >= DSTaskConfig.param_min_sim) // number of co-occurrences
       .filter(_.ndot1 >= DSTaskConfig.param_min_sim_ndistinct) // number of distinct co-occurrences
       .groupBy("a")
 
@@ -45,7 +46,7 @@ class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation](sort_B_by_st
             val l = iter.toSeq
             l.sortBy(ct => (-ct.n11, ct.b.toString)) // sort descending by value and ascending by B
               .take(DSTaskConfig.param_topn_s)
-              .foreach(out.collect(_))
+              .foreach(out.collect)
           })
       }else {
         dt_grouped_a
@@ -72,7 +73,7 @@ class FilterSortDT__CT2Min_CT2[T1 : TypeInformation, T2 : TypeInformation] exten
 
   val wrapped_CT2    = new FilterSortDT__CT2[T1,T2]()
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString[T1,T2](_))
 
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2[T1,T2]] = wrapped_CT2.process(ds.map(_.toCT2()))
 
