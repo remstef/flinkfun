@@ -28,11 +28,8 @@ class DSWriter[T : TypeInformation](out:String) extends DSTask[T,T] {
     val o = ds.map(_.toString).map(Tuple1(_))
     if(out == "stdout")
       o.print()
-    else {
-      if(out.toLowerCase.startsWith("file:"))
-        new File(out).getParentFile.mkdirs() // ensure the parent directory exists
+    else
       o.writeAsCsv(out, "\n", "\t", writeMode = FileSystem.WriteMode.OVERWRITE)
-    }
     ds
   }
 

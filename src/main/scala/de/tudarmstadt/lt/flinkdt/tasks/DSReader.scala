@@ -25,10 +25,7 @@ class DSReader(in: String, env: ExecutionEnvironment) extends DSTask[String, Str
   }
 
   def process(): DataSet[String] = {
-    if(in.toLowerCase.startsWith("file:") || in.toLowerCase.startsWith("hdfs:"))
-      env.readTextFile(in)
-    else
-      env.fromCollection(in.split('\n'))
+    env.readTextFile(in)
   }
 
 }
