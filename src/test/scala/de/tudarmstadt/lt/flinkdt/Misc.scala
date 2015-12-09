@@ -1,9 +1,5 @@
 package de.tudarmstadt.lt.flinkdt
 
-import java.io.File
-
-import com.typesafe.config.{ConfigFactory, Config}
-import de.tudarmstadt.lt.flinkdt.tasks.Executor._
 
 import scala.tools.nsc.Settings
 
