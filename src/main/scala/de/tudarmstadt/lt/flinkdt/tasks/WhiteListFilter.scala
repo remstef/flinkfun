@@ -25,28 +25,31 @@ class WhiteListFilter__CT2[T2 : TypeInformation](whitelist:String, env:Execution
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2[String,T2]] = lineDS.map(CT2.fromString[String,T2](_))
 
   override def process(ds: DataSet[CT2[String,T2]]): DataSet[CT2[String,T2]] = {
-      if(whitelist == null)
-        return ds
-      val whiteterms = if(new File(whitelist).exists) env.readTextFile(whitelist) else env.fromCollection(whitelist.split('\n'))
-        .filter(s => s.trim.length > 0)
-        .map(Tuple1(_))
-        .distinct(0)
 
-      val white_cts_A = ds // get all contexts of whitelist terms
-        .joinWithTiny(whiteterms) // assume that
-        .where("a").equalTo(0)((x, y) =>  x )
-        .distinct("b")
+    if(whitelist == null)
+      return ds
 
-      val white_cts_B_from_white_cts_A = ds
-        .join(white_cts_A)
-        .where("b").equalTo("b")((x,y) => x) // get all terms of contexts of whitelist terms
-        .distinct("a")
+    val whiteterms = ( if (whitelist.contains('\n')) env.fromCollection(whitelist.split('\n')) else env.readTextFile(whitelist) )
+      .filter(s => s.trim.length > 0)
+      .map(Tuple1(_))
+      .distinct(0)
+
+    val white_cts_A = ds // get all contexts of whitelist terms
+      .joinWithTiny(whiteterms) // assume that
+      .where("a").equalTo(0)((x, y) =>  x )
+      .distinct("b")
+
+    val white_cts_B_from_white_cts_A = ds
+      .join(white_cts_A)
+      .where("b").equalTo("b")((x,y) => x) // get all terms of contexts of whitelist terms
+      .distinct("a")
 
     val white_cts_A_from_white_cts_B = ds
-        .join(white_cts_B_from_white_cts_A)
-        .where("a").equalTo("a")((x,y) => x) // now get all the contexts of the new terms
+      .join(white_cts_B_from_white_cts_A)
+      .where("a").equalTo("a")((x,y) => x) // now get all the contexts of the new terms
 
     white_cts_A_from_white_cts_B
+
   }
 
 }

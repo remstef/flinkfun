@@ -25,7 +25,7 @@ class DSReader(in: String, env: ExecutionEnvironment) extends DSTask[String, Str
   }
 
   def process(): DataSet[String] = {
-    env.readTextFile(in)
+    ( if(in.contains('\n')) env.fromCollection(in.split('\n')) else env.readTextFile(in) ).filter(s => s.trim.length > 0)
   }
 
 }
