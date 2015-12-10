@@ -15,8 +15,8 @@ abstract class DSTask[I:TypeInformation, O:TypeInformation] extends (DataSet[I] 
 
   def process(ds:DataSet[I]):DataSet[O]
 
-  def process(env:ExecutionEnvironment, inputtext:String, outputlocation:String = null):DataSet[O] = {
-    val ds_out = process(fromLines(DSReader(inputtext,env).process(null)))
+  def process(env:ExecutionEnvironment, input:String, outputlocation:String = null):DataSet[O] = {
+    val ds_out = process(fromLines(DSReader(input,env).process(null)))
     if(outputlocation != null && !outputlocation.isEmpty) {
       val writer: DSWriter[String] = new DSWriter[String](outputlocation)
       writer.process(toLines(ds_out))
