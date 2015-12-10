@@ -16,10 +16,6 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import java.io.File
-
-import de.tudarmstadt.lt.utilities.TimeUtils
-
 /**
   * Created by Steffen Remus.
   *
@@ -43,6 +39,8 @@ import de.tudarmstadt.lt.utilities.TimeUtils
   */
 @SerialVersionUID(42l)
 object DSTaskConfig extends Serializable{
+
+  def appendPath(url:String,path:String) = url + (if (url.endsWith("/")) "" else "/") + path
 
   var param_min_ndot1:Float                 = 2f
   var param_min_n1dot:Float                 = 2f
@@ -76,6 +74,8 @@ object DSTaskConfig extends Serializable{
   def load(args:Array[String], jobname:String = null, caller:Class[_] = null) = {
 
     import com.typesafe.config.{ConfigFactory, Config}
+    import java.io.File
+    import de.tudarmstadt.lt.utilities.TimeUtils
 
     val config:Config =
       if(args.length > 0)
@@ -95,7 +95,6 @@ object DSTaskConfig extends Serializable{
     val config_dt = config.getConfig("DT")
     val outputconfig = config_dt.getConfig("output.ct")
 
-    def appendPath(url:String,path:String) = url + (if (url.endsWith("/")) "" else "/") + path
     out_basedir = appendPath(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", s"out-${this.jobname}")
 
     // get input data and output data

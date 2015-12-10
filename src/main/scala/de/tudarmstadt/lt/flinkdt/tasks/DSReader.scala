@@ -1,9 +1,6 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import java.io.File
-
 import org.apache.flink.api.scala._
-import org.apache.flink.core.fs.FileSystem
 
 /**
   * Created by Steffen Remus

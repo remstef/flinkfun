@@ -16,8 +16,6 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import java.io.File
-
 import de.tudarmstadt.lt.utilities.TimeUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
@@ -35,10 +33,10 @@ class DSTaskWriterChain[I:TypeInformation,O:TypeInformation,X:TypeInformation](_
     while(t.isInstanceOf[DSTaskChain[_,_,_]] || t.isInstanceOf[DSTaskWriterChain[_,_,_]])
       t = (t.asInstanceOf[DSTaskChain[_,_,_]]).g
     val name = s"${TimeUtils.getSimple17}_${t.getClass.getSimpleName}"
-    new File(DSTaskConfig.out_basedir, name).getAbsolutePath
+    val out = DSTaskConfig.appendPath(DSTaskConfig.out_basedir, name)
 
     val ds_intermediate = f.process(ds)
-    val w = new DSWriter[String](new File(DSTaskConfig.out_basedir, name).getAbsolutePath)
+    val w = new DSWriter[String](out)
     w.process(f.toLines(ds_intermediate))
     g(ds_intermediate)
 

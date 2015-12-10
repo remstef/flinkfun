@@ -1,9 +1,5 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
-
-import java.io.File
-import java.net.URI
-
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.FileSystem
