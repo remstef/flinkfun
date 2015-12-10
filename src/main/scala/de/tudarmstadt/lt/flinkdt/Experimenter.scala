@@ -33,7 +33,7 @@ object Experimenter extends App {
   // get input data
   val in = DSTaskConfig.in_text
 
-  def preprocess = {
+  def preprocess() = {
     { Extractor(s => TextToCT2.ngrams(s, 3)) ~|~>
       /*  */
       N11Sum.toCT2withN[String, String]()
@@ -46,12 +46,17 @@ object Experimenter extends App {
   if(!preprocess_output_path.getFileSystem.exists(preprocess_output_path))
     preprocess
 
-  { WhiteListFilter.CT2Min[String](DSTaskConfig.in_whitelist, env) ~> DSWriter(DSTaskConfig.out_accumulated_AB_whitelisted) ~>
-    /*  */
-    ComputeGraphDT.freq[String,String]() ~>
-    /*  */
-    FilterSortDT.CT2Min[String,String]()
-  }.process(env,DSTaskConfig.out_accumulated_AB, DSTaskConfig.out_dt_sorted)
+  {
+//    WhiteListFilter.CT2Min[String](DSTaskConfig.in_whitelist, env) ~|~>
+    /* */
+    ComputeGraphDT.freq[String,String]() ~> DSWriter(DSTaskConfig.out_dt) //~>
+    /* */
+//    FilterSortDT.CT2Min[String,String]() ~> DSWriter[CT2Min[String,String]](DSTaskConfig.out_dt_sorted)
+    /* */
+  }.process(env, input = DSTaskConfig.out_accumulated_AB)
+
+
+
 
   env.execute(DSTaskConfig.jobname)
 
