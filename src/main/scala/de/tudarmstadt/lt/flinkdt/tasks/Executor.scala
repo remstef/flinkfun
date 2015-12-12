@@ -38,7 +38,7 @@ object Executor extends App {
       /*  */
       N11Sum.toCT2withN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
       /*  */
-      WhiteListFilter.CT2[String](DSTaskConfig.in_whitelist, env) ~>
+      WhiteListFilter.CT2[String, String](DSTaskConfig.in_whitelist, env) ~>
       /*  */
       ComputeFilteredCT2s.fromCT2withPartialN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       /*  */

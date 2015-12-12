@@ -21,16 +21,18 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.util.Collector
 
+import scala.reflect.ClassTag
+
 /**
   * Created by Steffen Remus.
   */
 object ComputeGraphDT {
 
-  def freq[T1 : TypeInformation, T2 : TypeInformation]() = new ComputeGraphDT__Freq[T1,T2]()
+  def freq[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new ComputeGraphDT__Freq[T1,T2]()
 
 }
 
-class ComputeGraphDT__Freq[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Min[T1,T1]] {
+class ComputeGraphDT__Freq[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Min[T1,T1]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(l => CT2Min.fromString[T1,T2](l))
 

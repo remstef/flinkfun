@@ -22,19 +22,22 @@ import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, Byt
 import de.tudarmstadt.lt.scalautils.FormatUtils
 
 import scala.math._
+import scala.reflect._
 
 /**
   * Created by Steffen Remus.
   */
 object CT2 {
 
-  def EMPTY_CT[T1,T2] = new CT2[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
+  implicit def string_conversion(x: String) = StringConvert.convert(x)
 
-  def fromString[T1,T2](ct2AsString:String):CT2[T1,T2] = fromStringArray(ct2AsString.split("\t"))
+  def EMPTY_CT[T1 : ClassTag, T2: ClassTag] = new CT2[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
 
-  def fromStringArray[T1,T2](ct2AsStringArray:Array[String]):CT2[T1,T2] = {
+  def fromString[T1 : ClassTag, T2 : ClassTag](ct2AsString:String):CT2[T1,T2] = fromStringArray(ct2AsString.split("\t"))
+
+  def fromStringArray[T1 : ClassTag, T2 : ClassTag](ct2AsStringArray:Array[String]):CT2[T1,T2] = {
     ct2AsStringArray match {
-      case  Array(_A,_B,n11,n1dot,ndot1,n,_*) => new CT2[T1,T2](_A.asInstanceOf[T1],_B.asInstanceOf[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
+      case  Array(_A,_B,n11,n1dot,ndot1,n,_*) => new CT2[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
       case _ => EMPTY_CT
     }
   }

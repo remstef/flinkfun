@@ -11,13 +11,13 @@ import scala.reflect.ClassTag
   */
 object N11Sum {
 
-  def toCT2Min[T1 : TypeInformation, T2 : TypeInformation]() = new N11Sum[T1,T2]()
+  def toCT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new N11Sum[T1,T2]()
 
-  def toCT2withN[T1 : TypeInformation, T2 : TypeInformation]() = new N11Sum__withN[T1,T2]()
+  def toCT2withN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new N11Sum__withN[T1,T2]()
 
 }
 
-class N11Sum[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
+class N11Sum[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
 
@@ -29,7 +29,7 @@ class N11Sum[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T
 }
 
 
-class N11Sum__withN[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
+class N11Sum__withN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
 

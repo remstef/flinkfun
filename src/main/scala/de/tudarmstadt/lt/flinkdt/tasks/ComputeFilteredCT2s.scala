@@ -5,15 +5,17 @@ import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 
+import scala.reflect.ClassTag
+
 
 /**
   * Created by Steffen Remus
   */
 object ComputeFilteredCT2s {
 
-  def fromCT2Min[T1 : TypeInformation, T2 : TypeInformation]() = new Compute__CT2_from_CT2Min[T1,T2]()
+  def fromCT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new Compute__CT2_from_CT2Min[T1,T2]()
 
-  def fromCT2withPartialN[T1 : TypeInformation, T2 : TypeInformation]() = new Compute__CT2_from_CT2withPartialN[T1,T2]()
+  def fromCT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new Compute__CT2_from_CT2withPartialN[T1,T2]()
 
 }
 
@@ -23,7 +25,7 @@ object ComputeFilteredCT2s {
   * @tparam T1
   * @tparam T2
   */
-class Compute__CT2_from_CT2withPartialN[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2[T1,T2],CT2[T1,T2]] {
+class Compute__CT2_from_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2[T1,T2],CT2[T1,T2]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(CT2.fromString[T1,T2](_))
 
@@ -75,9 +77,9 @@ class Compute__CT2_from_CT2withPartialN[T1 : TypeInformation, T2 : TypeInformati
   * @tparam T1
   * @tparam T2
   */
-class Compute__CT2_from_CT2Min[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
+class Compute__CT2_from_CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(l => CT2Min.fromString[T1,T2](l))
 
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2[T1,T2]] = {
 

@@ -25,6 +25,51 @@ import org.apache.flink.core.fs.Path
   */
 object Experimenter extends App {
 
+  def process() = {
+
+    { /* */
+      //WhiteListFilter.CT2Min[Int, Int](DSTaskConfig.in_whitelist, env) ~|~>
+      /* */
+      ComputeGraphDT.freq[Int,Int]() ~> DSWriter(DSTaskConfig.out_dt)
+      /* */
+    }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}-int")
+
+    env.execute(DSTaskConfig.jobname)
+
+  }
+
+  def preprocess() = {
+
+    { /* */
+      Extractor(s => TextToCT2.ngrams(s, 3)) ~|~>
+        /*  */
+        N11Sum.toCT2withN[String, String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
+        /*  */
+        Convert.HashCT2Types.StringSha256[String,String](DSTaskConfig.out_keymap)
+      /*  */
+    }.process(env, input = in, outputlocation = s"${DSTaskConfig.out_accumulated_AB}-int")
+
+    env.execute(s"${DSTaskConfig.jobname}-preprocess")
+    env.startNewSession()
+
+  }
+
+  def postprocess() = {
+
+    env.startNewSession()
+
+    { /* */
+      Convert.HashCT2MinTypes.Reverse[String,String](env, DSTaskConfig.out_keymap) ~>
+        /* */
+        FilterSortDT.CT2Min[String,String]() ~> DSWriter[CT2Min[String,String]](DSTaskConfig.out_dt_sorted)
+      /* */
+    }.process(env, input = DSTaskConfig.out_dt)
+
+    env.execute(s"${DSTaskConfig.jobname}-postprocess")
+
+  }
+
+
   DSTaskConfig.load(args, "experimental")
 
   // set up the execution environment
@@ -33,31 +78,14 @@ object Experimenter extends App {
   // get input data
   val in = DSTaskConfig.in_text
 
-  def preprocess() = {
-    { Extractor(s => TextToCT2.ngrams(s, 3)) ~|~>
-      /*  */
-      N11Sum.toCT2withN[String, String]()
-    }.process(env, in, DSTaskConfig.out_accumulated_AB)
-    env.execute(s"${DSTaskConfig.jobname}-preprocess")
-    env.startNewSession()
-  }
-
   val preprocess_output_path:Path = new Path(DSTaskConfig.out_accumulated_AB)
   if(!preprocess_output_path.getFileSystem.exists(preprocess_output_path))
-    preprocess
+    preprocess()
 
-  {
-//    WhiteListFilter.CT2Min[String](DSTaskConfig.in_whitelist, env) ~|~>
-    /* */
-    ComputeGraphDT.freq[String,String]() ~> DSWriter(DSTaskConfig.out_dt) //~>
-    /* */
-//    FilterSortDT.CT2Min[String,String]() ~> DSWriter[CT2Min[String,String]](DSTaskConfig.out_dt_sorted)
-    /* */
-  }.process(env, input = DSTaskConfig.out_accumulated_AB)
+  process()
+
+  postprocess()
 
 
-
-
-  env.execute(DSTaskConfig.jobname)
 
 }

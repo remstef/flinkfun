@@ -6,20 +6,22 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.util.Collector
 
+import scala.reflect.ClassTag
+
 /**
   * Created by Steffen Remus
   */
 object FilterSortDT {
 
-  def CT2[T1 : TypeInformation, T2 : TypeInformation]() = new FilterSortDT__CT2[T1,T2]()
+  def CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new FilterSortDT__CT2[T1,T2]()
 
-  def CT2Min[T1 : TypeInformation, T2 : TypeInformation]() = new FilterSortDT__CT2Min[T1,T2]()
+  def CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new FilterSortDT__CT2Min[T1,T2]()
 
-  def CT2Min_CT2[T1 : TypeInformation, T2 : TypeInformation]() = new FilterSortDT__CT2Min_CT2[T1,T2]()
+  def CT2Min_CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new FilterSortDT__CT2Min_CT2[T1,T2]()
 
 }
 
-class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation](sort_B_by_string:Boolean = false) extends DSTask[CT2[T1,T2],CT2[T1,T2]] {
+class FilterSortDT__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sort_B_by_string:Boolean = false) extends DSTask[CT2[T1,T2],CT2[T1,T2]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(CT2.fromString[T1,T2](_))
 
@@ -59,7 +61,7 @@ class FilterSortDT__CT2[T1 : TypeInformation, T2 : TypeInformation](sort_B_by_st
 
 }
 
-class FilterSortDT__CT2Min[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
+class FilterSortDT__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
 
   val wrapped_CT2Min_CT2    = new FilterSortDT__CT2Min_CT2[T1,T2]()
 
@@ -69,7 +71,7 @@ class FilterSortDT__CT2Min[T1 : TypeInformation, T2 : TypeInformation] extends D
 
 }
 
-class FilterSortDT__CT2Min_CT2[T1 : TypeInformation, T2 : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
+class FilterSortDT__CT2Min_CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
 
   val wrapped_CT2    = new FilterSortDT__CT2[T1,T2]()
 

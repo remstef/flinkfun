@@ -69,6 +69,7 @@ object DSTaskConfig extends Serializable{
   var out_accumulated_CT:String             = null
   var out_dt:String                         = null
   var out_dt_sorted:String                  = null
+  var out_keymap:String                     = appendPath(out_basedir, "keymap.tsv")
 
 
   def load(args:Array[String], jobname:String = null, caller:Class[_] = null) = {
@@ -108,6 +109,7 @@ object DSTaskConfig extends Serializable{
     out_accumulated_CT             = if(outputconfig.hasPath("accall"))          appendPath(out_basedir, outputconfig.getString("accall")) else null
     out_dt                         = if(outputconfig.hasPath("dt"))              appendPath(out_basedir, outputconfig.getString("dt")) else null
     out_dt_sorted                  = if(outputconfig.hasPath("dtsort"))          appendPath(out_basedir, outputconfig.getString("dtsort")) else null
+    out_keymap                     = if(outputconfig.hasPath("keymap"))          appendPath(out_basedir, outputconfig.getString("keymap")) else appendPath(out_basedir, "keymap.tsv")
 
     // get filter config
     val config_filter = config_dt.getConfig("filter")
