@@ -142,6 +142,13 @@ under the License.
 			<version>2.10.4</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.scalatest</groupId>
+			<artifactId>scalatest_2.10</artifactId>
+			<version>2.2.5</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<!-- We use the maven-assembly plugin to create a fat jar that contains all dependencies

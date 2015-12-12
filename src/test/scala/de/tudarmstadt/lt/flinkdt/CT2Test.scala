@@ -15,7 +15,7 @@ object CT2Test {
     println("--- kskipngrams n=3 k=2 ---")
     TextToCT2.kSkipNgram("insurgents killed in ongoing fighting",3,2).foreach(a => println(a))
     println("--- kskipngrams n=5 k=3 ---")
-    TextToCT2.kSkipNgram("insurgents",5,3).foreach(a => println(a))
+    TextToCT2.kSkipNgram("insurgents",n=5,k=3).foreach(a => println(a))
     TextToCT2.kSkipNgram("a b c d e f g",5,3).foreach(a => println(a))
     println("--- kWildcardsNgramPatterns n=5 k=3 ---")
     TextToCT2.kWildcardNgramPatterns("insurgents",5,3).foreach(a => println(a))

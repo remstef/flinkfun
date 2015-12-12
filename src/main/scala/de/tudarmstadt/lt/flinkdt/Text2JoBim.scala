@@ -1,13 +1,13 @@
 package de.tudarmstadt.lt.flinkdt
 
-import de.tudarmstadt.lt.scalautils.PatGen
+import de.tudarmstadt.lt.scalautils._delete.PatGenV1
 
 /**
  * Created by Steffen Remus.
  */
 object Text2JoBim {
 
-  val pat = new PatGen("*")
+  val pat = new PatGenV1("*")
 
   def ngrams(text:String, n:Int): TraversableOnce[JoBim] = {
     val nh = n/2;
