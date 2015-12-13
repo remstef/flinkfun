@@ -94,7 +94,7 @@ object CT2Test {
     collapsed_ct2sm.foreach(println _)
 
     println("--- test Text2CT2 ---")
-    TextToCT2.kWildcardNgramPatternsPlus("a b c d e f g").foreach(println)
+    TextToCT2.kWildcardNgramPatternsPlus("a b c d e f g", n=5, k=2).foreach(println)
   }
 
 }

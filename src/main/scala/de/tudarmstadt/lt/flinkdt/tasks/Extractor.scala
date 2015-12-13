@@ -8,7 +8,7 @@ import org.apache.flink.api.scala._
   */
 object Extractor {
 
-  def apply(extractorfun:String => TraversableOnce[CT2Min[String, String]] = s => Seq.empty[CT2Min[String,String]]) = new Extractor(extractorfun)
+  def apply(extractorfun:String => TraversableOnce[CT2Min[String, String]]) = new Extractor(extractorfun)
 
 }
 

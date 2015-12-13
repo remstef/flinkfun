@@ -41,11 +41,11 @@ object Experimenter extends App {
   def preprocess() = {
 
     { /* */
-      Extractor(s => TextToCT2.ngrams(s, 3)) ~|~>
-        /*  */
-        N11Sum.toCT2withN[String, String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
-        /*  */
-        Convert.HashCT2Types.StringSha256[String,String](DSTaskConfig.out_keymap)
+      Extractor(extractorfun) ~|~>
+      /*  */
+      N11Sum.toCT2withN[String, String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
+      /*  */
+      Convert.HashCT2Types.StringSha256[String,String](DSTaskConfig.out_keymap)
       /*  */
     }.process(env, input = in, outputlocation = s"${DSTaskConfig.out_accumulated_AB}-int")
 
@@ -60,8 +60,8 @@ object Experimenter extends App {
 
     { /* */
       Convert.HashCT2MinTypes.Reverse[String,String](env, DSTaskConfig.out_keymap) ~>
-        /* */
-        FilterSortDT.CT2Min[String,String]() ~> DSWriter[CT2Min[String,String]](DSTaskConfig.out_dt_sorted)
+      /* */
+      FilterSortDT.CT2Min[String,String]() ~> DSWriter[CT2Min[String,String]](DSTaskConfig.out_dt_sorted)
       /* */
     }.process(env, input = DSTaskConfig.out_dt)
 
@@ -70,6 +70,12 @@ object Experimenter extends App {
   }
 
   DSTaskConfig.load(args, if(args.length > 1) args(1) else "experimental")
+
+  def extractorfun:String => TraversableOnce[CT2Min[String,String]] =
+    if(DSTaskConfig.jobname.contains("pattern"))
+      (s => TextToCT2.kWildcardNgramPatternsPlus(s, 3))
+    else
+      (s => TextToCT2.ngrams(s, n=3))
 
   // set up the execution environment
   val env = ExecutionEnvironment.getExecutionEnvironment
