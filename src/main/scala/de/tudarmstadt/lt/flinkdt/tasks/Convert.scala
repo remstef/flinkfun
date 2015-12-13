@@ -76,18 +76,18 @@ class Convert__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 : ClassTag 
       val id_A:Int = hashfunA(ct.a)
       val id_B:Int = hashfunB(ct.b)
       val newct = CT2Min(id_A, id_B, ct.n11)
-      (newct, Seq((id_A, ct.a), (id_B, ct.b)))
+      (newct, Seq((ct.a, id_A), (ct.b, id_B)))
     })
 
     // get mapping Int -> String mapping
-    val id2string = mapStringCtToInt
+    val string2id = mapStringCtToInt
       .map(_._2)
       .flatMap(l => l)
       .distinct(0)
-      .map(t => s"${t._1}\t${t._2.toString}")
+      .map(t => s"${t._1.toString}\t${t._2}")
 
     // write mapping
-    DSWriter[String](keymap_outputlocation).process(id2string)
+    DSWriter[String](keymap_outputlocation).process(string2id)
 
     // TODO: whats the best strategy to deal with collisions? Currently we ignore this issue!
     // should we sum the values again? just to be sure they are unique?
@@ -107,7 +107,7 @@ class ReverseConversion__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 :
     val id2string = DSReader(keymap_location, env)
       .process()
       .map(l => l.split('\t') match {
-        case Array(id, string, _*) => (id.toInt, string)
+        case Array(string, id, _*) => (id.toInt, string)
         case _ => (0,"")
       })
 
@@ -131,18 +131,18 @@ class Convert__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : T
       val id_A:Int = hashfunA(ct.a)
       val id_B:Int = hashfunB(ct.b)
       val newct = CT2(id_A, id_B, ct.n11, ct.n1dot, ct.ndot1, ct.n, ct.srcid, ct.isflipped)
-      (newct, Seq((id_A, ct.a), (id_B, ct.b)))
+      (newct, Seq((ct.a, id_A), (ct.b, id_B)))
     })
 
     // get mapping Int -> String mapping
-    val id2string = mapStringCtToInt
+    val string2id = mapStringCtToInt
       .map(_._2)
       .flatMap(l => l)
       .distinct(0)
-      .map(t => s"${t._1}\t${t._2.toString}")
+      .map(t => s"${t._1.toString}\t${t._2}")
 
     // write mapping
-    DSWriter[String](keymap_outputlocation).process(id2string)
+    DSWriter[String](keymap_outputlocation).process(string2id)
 
     // TODO: whats the best strategy to deal with collisions? Currently we ignore this issue!
     // should we sum the values again? just to be sure they are unique?
@@ -162,7 +162,7 @@ class ReverseConversion__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : Cl
     val id2string = DSReader(keymap_location, env)
       .process()
       .map(l => l.split('\t') match {
-        case Array(id, string, _*) => (id.toInt, string)
+        case Array(string, id, _*) => (id.toInt, string)
         case _ => (0,"")
       })
 
