@@ -167,7 +167,7 @@ class ReverseConversion__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : Cl
         case Array(string, id, _*) => (id.toInt, string)
         case _ => (0,"")
       })
-
+    
     val converted = ds
       .join(id2string).where("a").equalTo(0)((ct,tup) => (ct, tup._2))
       .join(id2string).where("_1.b").equalTo(0)((ct_tup,tup) => CT2[T1,T2](ct_tup._2.asInstanceOf[T1], tup._2.asInstanceOf[T2], ct_tup._1.n11, ct_tup._1.n1dot, ct_tup._1.ndot1, ct_tup._1.n, ct_tup._1.srcid, ct_tup._1.isflipped))
