@@ -69,8 +69,7 @@ object Experimenter extends App {
 
   }
 
-
-  DSTaskConfig.load(args, "experimental")
+  DSTaskConfig.load(args, if(args.length > 1) args(1) else "experimental")
 
   // set up the execution environment
   val env = ExecutionEnvironment.getExecutionEnvironment
