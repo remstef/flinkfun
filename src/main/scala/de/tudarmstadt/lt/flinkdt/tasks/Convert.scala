@@ -83,8 +83,9 @@ class Convert__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 : ClassTag 
     val string2id = mapStringCtToInt
       .map(_._2)
       .flatMap(l => l)
+      .map(t => (t._1.toString, t._2))
       .distinct(0)
-      .map(t => s"${t._1.toString}\t${t._2}")
+      .map(t => s"${t._1}\t${t._2}")
 
     // write mapping
     DSWriter[String](keymap_outputlocation).process(string2id)
@@ -138,8 +139,9 @@ class Convert__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : T
     val string2id = mapStringCtToInt
       .map(_._2)
       .flatMap(l => l)
+      .map(t => (t._1.toString, t._2))
       .distinct(0)
-      .map(t => s"${t._1.toString}\t${t._2}")
+      .map(t => s"${t._1}\t${t._2}")
 
     // write mapping
     DSWriter[String](keymap_outputlocation).process(string2id)
