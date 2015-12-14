@@ -30,9 +30,10 @@ object Experimenter extends App {
     { /* */
       //WhiteListFilter.CT2Min[Int, Int](DSTaskConfig.in_whitelist, env) ~|~>
       /* */
-      ComputeGraphDT.freq[Int,Int]() ~> DSWriter(DSTaskConfig.out_dt)
+      //      ComputeGraphDT.freq[Int,Int]() ~> DSWriter(DSTaskConfig.out_dt)
+      ComputeGraphDT.freq[String,String]() ~> DSWriter(DSTaskConfig.out_dt)
       /* */
-    }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}-int")
+    }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}")
 
     env.execute(DSTaskConfig.jobname)
 
@@ -43,11 +44,11 @@ object Experimenter extends App {
     { /* */
       Extractor(extractorfun) ~|~>
       /*  */
-      N11Sum.toCT2withN[String, String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
+      N11Sum.toCT2Min[String, String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) //~>
       /*  */
-      Convert.HashCT2Types.StringSha256[String,String](DSTaskConfig.out_keymap)
+//      Convert.HashCT2Types.StringSha256[String,String](DSTaskConfig.out_keymap)
       /*  */
-    }.process(env, input = in, outputlocation = s"${DSTaskConfig.out_accumulated_AB}-int")
+    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}")
 
     env.execute(s"${DSTaskConfig.jobname}-preprocess")
     env.startNewSession()
@@ -59,7 +60,7 @@ object Experimenter extends App {
     env.startNewSession()
 
     { /* */
-      Convert.HashCT2MinTypes.Reverse[String,String](env, DSTaskConfig.out_keymap) ~>
+//      Convert.HashCT2MinTypes.Reverse[String,String](env, DSTaskConfig.out_keymap) ~>
       /* */
       FilterSortDT.CT2Min[String,String]() ~> DSWriter[CT2Min[String,String]](DSTaskConfig.out_dt_sorted)
       /* */
