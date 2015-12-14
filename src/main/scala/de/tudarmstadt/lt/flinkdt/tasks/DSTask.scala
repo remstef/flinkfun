@@ -3,11 +3,13 @@ package de.tudarmstadt.lt.flinkdt.tasks
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 
+import scala.reflect.ClassTag
+
 /**
   * Created by Steffen Remus
   */
 @SerialVersionUID(42L)
-abstract class DSTask[I:TypeInformation, O:TypeInformation] extends (DataSet[I] => DataSet[O]) with Serializable  {
+abstract class DSTask[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation] extends (DataSet[I] => DataSet[O]) with Serializable  {
 
   def fromLines(lineDS:DataSet[String]):DataSet[I]
 
@@ -15,10 +17,10 @@ abstract class DSTask[I:TypeInformation, O:TypeInformation] extends (DataSet[I] 
 
   def process(ds:DataSet[I]):DataSet[O]
 
-  def process(env:ExecutionEnvironment, input:String, outputlocation:String = null):DataSet[O] = {
+  def process(env:ExecutionEnvironment, input:String, output:String = null):DataSet[O] = {
     val ds_out = process(fromLines(DSReader(input,env).process(null)))
-    if(outputlocation != null && !outputlocation.isEmpty) {
-      val writer: DSWriter[String] = new DSWriter[String](outputlocation)
+    if(output != null && !output.isEmpty) {
+      val writer: DSWriter[String] = new DSWriter[String](output)
       writer.process(toLines(ds_out))
     }
     ds_out
@@ -26,9 +28,9 @@ abstract class DSTask[I:TypeInformation, O:TypeInformation] extends (DataSet[I] 
 
   override def apply(ds: DataSet[I]): DataSet[O] = process(ds)
 
-  def ~>[X:TypeInformation](g:DSTask[O,X]) = new DSTaskChain[I,X,O](this, g)
+  def ~>[X : ClassTag : TypeInformation](g:DSTask[O,X]) = new DSTaskChain[I,X,O](this, g)
 
-  def ~|~>[X:TypeInformation](g:DSTask[O,X]) = new DSTaskWriterChain[I,X,O](this, g)
+  def ~|~>[X : ClassTag : TypeInformation](g:DSTask[O,X]) = new DSTaskWriterChain[I,X,O](this, g)
 
 }
 

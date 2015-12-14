@@ -20,10 +20,12 @@ import de.tudarmstadt.lt.utilities.TimeUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 
+import scala.reflect.ClassTag
+
 /**
   * Created by Steffen Remus
   */
-class DSTaskWriterChain[I:TypeInformation,O:TypeInformation,X:TypeInformation](_f:DSTask[I,X], _g:DSTask[X,O]) extends DSTaskChain[I,O,X](_f,_g) {
+class DSTaskWriterChain[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation, X : ClassTag : TypeInformation](_f:DSTask[I,X], _g:DSTask[X,O]) extends DSTaskChain[I,O,X](_f,_g) {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[I] = f.fromLines(lineDS)
 
