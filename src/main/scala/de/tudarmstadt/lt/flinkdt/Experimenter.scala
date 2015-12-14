@@ -35,7 +35,7 @@ object Experimenter extends App {
       /* */
     }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}")
 
-    env.execute(DSTaskConfig.jobname)
+    env.execute(s"${DSTaskConfig.jobname}-process")
 
   }
 
