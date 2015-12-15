@@ -27,14 +27,25 @@ import scala.reflect.ClassTag
   */
 object WhiteListFilter {
 
-  def CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment) = new WhiteListFilter__CT2[T1,T2](whitelist, env)
+  def CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment, extended_resolution:Boolean = true) = new WhiteListFilter__CT2[T1,T2](whitelist, env, extended_resolution)
 
-  def CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment) = new WhiteListFilter__CT2Min[T1,T2](whitelist, env)
+  def CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment, extended_resolution:Boolean = true) = new WhiteListFilter__CT2Min[T1,T2](whitelist, env, extended_resolution)
 
 }
 
 
-class WhiteListFilter__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment) extends DSTask[CT2[T1, T2],CT2[T1, T2]] {
+/**
+  * Get all contexts and 1-hop transitive words of whitelisted terms.
+  * In case of extended_resolution get also the contexts of transitively resolved terms.
+  * (Might be needed for correct computation of significance scores / association measures)
+  *
+  * @param whitelist
+  * @param env
+  * @param extended_resolution
+  * @tparam T1
+  * @tparam T2
+  */
+class WhiteListFilter__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment, extended_resolution:Boolean = true) extends DSTask[CT2[T1, T2],CT2[T1, T2]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(CT2.fromString[T1,T2](_))
 
@@ -59,22 +70,25 @@ class WhiteListFilter__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : Type
     val white_cts_B_from_white_cts_A = ds_string
       .join(white_cts_A)
       .where(2).equalTo(2)((x,y) => x) // get all terms of contexts of whitelist terms
-      .distinct(1)
 
-    val white_cts_A_from_white_cts_B = ds_string
-      .join(white_cts_B_from_white_cts_A)
-      .where(1).equalTo(1)((x,y) => x) // now get all the contexts of the new terms
-
-    white_cts_A_from_white_cts_B.map(_._1)
+    // result
+    if(extended_resolution){
+      val white_cts_A_from_white_cts_B = ds_string
+        .join(white_cts_B_from_white_cts_A.distinct(1))
+        .where(1).equalTo(1)((x,y) => x) // now get all the contexts of the new terms
+      white_cts_A_from_white_cts_B.map(_._1)
+    }else{
+      white_cts_B_from_white_cts_A.map(_._1)
+    }
 
   }
 
 }
 
-class WhiteListFilter__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment) extends DSTask[CT2Min[T1, T2],CT2Min[T1, T2]] {
+class WhiteListFilter__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment, extended_resolution:Boolean = true) extends DSTask[CT2Min[T1, T2],CT2Min[T1, T2]] {
 
   @transient
-  val whitelistFilterWrapped = new WhiteListFilter__CT2[T1,T2](whitelist, env)
+  val whitelistFilterWrapped = new WhiteListFilter__CT2[T1,T2](whitelist, env, extended_resolution)
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(l => CT2Min.fromString[T1,T2](l))
 
