@@ -36,7 +36,12 @@ object Convert {
     }
 
     def StringSha256[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
-      val hf: Any => Int = t => HashUtils.string_hash_sha256(t.toString)
+      val hf: Any => Int = t => HashUtils.string_hash_sha256_toInt(t.toString)
+      new Convert__Hash__CT2MinTypes[T1, T2](hf, hf, keymap_location)
+    }
+
+    def StringMurmur3_32bit[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
+      val hf: Any => Int = t => HashUtils.string_hash_murmur3_32bit(t.toString)
       new Convert__Hash__CT2MinTypes[T1, T2](hf, hf, keymap_location)
     }
 
