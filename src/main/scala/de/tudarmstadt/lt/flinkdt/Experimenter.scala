@@ -44,7 +44,7 @@ object Experimenter extends App {
     { /* */
       Extractor(extractorfun) ~|~>
       /*  */
-      N11Sum.toCT2Min[String, String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) //~>
+      N11Sum.toCT2Min[String, String]() // ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
       /*  */
 //      Convert.HashCT2Types.StringSha256[String,String](DSTaskConfig.out_keymap)
       /*  */
