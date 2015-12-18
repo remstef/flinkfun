@@ -32,7 +32,7 @@ class FilterSortDT__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInf
   // TODO: this can surely be optimized
   override def process(ds: DataSet[CT2[T1,T2]]): DataSet[CT2[T1,T2]] = {
 
-    val ds_f = ds.filter(_.n11 >= DSTaskConfig.param_min_sim) // number of co-occurrences
+    val ds_f = ds.filter(valfun(_) >= DSTaskConfig.param_min_sim)
 
     val dt_count = ds_f
       .map(ct => {ct.n1dot = ct.n11; ct.ndot1 = 1; ct}) // misuse ndot1 as o1dot
