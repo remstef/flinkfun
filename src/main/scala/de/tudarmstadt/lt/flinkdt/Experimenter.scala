@@ -66,9 +66,9 @@ object Experimenter extends App {
     { /* */
 //      Convert.HashCT2MinTypes.Reverse[String,String](env, DSTaskConfig.out_keymap) ~>
       /* */
-      FilterSortDT.CT2Min[String,String](_.n11) ~> DSWriter[CT2Min[String,String]](DSTaskConfig.out_dt_sorted)
+      FilterSortDT.CT2Min[String,String](_.n11)
       /* */
-    }.process(env, input = DSTaskConfig.out_dt)
+    }.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
 
     env.execute(s"${DSTaskConfig.jobname}-postprocess")
 
