@@ -17,8 +17,12 @@
 package de.tudarmstadt.lt.flinkdt
 
 import de.tudarmstadt.lt.flinkdt.tasks._
+import org.apache.flink.api.common.operators.Order
+import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.Path
+
+import scala.reflect.ClassTag
 
 /**
   * Created by Steffen Remus
@@ -62,7 +66,7 @@ object Experimenter extends App {
     { /* */
 //      Convert.HashCT2MinTypes.Reverse[String,String](env, DSTaskConfig.out_keymap) ~>
       /* */
-      FilterSortDT.CT2Min[String,String]() ~> DSWriter[CT2Min[String,String]](DSTaskConfig.out_dt_sorted)
+      FilterSortDT.CT2Min[String,String](_.n11) ~> DSWriter[CT2Min[String,String]](DSTaskConfig.out_dt_sorted)
       /* */
     }.process(env, input = DSTaskConfig.out_dt)
 

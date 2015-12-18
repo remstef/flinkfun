@@ -13,15 +13,19 @@ import scala.reflect.ClassTag
   */
 object FilterSortDT {
 
-  def CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new FilterSortDT__CT2[T1,T2]()
+//  implicit def valfun[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]:CT2[T1,T2] => Float = _.n11
+//  implicit val order:Order = Order.DESCENDING
+//  implicit val sort_B_desc_by_string:Boolean = false
 
-  def CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new FilterSortDT__CT2Min[T1,T2]()
+  def CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:CT2[_,_] => Float, order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT__CT2[T1,T2](valfun, order, sort_B_desc_by_string)
 
-  def CT2Min_CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new FilterSortDT__CT2Min_CT2[T1,T2]()
+  def CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:CT2[_,_] => Float, order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT__CT2Min[T1,T2](valfun, order, sort_B_desc_by_string)
+
+  def CT2Min_CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:CT2[_,_] => Float, order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT__CT2Min_CT2[T1,T2](valfun, order, sort_B_desc_by_string)
 
 }
 
-class FilterSortDT__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sort_B_by_string:Boolean = false) extends DSTask[CT2[T1,T2],CT2[T1,T2]] {
+class FilterSortDT__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(CT2[_,_] => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[CT2[T1,T2],CT2[T1,T2]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(CT2.fromString[T1,T2](_))
 
@@ -42,17 +46,17 @@ class FilterSortDT__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInf
       .groupBy("a")
 
     val dt_sort =
-      if(sort_B_by_string) {
+      if(sort_B_desc_by_string) {
         dt_grouped_a
           .reduceGroup((iter, out: Collector[CT2[T1, T2]]) => {
             val l = iter.toSeq
-            l.sortBy(ct => (-ct.n11, ct.b.toString)) // sort descending by value and ascending by B
+            l.sortBy(ct => (if(order == Order.DESCENDING) -valfun(ct) else valfun(ct), ct.b.toString)) // sort by value and ascending by B.toString
               .take(DSTaskConfig.param_topn_s)
               .foreach(out.collect)
           })
       }else {
         dt_grouped_a
-          .sortGroup("n11", Order.DESCENDING)
+          .sortGroup("n11", order)
           .first(DSTaskConfig.param_topn_s)
       }
 
@@ -61,9 +65,9 @@ class FilterSortDT__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInf
 
 }
 
-class FilterSortDT__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
+class FilterSortDT__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(CT2[_,_] => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
 
-  val wrapped_CT2Min_CT2    = new FilterSortDT__CT2Min_CT2[T1,T2]()
+  val wrapped_CT2Min_CT2 = new FilterSortDT__CT2Min_CT2[T1,T2](valfun, order, sort_B_desc_by_string)
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = wrapped_CT2Min_CT2.fromLines(lineDS)
 
@@ -71,9 +75,9 @@ class FilterSortDT__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : Type
 
 }
 
-class FilterSortDT__CT2Min_CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
+class FilterSortDT__CT2Min_CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(CT2[_,_] => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
 
-  val wrapped_CT2    = new FilterSortDT__CT2[T1,T2]()
+  val wrapped_CT2 = new FilterSortDT__CT2[T1,T2](valfun, order, sort_B_desc_by_string)
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString[T1,T2](_))
 

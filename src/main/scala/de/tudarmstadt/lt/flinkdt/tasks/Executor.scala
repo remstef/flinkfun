@@ -16,8 +16,12 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.TextToCT2
+import de.tudarmstadt.lt.flinkdt.{CT2, TextToCT2}
+import org.apache.flink.api.common.operators.Order
+import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
+
+import scala.reflect.ClassTag
 
 /**
   * Created by Steffen Remus
@@ -38,13 +42,13 @@ object Executor extends App {
       /*  */
       N11Sum.toCT2withN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
       /*  */
-      WhiteListFilter.CT2[String, String](DSTaskConfig.in_whitelist, env) ~>
+      WhiteListFilter.CT2[String, String](DSTaskConfig.in_whitelist, env) ~|~>
       /*  */
       ComputeFilteredCT2s.fromCT2withPartialN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       /*  */
       ComputeDT.fromCT2[String,String]() ~>
       /*  */
-      FilterSortDT.CT2Min[String,String]()
+      FilterSortDT.CT2Min[String,String](_.n11)
       /*  */
   }.process(env,in, DSTaskConfig.out_dt_sorted)
 

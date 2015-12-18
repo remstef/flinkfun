@@ -25,20 +25,24 @@ import scala.reflect.ClassTag
 /**
   * Created by Steffen Remus
   */
-class DSTaskWriterChain[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation, X : ClassTag : TypeInformation](_f:DSTask[I,X], _g:DSTask[X,O]) extends DSTaskChain[I,O,X](_f,_g) {
+class DSTaskWriterChain[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation, X : ClassTag : TypeInformation](_f:DSTask[I,X], _g:DSTask[X,O], out:String = null) extends DSTaskChain[I,O,X](_f,_g) {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[I] = f.fromLines(lineDS)
 
   override def process(ds: DataSet[I]): DataSet[O] = {
 
-    var t:DSTask[_,_] = f
-    while(t.isInstanceOf[DSTaskChain[_,_,_]] || t.isInstanceOf[DSTaskWriterChain[_,_,_]])
-      t = (t.asInstanceOf[DSTaskChain[_,_,_]]).g
-    val name = s"${TimeUtils.getSimple17}_${t.getClass.getSimpleName}"
-    val out = DSTaskConfig.appendPath(DSTaskConfig.out_basedir, name)
+    val out_ = if(out != null && !out.isEmpty){
+      out
+    }else {
+      var t: DSTask[_, _] = f
+      while (t.isInstanceOf[DSTaskChain[_, _, _]] || t.isInstanceOf[DSTaskWriterChain[_, _, _]])
+        t = (t.asInstanceOf[DSTaskChain[_, _, _]]).g
+      val name = s"${TimeUtils.getSimple17}_${t.getClass.getSimpleName}"
+      DSTaskConfig.appendPath(DSTaskConfig.out_basedir, name)
+    }
 
     val ds_intermediate = f.process(ds)
-    val w = new DSWriter[String](out)
+    val w = new DSWriter[String](out_)
     w.process(f.toLines(ds_intermediate))
     g(ds_intermediate)
 
