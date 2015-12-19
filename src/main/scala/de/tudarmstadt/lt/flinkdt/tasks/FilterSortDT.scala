@@ -29,7 +29,8 @@ class FilterSortDT__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInf
   override def toLines(ds: DataSet[(CT2[T1, T2], Float)]): DataSet[String] = ds.map(_ match {
     case (ct, v) => {
       val sv = FormatUtils.format(v)
-      s"${ct.toStringArray().slice(0,2).mkString("\t")}\t${sv}\t${ct.toStringArray().slice(2,6).mkString("\t")}"
+      val sa = ct.toStringArray()
+      s"${sa.slice(0,2).mkString("\t")}\t${sv}\t${sa.slice(2,sa.length).mkString("\t")}"
     }
   })
 
@@ -79,7 +80,8 @@ class FilterSortDT__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : Type
   override def toLines(ds: DataSet[(CT2Min[T1, T2], Float)]): DataSet[String] = ds.map(_ match {
     case (ct, v) => {
       val sv = FormatUtils.format(v)
-      s"${ct.toStringArray().slice(0,2).mkString("\t")}\t${sv}\t${FormatUtils.format(ct.n11)}"
+      val sa = ct.toStringArray()
+      s"${sa.slice(0,2).mkString("\t")}\t${sv}\t${sa.slice(2,sa.length).mkString("\t")}"
     }
   })
 
