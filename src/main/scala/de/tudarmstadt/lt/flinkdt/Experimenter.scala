@@ -35,7 +35,7 @@ object Experimenter extends App {
       //WhiteListFilter.CT2Min[Int, Int](DSTaskConfig.in_whitelist, env) ~|~>
       /* */
       //      ComputeGraphDT.freq[Int,Int]() ~> DSWriter(DSTaskConfig.out_dt)
-      ComputeGraphDT.freq[String,String]() ~> DSWriter(DSTaskConfig.out_dt)
+      ComputeDTSimplified.CT2MinGraph[String,String]() ~> DSWriter(DSTaskConfig.out_dt)
       /* */
     }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}")
 

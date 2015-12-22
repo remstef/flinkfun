@@ -46,11 +46,11 @@ object Executor extends App {
       /*  */
       ComputeFilteredCT2s.fromCT2withPartialN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       /*  */
-      ComputeDT.fromCT2[String,String]() ~>
+      ComputeDTSimplified.CT2Join[String,String]() ~>
       /*  */
       FilterSortDT.CT2Min[String,String](_.n11)
       /*  */
-  }.process(env,in, DSTaskConfig.out_dt_sorted)
+  }.process(env, in, DSTaskConfig.out_dt_sorted)
 
   env.execute(DSTaskConfig.jobname)
 
