@@ -14,19 +14,16 @@
  *  limitations under the License.
  */
 
-package de.tudarmstadt.lt.flinkdt.tasks
+package de.tudarmstadt.lt.flinkdt.pipes
 
-import de.tudarmstadt.lt.flinkdt.{CT2, TextToCT2}
-import org.apache.flink.api.common.operators.Order
-import org.apache.flink.api.common.typeinfo.TypeInformation
+import de.tudarmstadt.lt.flinkdt.tasks._
+import de.tudarmstadt.lt.flinkdt.{TextToCT2}
 import org.apache.flink.api.scala._
-
-import scala.reflect.ClassTag
 
 /**
   * Created by Steffen Remus
   */
-object Executor extends App {
+object SamplePipeline extends App {
 
   DSTaskConfig.load(args)
 
@@ -44,11 +41,11 @@ object Executor extends App {
       /*  */
       WhiteListFilter.CT2[String, String](DSTaskConfig.in_whitelist, env) ~|~>
       /*  */
-      ComputeFilteredCT2s.fromCT2withPartialN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+      ComputeSignificanceFiltered.fromCT2withPartialN[String,String](sigfun = _.lmi) ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       /*  */
       ComputeDTSimplified.CT2Join[String,String]() ~>
       /*  */
-      FilterSortDT.CT2Min[String,String](_.n11)
+      FilterSortDT.CT2Min[String,String]()
       /*  */
   }.process(env, in, DSTaskConfig.out_dt_sorted)
 

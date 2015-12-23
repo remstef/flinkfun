@@ -55,7 +55,7 @@ object DSTaskConfig extends Serializable{
   var param_min_sim_ndistinct:Int           = 2
   var param_topn_s:Int                      = 200
 
-  var jobname:String                        = "DT-job-flink"
+  var jobname:String                        = "flinkjob"
 
   var in_text:String                        = "!!NO INPUT DEFINED!!"
   var in_whitelist:String                   = null
@@ -84,12 +84,10 @@ object DSTaskConfig extends Serializable{
       else
         ConfigFactory.load() // load default application.conf
 
-    if(jobname != null)
-      this.jobname = jobname
-    else if(caller != null)
-      this.jobname = caller.getSimpleName.replaceAllLiterally("$","")
-    else if(args.length > 1)
+    if(args.length > 1)
       this.jobname = args(1)
+    else if(jobname != null)
+      this.jobname = jobname
     else
       this.jobname = s"${TimeUtils.getSimple17}_${this.jobname}"
 

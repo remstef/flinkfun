@@ -176,17 +176,20 @@ case class CT2[T1, T2](var a:T1, var b:T2,
 """
   }
 
-  def toStringTuple():(String, String, String, String, String, String) = (
+  def toStringTuple():(String, String, String, String, String, String, String, String, String) = (
     s"${a.asString}",
     s"${b.asString}",
     s"${n11.asString}",
     s"${n1dot.asString}",
     s"${ndot1.asString}",
-    s"${n.asString}")
+    s"${n.asString}",
+    s"${log2_pmi asString}",
+    s"${lmi asString}",
+    s"${log_pAgivenB asString}")
 
   def toStringArray():Array[String] = {
     val t = toStringTuple()
-    Array(t._1, t._2, t._3, t._4, t._5, t._6)
+    Array(t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9)
   }
 
   def toCT2Min() = CT2Min[T1,T2](a,b,n11)

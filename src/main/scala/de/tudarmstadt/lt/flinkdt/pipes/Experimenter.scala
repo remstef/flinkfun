@@ -14,15 +14,12 @@
  *  limitations under the License.
  */
 
-package de.tudarmstadt.lt.flinkdt
+package de.tudarmstadt.lt.flinkdt.pipes
 
+import de.tudarmstadt.lt.flinkdt.{TextToCT2, CT2Min}
 import de.tudarmstadt.lt.flinkdt.tasks._
-import org.apache.flink.api.common.operators.Order
-import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.Path
-
-import scala.reflect.ClassTag
 
 /**
   * Created by Steffen Remus
@@ -32,9 +29,9 @@ object Experimenter extends App {
   def process() = {
 
     { /* */
-      //WhiteListFilter.CT2Min[Int, Int](DSTaskConfig.in_whitelist, env) ~|~>
+      //WhiteListFilter.CT2Min[String, String](DSTaskConfig.in_whitelist, env) ~|~>
       /* */
-      //      ComputeGraphDT.freq[Int,Int]() ~> DSWriter(DSTaskConfig.out_dt)
+      //      ComputeDTSimplified.CT2MinJoin[String,String]() ~> DSWriter(DSTaskConfig.out_dt)
       ComputeDTSimplified.CT2MinGraph[String,String]() ~> DSWriter(DSTaskConfig.out_dt)
       /* */
     }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}")
@@ -48,9 +45,7 @@ object Experimenter extends App {
     { /* */
       Extractor(extractorfun) ~|~>
       /*  */
-      N11Sum.toCT2Min[String, String]() // ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
-      /*  */
-//      Convert.HashCT2Types.StringSha256[String,String](DSTaskConfig.out_keymap)
+      N11Sum.toCT2Min[String, String]()
       /*  */
     }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}")
 
@@ -64,9 +59,7 @@ object Experimenter extends App {
     env.startNewSession()
 
     { /* */
-//      Convert.HashCT2MinTypes.Reverse[String,String](env, DSTaskConfig.out_keymap) ~>
-      /* */
-      FilterSortDT.CT2Min[String,String](_.n11)
+      FilterSortDT.CT2Min[String,String]()
       /* */
     }.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
 
@@ -74,7 +67,7 @@ object Experimenter extends App {
 
   }
 
-  DSTaskConfig.load(args, if(args.length > 1) args(1) else "experimental")
+  DSTaskConfig.load(args, "experimental")
 
   def extractorfun:String => TraversableOnce[CT2Min[String,String]] =
     if(DSTaskConfig.jobname.contains("pattern"))
@@ -95,7 +88,5 @@ object Experimenter extends App {
   process()
 
   postprocess()
-
-
 
 }
