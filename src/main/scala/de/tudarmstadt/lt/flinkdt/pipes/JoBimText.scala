@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package de.tudarmstadt.lt.flinkdt.exp
+package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.{CT2, TextToCT2, CT2Min}
 import de.tudarmstadt.lt.flinkdt.tasks._
