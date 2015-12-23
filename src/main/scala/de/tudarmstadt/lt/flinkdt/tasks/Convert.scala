@@ -16,10 +16,11 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.{CT2, CT2Min}
+import de.tudarmstadt.lt.flinkdt.{StringConvert, CT2, CT2Min}
 import de.tudarmstadt.lt.utilities.HashUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
+import scala.collection.JavaConversions._
 
 import scala.reflect.ClassTag
 
@@ -30,18 +31,18 @@ object Convert {
 
   object HashCT2MinTypes {
 
-    def StringHashCode[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
-      val hf: Any => Int = t => t.toString.hashCode
+    def StringSha256[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
+      val hf: Any => Array[Byte] = t => HashUtils.string_hash_sha256(t.toString)
       new Convert__Hash__CT2MinTypes[T1, T2](hf, hf, keymap_location)
     }
 
-    def StringSha256[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
-      val hf: Any => Int = t => HashUtils.string_hash_sha256_toInt(t.toString)
+    def StringHashCode[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
+      val hf: Any => Array[Byte] = t => HashUtils.decodeHexString(Integer.toHexString(t.toString.hashCode))
       new Convert__Hash__CT2MinTypes[T1, T2](hf, hf, keymap_location)
     }
 
     def StringMurmur3_32bit[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
-      val hf: Any => Int = t => HashUtils.string_hash_murmur3_32bit(t.toString)
+      val hf: Any => Array[Byte] = t => HashUtils.decodeHexString(Integer.toHexString(HashUtils.string_hash_murmur3_32bit(t.toString)))
       new Convert__Hash__CT2MinTypes[T1, T2](hf, hf, keymap_location)
     }
 
@@ -53,18 +54,18 @@ object Convert {
 
   object HashCT2Types {
 
-    def StringHashCode[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
-      val hf: Any => Int = t => t.toString.hashCode
+    def StringSha256[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
+      val hf: Any => Array[Byte] = t => HashUtils.string_hash_sha256(t.toString)
       new Convert__Hash__CT2Types[T1, T2](hf, hf, keymap_location)
     }
 
-    def StringSha256[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
-      val hf: Any => Int = t => HashUtils.string_hash_sha256_toInt(t.toString)
+    def StringHashCode[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
+      val hf: Any => Array[Byte] = t => HashUtils.decodeHexString(Integer.toHexString(t.toString.hashCode))
       new Convert__Hash__CT2Types[T1, T2](hf, hf, keymap_location)
     }
 
     def StringMurmur3_32bit[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](keymap_location: String) = {
-      val hf: Any => Int = t => HashUtils.string_hash_murmur3_32bit(t.toString)
+      val hf: Any => Array[Byte] = t => HashUtils.decodeHexString(Integer.toHexString(HashUtils.string_hash_murmur3_32bit(t.toString)))
       new Convert__Hash__CT2MinTypes[T1, T2](hf, hf, keymap_location)
     }
 
@@ -76,24 +77,24 @@ object Convert {
 
 }
 
-class Convert__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](hashfunA:T1 => Int, hashfunB:T2 => Int, keymap_outputlocation:String) extends DSTask[CT2Min[T1,T2], CT2Min[Int,Int]]{
+class Convert__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](hashfunA:T1 => Array[Byte], hashfunB:T2 => Array[Byte], keymap_outputlocation:String) extends DSTask[CT2Min[T1,T2], CT2Min[Array[Byte],Array[Byte]]]{
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1, T2]] = lineDS.map(CT2Min.fromString[T1,T2](_))
 
-  override def process(ds: DataSet[CT2Min[T1, T2]]): DataSet[CT2Min[Int, Int]] = {
+  override def process(ds: DataSet[CT2Min[T1, T2]]): DataSet[CT2Min[Array[Byte], Array[Byte]]] = {
 
-    val mapStringCtToInt = ds.map(ct => {
-      val id_A:Int = hashfunA(ct.a)
-      val id_B:Int = hashfunB(ct.b)
+    val mapStringCtToByteArray = ds.map(ct => {
+      val id_A:Array[Byte] = hashfunA(ct.a)
+      val id_B:Array[Byte] = hashfunB(ct.b)
       val newct = CT2Min(id_A, id_B, ct.n11)
       (newct, Seq((ct.a, id_A), (ct.b, id_B)))
     })
 
-    // get mapping Int -> String mapping
-    val string2id = mapStringCtToInt
+    // get mapping Array[Byte] -> String mapping
+    val string2id = mapStringCtToByteArray
       .map(_._2)
       .flatMap(l => l)
-      .map(t => (t._1.toString, t._2))
+      .map(t => (StringConvert.convert_toString(t._1), HashUtils.encodeHexString(t._2)))
       .distinct(0)
       .map(t => s"${t._1}\t${t._2}")
 
@@ -103,23 +104,23 @@ class Convert__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 : ClassTag 
     // TODO: whats the best strategy to deal with collisions? Currently we ignore this issue!
     // should we sum the values again? just to be sure they are unique?
     // return int-cts
-    mapStringCtToInt.map(_._1)
+    mapStringCtToByteArray.map(_._1)
 
   }
 
 }
 
-class ReverseConversion__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](env:ExecutionEnvironment, keymap_location:String) extends DSTask[CT2Min[Int,Int], CT2Min[T1,T2]]{
+class ReverseConversion__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](env:ExecutionEnvironment, keymap_location:String) extends DSTask[CT2Min[Array[Byte],Array[Byte]], CT2Min[T1,T2]]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[Int, Int]] = lineDS.map(CT2Min.fromString[Int,Int](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[Array[Byte], Array[Byte]]] = lineDS.map(CT2Min.fromString[Array[Byte],Array[Byte]](_))
 
-  override def process(ds: DataSet[CT2Min[Int, Int]]): DataSet[CT2Min[T1, T2]] = {
+  override def process(ds: DataSet[CT2Min[Array[Byte], Array[Byte]]]): DataSet[CT2Min[T1, T2]] = {
 
     val id2string = DSReader(keymap_location, env)
       .process()
       .map(l => l.split('\t') match {
-        case Array(string, id, _*) => (id.toInt, string)
-        case _ => (0,"")
+        case Array(string, id, _*) => (HashUtils.decodeHexString(id), StringConvert.convert_toType[String](string)) // TODO: convert_toType[String] should be convert_toType[T1] and convert_toType[T2], this means we need a flag in the keymap or two keymaps!
+        case _ => (Array[Byte](0),"")
       })
 
     val converted = ds
@@ -132,24 +133,24 @@ class ReverseConversion__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 :
 }
 
 
-class Convert__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](hashfunA:T1 => Int, hashfunB:T2 => Int, keymap_outputlocation:String) extends DSTask[CT2[T1,T2], CT2[Int,Int]]{
+class Convert__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](hashfunA:T1 => Array[Byte], hashfunB:T2 => Array[Byte], keymap_outputlocation:String) extends DSTask[CT2[T1,T2], CT2[Array[Byte], Array[Byte]]]{
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1, T2]] = lineDS.map(CT2.fromString[T1,T2](_))
 
-  override def process(ds: DataSet[CT2[T1, T2]]): DataSet[CT2[Int, Int]] = {
+  override def process(ds: DataSet[CT2[T1, T2]]): DataSet[CT2[Array[Byte], Array[Byte]]] = {
 
-    val mapStringCtToInt = ds.map(ct => {
-      val id_A:Int = hashfunA(ct.a)
-      val id_B:Int = hashfunB(ct.b)
+    val mapStringCtToByteArray = ds.map(ct => {
+      val id_A:Array[Byte] = hashfunA(ct.a)
+      val id_B:Array[Byte] = hashfunB(ct.b)
       val newct = CT2(id_A, id_B, ct.n11, ct.n1dot, ct.ndot1, ct.n, ct.srcid, ct.isflipped)
       (newct, Seq((ct.a, id_A), (ct.b, id_B)))
     })
 
-    // get mapping Int -> String mapping
-    val string2id = mapStringCtToInt
+    // get mapping Array[Byte] -> String mapping
+    val string2id = mapStringCtToByteArray
       .map(_._2)
       .flatMap(l => l)
-      .map(t => (t._1.toString, t._2))
+      .map(t => (StringConvert.convert_toString(t._1), HashUtils.encodeHexString(t._2)))
       .distinct(0)
       .map(t => s"${t._1}\t${t._2}")
 
@@ -159,22 +160,22 @@ class Convert__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : T
     // TODO: whats the best strategy to deal with collisions? Currently we ignore this issue!
     // should we sum the values again? just to be sure they are unique?
     // return int-cts
-    mapStringCtToInt.map(_._1)
+    mapStringCtToByteArray.map(_._1)
 
   }
 
 }
 
-class ReverseConversion__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](env:ExecutionEnvironment, keymap_location:String) extends DSTask[CT2[Int,Int], CT2[T1,T2]]{
+class ReverseConversion__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](env:ExecutionEnvironment, keymap_location:String) extends DSTask[CT2[Array[Byte],Array[Byte]], CT2[T1,T2]]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[Int, Int]] = lineDS.map(CT2.fromString[Int,Int](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[Array[Byte], Array[Byte]]] = lineDS.map(CT2.fromString[Array[Byte],Array[Byte]](_))
 
-  override def process(ds: DataSet[CT2[Int, Int]]): DataSet[CT2[T1, T2]] = {
+  override def process(ds: DataSet[CT2[Array[Byte], Array[Byte]]]): DataSet[CT2[T1, T2]] = {
 
     val id2string = DSReader(keymap_location, env)
       .process()
       .map(l => l.split('\t') match {
-        case Array(string, id, _*) => (id.toInt, string)
+        case Array(string, id, _*) => (HashUtils.decodeHexString(id), StringConvert.convert_toType[String](string)) // TODO: see above
         case _ => (0,"")
       })
     

@@ -1,6 +1,7 @@
 package de.tudarmstadt.lt.flinkdt
 
 import de.tudarmstadt.lt.scalautils.FormatUtils
+import org.apache.flink.api.common.typeinfo.TypeInformation
 
 import scala.reflect._
 import reflect.runtime.universe._
@@ -10,29 +11,29 @@ import reflect.runtime.universe._
   */
 object CT2Min {
 
-  implicit def string_conversion(x: String) = StringConvert.convert(x)
+  implicit def string_conversion(x: String) = StringConvert.convert_toType_implicit(x)
 
-  def EMPTY_CT[T1 : ClassTag, T2 : ClassTag] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
+  def EMPTY_CT[T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
 
-  def fromString[T1 : ClassTag,T2 : ClassTag](ct2AsString:String):CT2Min[T1,T2] = fromStringArray(ct2AsString.split("\t"))
+  def fromString[T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation](ct2AsString: String): CT2Min[T1, T2] = fromStringArray(ct2AsString.split("\t"))
 
-  def fromStringArray[T1 : ClassTag,T2 : ClassTag](ct2AsStringArray:Array[String]):CT2Min[T1,T2] = {
-
+  def fromStringArray[T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation](ct2AsStringArray: Array[String]): CT2Min[T1, T2] = {
     ct2AsStringArray match {
-      case  Array(_A,_B,n11,_*) => new CT2Min[T1,T2](_A.toT[T1], _B.toT[T2], n11.toFloat)
-      case  Array(_A,_B)     => new CT2Min(_A.toT[T1], _B.toT[T2], 1f)
-      case _ => EMPTY_CT:CT2Min[T1,T2]
+      case Array(_A, _B, n11, _*) => new CT2Min[T1, T2](_A.toT[T1], _B.toT[T2], n11.toFloat)
+      case Array(_A, _B) => new CT2Min(_A.toT[T1], _B.toT[T2], 1f)
+      case _ => EMPTY_CT: CT2Min[T1, T2]
     }
   }
 
 }
 
 
-
 @SerialVersionUID(42L)
-case class CT2Min[T1,T2](var a:T1,
-                         var b:T2,
-                         var n11:Float = 1f) extends Serializable with Cloneable {
+case class CT2Min[T1, T2](var a:T1,
+                          var b:T2,
+                          var n11:Float = 1f) extends Serializable with Cloneable {
+
+  implicit def string_conversion(x: Any) = StringConvert.convert_toString_implicit(x)
 
   def +(other:CT2Min[T1, T2]):this.type = {
     val newct:this.type = copy().asInstanceOf[this.type]
@@ -56,14 +57,14 @@ case class CT2Min[T1,T2](var a:T1,
   def toCT2(n1dot:Float=n11,ndot1:Float=n11,n:Float=n11):CT2[T1,T2] = CT2(a,b,n11,n1dot,ndot1,n)
 
   def prettyPrint():String = {
-    val v = s"${FormatUtils.format(n11)}"
+    val v = s"${n11.asString}"
     val width = v.length + 2
     val vf = ("%-"+width+"s").format(v)
     val filler  = " "*width
     val filler_ = "-"*width
 
     s"""+++ ${getClass.getSimpleName}
-  A = ${a}     B = ${b}
+  A = ${a.asString}     B = ${b.asString}
         |  B       ${filler}   !B        | SUM
              ---------------------------------${filler_}
   CT2(A,B) =  A |  n11 = ${v}    n12 = ?    | n1dot = ?
@@ -74,9 +75,9 @@ case class CT2Min[T1,T2](var a:T1,
   }
 
   def toStringTuple():(String, String, String) = (
-    s"${a}",
-    s"${b}",
-    s"${FormatUtils.format(n11)}")
+    s"${a.asString}",
+    s"${b.asString}",
+    s"${n11.asString}")
 
   def toStringArray():Array[String] = {
     val t = toStringTuple()

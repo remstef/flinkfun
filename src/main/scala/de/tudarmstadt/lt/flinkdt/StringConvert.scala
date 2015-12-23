@@ -16,6 +16,9 @@
 
 package de.tudarmstadt.lt.flinkdt
 
+import de.tudarmstadt.lt.scalautils.FormatUtils
+import de.tudarmstadt.lt.utilities.HashUtils
+
 import scala.reflect._
 
 /**
@@ -23,13 +26,24 @@ import scala.reflect._
   */
 object StringConvert {
 
-  def convert(x: String) = new {
-    def toT[T : ClassTag]:T = classTag[T] match {
-      case t if t == classTag[Int] => x.toInt.asInstanceOf[T]
-      case t if t == classTag[String] => x.asInstanceOf[T]
-    }
+  def convert_toType_implicit(x: String) = new {
+    def toT[T : ClassTag]:T = convert_toType(x)
   }
 
+  def convert_toString_implicit(x: Any) = new {
+    def asString():String = convert_toString(x)
+  }
 
+  def convert_toType[T : ClassTag](x:String) = classTag[T] match {
+    case t if t == classTag[Int] => x.toInt.asInstanceOf[T]
+    case t if t == classTag[String] => x.asInstanceOf[T]
+    case t if t == classTag[Array[Byte]] => HashUtils.decodeHexString(x).asInstanceOf[T]
+  }
+
+  def convert_toString(x:Any) =  x match {
+    case _ if x.isInstanceOf[Number] => FormatUtils.format(x.asInstanceOf[Number])
+    case _ if x.isInstanceOf[Array[Byte]] => HashUtils.encodeHexString(x.asInstanceOf[Array[Byte]])
+    case _ => x.toString()
+  }
 
 }

@@ -20,6 +20,7 @@ package de.tudarmstadt.lt.flinkdt
 
 import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
 import de.tudarmstadt.lt.scalautils.FormatUtils
+import org.apache.flink.api.common.typeinfo.TypeInformation
 
 import scala.math._
 import scala.reflect._
@@ -29,13 +30,13 @@ import scala.reflect._
   */
 object CT2 {
 
-  implicit def string_conversion(x: String) = StringConvert.convert(x)
+  implicit def string_conversion(x: String) = StringConvert.convert_toType_implicit(x)
 
-  def EMPTY_CT[T1 : ClassTag, T2: ClassTag] = new CT2[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
+  def EMPTY_CT[T1 : ClassTag : TypeInformation, T2: ClassTag : TypeInformation] = new CT2[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
 
-  def fromString[T1 : ClassTag, T2 : ClassTag](ct2AsString:String):CT2[T1,T2] = fromStringArray(ct2AsString.split("\t"))
+  def fromString[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):CT2[T1,T2] = fromStringArray(ct2AsString.split("\t"))
 
-  def fromStringArray[T1 : ClassTag, T2 : ClassTag](ct2AsStringArray:Array[String]):CT2[T1,T2] = {
+  def fromStringArray[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray:Array[String]):CT2[T1,T2] = {
     ct2AsStringArray match {
       case  Array(_A,_B,n11,n1dot,ndot1,n,_*) => new CT2[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
       case _ => EMPTY_CT
@@ -62,13 +63,15 @@ object CT2 {
  *
  */
 @SerialVersionUID(42L)
-case class CT2[T1,T2](var a:T1, var b:T2,
-                      var n11:Float   = 1f,
-                      var n1dot:Float = 1f,
-                      var ndot1:Float = 1f,
-                      var n:Float     = 1f,
-                      val srcid:Option[Any] = None,
-                      val isflipped:Boolean = false) extends Serializable with Cloneable {
+case class CT2[T1, T2](var a:T1, var b:T2,
+                       var n11:Float   = 1f,
+                       var n1dot:Float = 1f,
+                       var ndot1:Float = 1f,
+                       var n:Float     = 1f,
+                       val srcid:Option[Any] = None,
+                       val isflipped:Boolean = false) extends Serializable with Cloneable {
+
+  implicit def string_conversion(x: Any) = StringConvert.convert_toString_implicit(x)
 
   def n12()   = n1dot - n11
   def n21()   = ndot1 - n11
@@ -135,26 +138,25 @@ case class CT2[T1,T2](var a:T1, var b:T2,
   }
 
   def prettyPrint():String = {
-    def f(v:Number) = s"${FormatUtils.format(v)}"
 
     val v = Array(
-      f(n11),
-      f(n12),
-      f(n21),
-      f(n22),
-      f(n1dot),
-      f(n2dot),
-      f(ndot1),
-      f(ndot2),
-      f(n))
+      n11.asString,
+      n12.asString,
+      n21.asString,
+      n22.asString,
+      n1dot.asString,
+      n2dot.asString,
+      ndot1.asString,
+      ndot2.asString,
+      n.asString)
 
     val maxwidth = v.map(_.length).max + 2
     val vf = v.map(x => ("%-"+maxwidth+"s").format(x)).toIndexedSeq
     val filler  = " "*maxwidth
     val filler_ = "-"*2*maxwidth
     val source = if(srcid.isDefined) s"source = ${srcid.get}" else ""
-    s"""+++ ${getClass.getSimpleName}    ${source}   +++
-  A = ${a}     B = ${b}
+    s"""+++ ${getClass.getSimpleName}    ${source.asString}   +++
+  A = ${a.asString}     B = ${b.asString}
                 |  B ${filler}        !B  ${filler}      | SUM
              ---------------------------------${filler_}
   CT2(A,B) =  A |  n11 = ${vf(0)}    n12 = ${vf(1)}    | n1dot = ${vf(4)}
@@ -162,25 +164,25 @@ case class CT2[T1,T2](var a:T1, var b:T2,
              ---------------------------------${filler_}
                 |  ndot1 = ${vf(6)}  ndot2 = ${vf(7)}  | n = ${vf(8)}
 
-  log p(A,B)    = ${f(log_pAB)}
-  log p(A)      = ${f(log_pA)}
-  log p(B)      = ${f(log_pB)}
-  log p(A|B)    = ${f(log_pAgivenB)}
-  log p(B|A)    = ${f(log_pBgivenA)}
-  log pmi(A,B)  = ${f(log_pmi)}
-  log2 pmi(A,B) = ${f(log2_pmi)}
-  lmi(A,B)      = ${f(lmi)}
+  log p(A,B)    = ${log_pAB.asString}
+  log p(A)      = ${log_pA.asString}
+  log p(B)      = ${log_pB.asString}
+  log p(A|B)    = ${log_pAgivenB.asString}
+  log p(B|A)    = ${log_pBgivenA.asString}
+  log pmi(A,B)  = ${log_pmi.asString}
+  log2 pmi(A,B) = ${log2_pmi.asString}
+  lmi(A,B)      = ${lmi.asString}
 
 """
   }
 
   def toStringTuple():(String, String, String, String, String, String) = (
-    s"${a}",
-    s"${b}",
-    s"${FormatUtils.format(n11)}",
-    s"${FormatUtils.format(n1dot)}",
-    s"${FormatUtils.format(ndot1)}",
-    s"${FormatUtils.format(n)}")
+    s"${a.asString}",
+    s"${b.asString}",
+    s"${n11.asString}",
+    s"${n1dot.asString}",
+    s"${ndot1.asString}",
+    s"${n.asString}")
 
   def toStringArray():Array[String] = {
     val t = toStringTuple()
