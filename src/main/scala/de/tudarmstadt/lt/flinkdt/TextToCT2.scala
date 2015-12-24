@@ -44,33 +44,48 @@ object TextToCT2 {
     val seq = ("^ "*(nh) + text + " $"*(nh)).split("\\s+")
     PatGen(seq).kWildcardNgramPatterns(n=n+k,k=k)
       .map(_.skipGram)
-      .map(x => CT2Min(x(nh), x.slice(0,nh).mkString(" ") + " @ "  + x.slice(n-nh,n).mkString(" ")))
+      .map(x => CT2Min(x(nh), x.slice(0,nh-1).mkString(" ") + " @ "  + x.slice(n-nh,n).mkString(" ")))
   }
 
   def kWildcardNgramPatterns(text:String, n:Int=3, k:Int=2): TraversableOnce[CT2Min[String,String]] = {
     val nh = Math.max(1,n/2) // 3/2 = 1 => 0 @ 2 || 5/2 = 2 => 0 1 @ 4 5
     val seq = ("^ "*(nh) + text + " $"*(nh)).replaceAllLiterally("@","(at)").split("\\s+")
     PatGen(seq)("@").kWildcardNgramPatterns(n,k)
-      .map(p => CT2Min(p.filler.mkString(" "), p.mergedPattern.mkString(" "), 1f))
-      .filter(_.a != "^")
-      .filter(_.a != "$")
-      .filter(_.a != "^ ^")
-      .filter(_.a != "$ $")
+      .map(p => CT2Min(p.mergedPattern.mkString(" "), p.filler.mkString(" "), 1f))
+      .filter(_.b != "^")
+      .filter(_.b != "$")
+      .filter(_.b != "^ ^")
+      .filter(_.b != "$ $")
   }
 
-  def kWildcardNgramPatternsPlus(text:String, n:Int=3, k:Int=2): TraversableOnce[CT2Min[String,String]] = {
+  def kWildcardNgramPatterns_kplus(text:String, n:Int=3, k_max:Int=2): TraversableOnce[CT2Min[String,String]] = {
     val nh = Math.max(1,n/2)
     val seq = ("^ "*(nh) + text + " $"*(nh)).replaceAllLiterally("@","(at)").split("\\s+")
-    PatGen(seq)("@").kWildcardNgramPatternsPlus(n,k)
-      .map(p => CT2Min(p.filler.mkString(" "), p.mergedPattern.mkString(" "), 1f))
-      .filter(_.a != "^")
-      .filter(_.a != "$")
-      .filter(_.a != "^ ^")
-      .filter(_.a != "$ $")
-//      .map(ct => {ct.a = ct.a.replaceAllLiterally("^","").replaceAllLiterally(" $",""); ct})
-//      .map(ct => {ct.b = ct.b.replaceAllLiterally("^ ","").replaceAllLiterally(" $","").replaceAllLiterally("@ @", "@"); ct})
-
+    PatGen(seq)("@").kWildcardNgramPatterns_kplus(n, k_max)
+      .map(p => CT2Min(p.mergedPattern.mkString(" "), p.filler.mkString(" "), 1f))
+      .filter(_.b != "^")
+      .filter(_.b != "$")
+      .filter(_.b != "^ ^")
+      .filter(_.b != "$ $")
+//      .map(ct => {ct.b = ct.b.replaceAllLiterally("^","").replaceAllLiterally(" $",""); ct})
+//      .map(ct => {ct.a = ct.a.replaceAllLiterally("^ ","").replaceAllLiterally(" $","").replaceAllLiterally("@ @", "@"); ct})
     // TODO: make replacement rules generic!
+  }
+
+  def kWildcardNgramPatterns_nplus_kplus(text:String, n_max:Int=3, k_max:Int=2): TraversableOnce[CT2Min[String,String]] = {
+    val nh = Math.max(1,n_max/2)
+    val seq = text.replaceAllLiterally("@","(at)").split("\\s+")
+    PatGen(seq)("@").kWildcardNgramPatterns_nplus_kplus(n_max,k_max)
+      .map(p => CT2Min(p.reversed().mergedPattern.mkString(" "), p.mergedPattern.mkString(" "), 1f))
+  }
+
+  def ngramPatternWordPairs(text:String, nmax:Int=5): TraversableOnce[CT2Min[String,String]] = {
+    val seq = text.replaceAllLiterally("@","(at)").split("\\s+")
+    if(seq.length < 3) // we need at least two anchor words and one context word
+      return Seq.empty[CT2Min[String,String]]
+    PatGen(seq)("@")
+      .kWildcardNgramPatterns_nplus(nmax, k=2)
+      .map(p => CT2Min(p.pattern.mkString(" "), p.filler.mkString(" "), 1f))
   }
 
 }

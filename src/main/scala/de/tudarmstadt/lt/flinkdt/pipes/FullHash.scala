@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.{CT2Min, TextToCT2}
+import de.tudarmstadt.lt.flinkdt.{Util, CT2Min, TextToCT2}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.Path
@@ -71,13 +71,9 @@ object FullHash extends App {
 
   }
 
-  DSTaskConfig.load(args, if(args.length > 1) args(1) else "experimental")
+  DSTaskConfig.load(args, getClass.getSimpleName.replaceAllLiterally("$",""))
 
-  def extractorfun:String => TraversableOnce[CT2Min[String,String]] =
-    if(DSTaskConfig.jobname.contains("pattern"))
-      (s => TextToCT2.kWildcardNgramPatternsPlus(s, 3))
-    else
-      (s => TextToCT2.ngrams(s, n=3))
+  def extractorfun:String => TraversableOnce[CT2Min[String,String]] = Util.getExtractorfunFromJobname()
 
   // set up the execution environment
   val env = ExecutionEnvironment.getExecutionEnvironment

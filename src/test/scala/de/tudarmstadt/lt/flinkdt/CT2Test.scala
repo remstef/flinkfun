@@ -13,7 +13,7 @@ object CT2Test {
     println("--- ngram patterns n=5 wildcards=2 ---")
     TextToCT2.ngram_patterns("The quick brown fox jumps over the lazy dog").filter(_.a.equals("fox")).foreach(a => println(a))
     println("--- kskipngrams n=3 k=2 ---")
-    TextToCT2.kSkipNgram("insurgents killed in ongoing fighting",3,2).foreach(a => println(a))
+    TextToCT2.kSkipNgram("insurgents killed in ongoing fighting",n=3,k=2).foreach(a => println(a))
     println("--- kskipngrams n=5 k=3 ---")
     TextToCT2.kSkipNgram("insurgents",n=5,k=3).foreach(a => println(a))
     TextToCT2.kSkipNgram("a b c d e f g",5,3).foreach(a => println(a))
@@ -94,7 +94,10 @@ object CT2Test {
     collapsed_ct2sm.foreach(println _)
 
     println("--- test Text2CT2 ---")
-    TextToCT2.kWildcardNgramPatternsPlus("a b c d e f g", n=5, k=2).foreach(println)
+    TextToCT2.kWildcardNgramPatterns_kplus("a b c d e f g", n=5, k_max=2).foreach(println)
+
+    println("--- test Text2CT2 ---")
+    TextToCT2.kWildcardNgramPatterns_nplus_kplus("a b c d e f g", n_max=6, k_max=2).foreach(println)
   }
 
 }
