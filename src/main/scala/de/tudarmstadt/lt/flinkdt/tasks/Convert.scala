@@ -119,14 +119,18 @@ class ReverseConversion__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 :
     val id2string = DSReader(keymap_location, env)
       .process()
       .map(l => l.split('\t') match {
-        case Array(string, id, _*) => (HashUtils.decodeHexString(id), StringConvert.convert_toType[String](string)) // TODO: convert_toType[String] should be convert_toType[T1] and convert_toType[T2], this means we need a flag in the keymap or two keymaps!
-        case _ => (Array[Byte](0),"")
+        case Array(string, id, _*) => (HashUtils.decodeHexString(id), string)
+        case _ => (Array[Byte](0.toByte),"")
       })
 
     val converted = ds
       .join(id2string).where("a").equalTo(0)((ct,tup) => (ct, tup._2))
-      .join(id2string).where("_1.b").equalTo(0)((ct_tup,tup) => CT2Min[T1,T2](ct_tup._2.asInstanceOf[T1], tup._2.asInstanceOf[T2], ct_tup._1.n11))
-
+      .join(id2string).where("_1.b").equalTo(0)((ct_tup,tup) => {
+        CT2Min[T1, T2](
+          ct_tup._2.asInstanceOf[T1], //StringConvert.convert_toType[T1](ct_tup._2), TODO: replace
+          tup._2.asInstanceOf[T2], //StringConvert.convert_toType[T2](tup._2),
+          ct_tup._1.n11)
+      })
     converted
   }
 
@@ -174,15 +178,24 @@ class ReverseConversion__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : Cl
 
     val id2string = DSReader(keymap_location, env)
       .process()
-      .map(l => l.split('\t') match {
-        case Array(string, id, _*) => (HashUtils.decodeHexString(id), StringConvert.convert_toType[String](string)) // TODO: see above
-        case _ => (0,"")
+      .map(l => l.split("\t") match {
+        case Array(string, id, _*) => (HashUtils.decodeHexString(id), string) // TODO: see above
+        case _ => (Array[Byte](0.toByte), "")
       })
     
     val converted = ds
       .join(id2string).where("a").equalTo(0)((ct,tup) => (ct, tup._2))
-      .join(id2string).where("_1.b").equalTo(0)((ct_tup,tup) => CT2[T1,T2](ct_tup._2.asInstanceOf[T1], tup._2.asInstanceOf[T2], ct_tup._1.n11, ct_tup._1.n1dot, ct_tup._1.ndot1, ct_tup._1.n, ct_tup._1.srcid, ct_tup._1.isflipped))
-
+      .join(id2string).where("_1.b").equalTo(0)((ct_tup,tup) => {
+        CT2[T1,T2](
+          ct_tup._2.asInstanceOf[T1], // StringConvert.convert_toType[T1](ct_tup._2), TODO: replace
+          tup._2.asInstanceOf[T2], //StringConvert.convert_toType[T2](tup._2),
+          ct_tup._1.n11,
+          ct_tup._1.n1dot,
+          ct_tup._1.ndot1,
+          ct_tup._1.n,
+          ct_tup._1.srcid,
+          ct_tup._1.isflipped
+        )})
     converted
   }
 

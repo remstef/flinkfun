@@ -39,7 +39,9 @@ object RerankDT extends App {
   val in = DSTaskConfig.out_dt
 
   { /* */
-    ComputeSignificance.fromCT2Min
+    ComputeCT2.fromCT2Min[Array[Byte], Array[Byte]]() ~>
+    /* */
+    Convert.HashCT2Types.Reverse[String, String](env, DSTaskConfig.out_keymap) ~>
     /* */
     FilterSortDT.CT2[String,String](_.lmi)
     /* */

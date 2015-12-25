@@ -35,9 +35,9 @@ object StringConvert {
   }
 
   def convert_toType[T : ClassTag](x:String) = classTag[T] match {
-    case t if t == classTag[Int] => x.toInt.asInstanceOf[T]
     case t if t == classTag[String] => x.asInstanceOf[T]
     case t if t == classTag[Array[Byte]] => HashUtils.decodeHexString(x).asInstanceOf[T]
+    case t if t == classTag[Int] => x.toInt.asInstanceOf[T]
   }
 
   def convert_toString(x:Any) =  x match {
