@@ -99,7 +99,7 @@ object DSTaskConfig extends Serializable{
 
     // get input data and output data
     in_text                        = config_dt.getString("input.text")
-    in_text_column                 = config_dt.getString("input.text.column").toInt
+    in_text_column                 = config_dt.getString("input.text-column").toInt
     in_whitelist                   = if(config_dt.hasPath("input.whitelist"))    config_dt.getString("input.whitelist") else null
     out_raw                        = if(outputconfig.hasPath("raw"))             appendPath(out_basedir, outputconfig.getString("raw")) else null
     out_accumulated_AB             = if(outputconfig.hasPath("accAB"))           appendPath(out_basedir, outputconfig.getString("accAB")) else null
