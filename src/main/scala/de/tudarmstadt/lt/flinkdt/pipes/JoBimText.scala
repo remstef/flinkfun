@@ -48,11 +48,11 @@ object JoBimText extends App {
   def preprocess() = {
 
     { /* */
-      Extractor(extractorfun) ~|~>
+      Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
       /*  */
       N11Sum.toCT2withN[String, String]()
       /*  */
-    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}", inputcolumn = DSTaskConfig.in_text_column)
+    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}")
 
     env.execute(s"${DSTaskConfig.jobname}-preprocess")
     env.startNewSession()

@@ -34,7 +34,7 @@ object Experimenter extends App {
       //      ComputeDTSimplified.CT2MinJoin[String,String]() ~> DSWriter(DSTaskConfig.out_dt)
       ComputeDTSimplified.CT2MinGraph[String,String]() ~> DSWriter(DSTaskConfig.out_dt)
       /* */
-    }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}", inputcolumn = DSTaskConfig.in_text_column)
+    }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}")
 
     env.execute(s"${DSTaskConfig.jobname}-process")
 
@@ -43,7 +43,7 @@ object Experimenter extends App {
   def preprocess() = {
 
     { /* */
-      Extractor(extractorfun) ~|~>
+      Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
       /*  */
       N11Sum.toCT2Min[String, String]()
       /*  */

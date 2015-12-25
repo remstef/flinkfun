@@ -7,11 +7,11 @@ import org.apache.flink.api.scala._
   */
 object DSReader {
 
-  def apply(in:String, env:ExecutionEnvironment, textcol:Int = -1) = new DSReader(in,env, textcol)
+  def apply(in:String, env:ExecutionEnvironment) = new DSReader(in,env)
 
 }
 
-class DSReader(in: String, env: ExecutionEnvironment, textcol:Int) extends DSTask[String, String]{
+class DSReader(in: String, env: ExecutionEnvironment) extends DSTask[String, String]{
 
   override def fromLines(lineDS: DataSet[String]): DataSet[String] = lineDS
 
@@ -26,13 +26,7 @@ class DSReader(in: String, env: ExecutionEnvironment, textcol:Int) extends DSTas
       env.fromCollection(in.split('\n'))
     else
       env.readTextFile(in)
-    val dsf = ds.filter(_.trim.length > 0) // filter empty lines
-    if(textcol > -1)
-      dsf.map(_.split("\t"))
-        .map(_(textcol))
-        .filter(_.trim.length > 0)
-    else
-      dsf
+    ds.filter(_.trim.length > 0)
   }
 
 }

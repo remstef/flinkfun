@@ -35,7 +35,7 @@ object SamplePipeline extends App {
 
   val ds = {
       /*  */
-      Extractor(TextToCT2.ngrams(_,3)) ~> DSWriter(DSTaskConfig.out_raw) ~>
+      Extractor(TextToCT2.ngrams(_,3), inputcolumn = DSTaskConfig.in_text_column) ~> DSWriter(DSTaskConfig.out_raw) ~>
       /*  */
       N11Sum.toCT2withN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
       /*  */
@@ -47,7 +47,7 @@ object SamplePipeline extends App {
       /*  */
       FilterSortDT.CT2Min[String,String]()
       /*  */
-  }.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted, inputcolumn = DSTaskConfig.in_text_column)
+  }.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
 
   env.execute(DSTaskConfig.jobname)
 
