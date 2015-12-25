@@ -27,10 +27,9 @@ import scala.reflect.ClassTag
 /**
   * Created by Steffen Remus
   */
-object FullHash extends App {
+object FullDT extends App {
 
   def process[T : ClassTag : TypeInformation]() = {
-
     { /* */
       ComputeDTSimplified.CT2MinGraph[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
       /* */
@@ -40,32 +39,36 @@ object FullHash extends App {
 
   }
 
-  def preprocess() = {
+  def preprocess(hash:Boolean = false) = {
 
-    { /* */
-      Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
-      /*  */
-      N11Sum.toCT2Min[String, String]() ~|~>
-      /*  */
-      Convert.HashCT2MinTypes.StringSha256(DSTaskConfig.out_keymap)
-      /*  */
-    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}")
+    val string_preprocessing_chain =
+      { /* */
+        Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
+        /*  */
+        N11Sum.toCT2Min[String, String]()
+      }
+
+    val preprocessing_chain =
+      if(hash) { string_preprocessing_chain ~> Convert.HashCT2MinTypes.StringSha256(DSTaskConfig.out_keymap) }
+      else string_preprocessing_chain
+
+    preprocessing_chain.process(env, input = in, output = DSTaskConfig.out_accumulated_AB)
 
     env.execute(s"${DSTaskConfig.jobname}-preprocess")
     env.startNewSession()
 
   }
 
-  def postprocess() = {
-
+  def postprocess(hash:Boolean = false) = {
     env.startNewSession()
 
-    {
-      Convert.HashCT2MinTypes.Reverse[String, String](env, DSTaskConfig.out_keymap) ~>
-      /* */
-      FilterSortDT.CT2Min[String, String]()
-      /* */
-    }.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
+    val sting_post_processing = FilterSortDT.CT2Min[String, String]()
+
+    val postprocessing_chain =
+      if(hash){ Convert.HashCT2MinTypes.Reverse[String, String](env, DSTaskConfig.out_keymap) ~> sting_post_processing }
+      else sting_post_processing
+
+    postprocessing_chain.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
 
     env.execute(s"${DSTaskConfig.jobname}-postprocess")
 
@@ -80,15 +83,17 @@ object FullHash extends App {
 
   // get input data
   val in = DSTaskConfig.in_text
+  val hash = DSTaskConfig.jobname.toLowerCase.contains("hash")
 
   val preprocess_output_path:Path = new Path(DSTaskConfig.out_accumulated_AB)
   if(!preprocess_output_path.getFileSystem.exists(preprocess_output_path))
-    preprocess()
+    preprocess(hash)
 
-  process[Array[Byte]]()
+  if(hash)
+    process[Array[Byte]]()
+  else
+    process[String]()
 
-  postprocess()
-
-
+  postprocess(hash)
 
 }

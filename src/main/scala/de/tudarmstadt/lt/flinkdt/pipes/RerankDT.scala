@@ -30,6 +30,8 @@ import scala.reflect.ClassTag
   */
 object RerankDT extends App {
 
+
+
   DSTaskConfig.load(args, getClass.getSimpleName.replaceAllLiterally("$",""))
 
   // set up the execution environment
@@ -37,15 +39,28 @@ object RerankDT extends App {
 
   // input data is output of dt computation
   val in = DSTaskConfig.out_dt
+  val hash = DSTaskConfig.jobname.toLowerCase.contains("hash")
 
-  { /* */
-    ComputeCT2.fromCT2Min[Array[Byte], Array[Byte]]() ~>
-    /* */
-    Convert.HashCT2Types.Reverse[String, String](env, DSTaskConfig.out_keymap) ~>
-    /* */
-    FilterSortDT.CT2[String,String](_.lmi)
-    /* */
-  }.process(env, input = DSTaskConfig.out_dt, output = s"${DSTaskConfig.out_dt_sorted}-rerank")
+  val ct_computation_chain =
+    if(hash) {
+      {
+        /* */
+        ComputeCT2.fromCT2Min[Array[Byte], Array[Byte]]() ~>
+        /* */
+        Convert.HashCT2Types.Reverse[String, String](env, DSTaskConfig.out_keymap)
+        /* */
+      }
+    } else {
+      {
+        /* */
+        ComputeCT2.fromCT2Min[String,String]()
+        /* */
+      }
+    }
+
+  val rerank_chain = ct_computation_chain ~> FilterSortDT.CT2[String, String](_.lmi)
+
+  rerank_chain.process(env, input = DSTaskConfig.out_dt, output = s"${DSTaskConfig.out_dt_sorted}-rerank")
 
   env.execute(DSTaskConfig.jobname)
 
