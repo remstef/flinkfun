@@ -20,20 +20,12 @@ object FilterSortDT {
 
 }
 
-class FilterSortDT__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(CT2[_,_] => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[CT2[T1,T2],(CT2[T1,T2], Float)] {
+class FilterSortDT__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(CT2[_,_] => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[CT2[T1,T2],CT2[T1,T2]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(CT2.fromString[T1,T2](_))
 
-  override def toLines(ds: DataSet[(CT2[T1, T2], Float)]): DataSet[String] = ds.map(_ match {
-    case (ct, v) => {
-      val sv = FormatUtils.format(v)
-      val sa = ct.toStringArray()
-      s"${sa.slice(0,2).mkString("\t")}\t${sv}\t${sa.slice(2,sa.length).mkString("\t")}"
-    }
-  })
-
   // TODO: this can surely be optimized
-  override def process(ds: DataSet[CT2[T1,T2]]): DataSet[(CT2[T1,T2], Float)] = {
+  override def process(ds: DataSet[CT2[T1,T2]]): DataSet[CT2[T1,T2]] = {
 
     val ds_f = ds.filter(valfun(_) >= DSTaskConfig.param_min_sim)
 
@@ -64,7 +56,7 @@ class FilterSortDT__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInf
           .first(DSTaskConfig.param_topn_s)
       }
 
-    dt_sort_val
+    dt_sort_val.map(_._1)
   }
 
 }
