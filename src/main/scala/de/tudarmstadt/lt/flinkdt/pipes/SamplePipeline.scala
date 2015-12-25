@@ -47,7 +47,7 @@ object SamplePipeline extends App {
       /*  */
       FilterSortDT.CT2Min[String,String]()
       /*  */
-  }.process(env, in, DSTaskConfig.out_dt_sorted)
+  }.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted, inputcolumn = DSTaskConfig.in_text_column)
 
   env.execute(DSTaskConfig.jobname)
 

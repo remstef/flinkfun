@@ -52,7 +52,7 @@ object JoBimText extends App {
       /*  */
       N11Sum.toCT2withN[String, String]()
       /*  */
-    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}")
+    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}", inputcolumn = DSTaskConfig.in_text_column)
 
     env.execute(s"${DSTaskConfig.jobname}-preprocess")
     env.startNewSession()

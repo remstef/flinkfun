@@ -49,7 +49,7 @@ object FullHash extends App {
       /*  */
       Convert.HashCT2MinTypes.StringSha256(DSTaskConfig.out_keymap)
       /*  */
-    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}")
+    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}", inputcolumn = DSTaskConfig.in_text_column)
 
     env.execute(s"${DSTaskConfig.jobname}-preprocess")
     env.startNewSession()
