@@ -48,7 +48,7 @@ object JoBimText extends App {
   def preprocess() = {
 
     { /* */
-      Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
+      Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~>
       /*  */
       N11Sum.toCT2withN[String, String]()
       /*  */
