@@ -68,7 +68,7 @@ class ComputeDTSimplified__fromCT2Min_graph[T1 : ClassTag : TypeInformation, T2 
     val adjacencyListsRev = ds
       .groupBy("b")
       .reduceGroup((iter, out:Collector[CT2Min[T1, T1]]) => {
-        val l = iter.map(_.a).toIterable
+        val l = iter.map(_.a).toIterable // TODO: can I change this somehow?
         // TODO: check if collecting the single ct2 or the sequence of ct2s is better
         // TODO: check if this could be optimized due to symmetry
         l.foreach(a => l.foreach(b => out.collect(CT2Min[T1,T1](a, b, 1f))))

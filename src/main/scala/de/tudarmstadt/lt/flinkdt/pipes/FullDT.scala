@@ -31,7 +31,8 @@ object FullDT extends App {
 
   def process[T : ClassTag : TypeInformation]() = {
     { /* */
-      ComputeDTSimplified.CT2MinGraph[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
+//      ComputeDTSimplified.CT2MinGraph[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
+      ComputeDTSimplified.CT2MinJoin[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
       /* */
     }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}")
 
