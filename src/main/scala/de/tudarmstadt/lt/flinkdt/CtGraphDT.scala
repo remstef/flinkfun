@@ -3,6 +3,7 @@ package de.tudarmstadt.lt.flinkdt
 import java.io.File
 
 import com.typesafe.config.{Config, ConfigFactory}
+import de.tudarmstadt.lt.flinkdt.types.CT2Min
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.FileSystem
 import org.apache.flink.util.Collector

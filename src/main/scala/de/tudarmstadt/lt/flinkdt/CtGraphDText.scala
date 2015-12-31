@@ -6,6 +6,7 @@ import java.io.File
 import java.lang.Iterable
 
 import com.typesafe.config.{Config, ConfigFactory}
+import de.tudarmstadt.lt.flinkdt.types.CT2
 import de.tudarmstadt.lt.scalautils.FixedSizeTreeSet
 import org.apache.commons.collections.map.FixedSizeSortedMap
 import org.apache.flink.api.common.functions.GroupReduceFunction

@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
 
-import de.tudarmstadt.lt.flinkdt.{CT2, CT2Min}
+import de.tudarmstadt.lt.flinkdt.types.{CT2, CT2Min}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 

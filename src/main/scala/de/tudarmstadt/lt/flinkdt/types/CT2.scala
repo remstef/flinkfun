@@ -16,9 +16,10 @@
  *
  */
 
-package de.tudarmstadt.lt.flinkdt
+package de.tudarmstadt.lt.flinkdt.types
 
 import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
+import de.tudarmstadt.lt.flinkdt.StringConvert
 import de.tudarmstadt.lt.scalautils.FormatUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
@@ -69,15 +70,15 @@ case class CT2[T1, T2](var a:T1, var b:T2,
                        var ndot1:Float = 1f,
                        var n:Float     = 1f,
                        val srcid:Option[Any] = None,
-                       val isflipped:Boolean = false) extends Serializable with Cloneable {
+                       val isflipped:Boolean = false) extends CT[T1,T2] {
 
   implicit def string_conversion(x: Any) = StringConvert.convert_toString_implicit(x)
 
-  def n12()   = n1dot - n11
-  def n21()   = ndot1 - n11
-  def n2dot() = n     - n1dot
-  def ndot2() = n     - ndot1
-  def n22()   = ndot2 - n12 // n2dot - n21
+  def n12   = n1dot - n11
+  def n21   = ndot1 - n11
+  def n2dot = n     - n1dot
+  def ndot2 = n     - ndot1
+  def n22   = ndot2 - n12 // n2dot - n21
 
   def log_pA():Float = (log(n11) - log(n1dot)).toFloat
   def log_pB():Float = (log(n11) - log(ndot1)).toFloat
@@ -214,14 +215,14 @@ case class CT2[T1, T2](var a:T1, var b:T2,
       ) + (if(null == b) 0 else  b.hashCode)
   }
 
-  def copyClone():this.type = clone().asInstanceOf[this.type]
-
-  def copyDeep():this.type = {
-    val serialize = new ByteArrayOutputStream()
-    new ObjectOutputStream(serialize).writeObject(this)
-    val deserialize = new ByteArrayInputStream(serialize.toByteArray());
-    return new ObjectInputStream(deserialize).readObject().asInstanceOf[this.type];
-  }
+//  def copyClone():this.type = clone().asInstanceOf[this.type]
+//
+//  def copyDeep():this.type = {
+//    val serialize = new ByteArrayOutputStream()
+//    new ObjectOutputStream(serialize).writeObject(this)
+//    val deserialize = new ByteArrayInputStream(serialize.toByteArray());
+//    return new ObjectInputStream(deserialize).readObject().asInstanceOf[this.type];
+//  }
 
   def flipped():CT2[T2,T1] = {
     copy(

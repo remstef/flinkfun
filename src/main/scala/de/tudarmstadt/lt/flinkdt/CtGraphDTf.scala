@@ -3,6 +3,7 @@ package de.tudarmstadt.lt.flinkdt
 import java.io.File
 
 import com.typesafe.config.{Config, ConfigFactory}
+import de.tudarmstadt.lt.flinkdt.types.CT2
 import de.tudarmstadt.lt.scalautils.{FormatUtils, FixedSizeTreeSet}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala.{DataSet, _}

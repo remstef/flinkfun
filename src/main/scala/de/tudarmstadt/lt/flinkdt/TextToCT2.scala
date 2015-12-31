@@ -16,6 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt
 
+import de.tudarmstadt.lt.flinkdt.types.CT2Min
 import de.tudarmstadt.lt.scalautils.PatGen
 
 /**

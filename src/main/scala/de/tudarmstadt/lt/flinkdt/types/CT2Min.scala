@@ -1,5 +1,6 @@
-package de.tudarmstadt.lt.flinkdt
+package de.tudarmstadt.lt.flinkdt.types
 
+import de.tudarmstadt.lt.flinkdt.StringConvert
 import de.tudarmstadt.lt.scalautils.FormatUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 

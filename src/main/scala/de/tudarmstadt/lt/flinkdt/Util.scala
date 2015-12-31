@@ -1,6 +1,7 @@
 package de.tudarmstadt.lt.flinkdt
 
 import de.tudarmstadt.lt.flinkdt.tasks.DSTaskConfig
+import de.tudarmstadt.lt.flinkdt.types.{CT2Min, CT2}
 
 import scala.collection.mutable
 
