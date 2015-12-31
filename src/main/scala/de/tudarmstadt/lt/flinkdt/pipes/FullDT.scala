@@ -34,7 +34,7 @@ object FullDT extends App {
 //      ComputeDTSimplified.CT2MinGraph[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
       ComputeDTSimplified.CT2MinJoin[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
       /* */
-    }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}")
+    }.process(env, input = s"${DSTaskConfig.out_accumulated_CT}")
 
     env.execute(s"${DSTaskConfig.jobname}-process")
 
@@ -46,14 +46,15 @@ object FullDT extends App {
       { /* */
         Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
         /*  */
-        N11Sum.toCT2Min[String, String]()
+//        N11Sum.toCT2Min[String, String]()
+        ComputeCT2.fromCT2Min()
       }
 
     val preprocessing_chain =
-      if(hash) { string_preprocessing_chain ~> Convert.HashCT2MinTypes.StringSha256(DSTaskConfig.out_keymap) }
+      if(hash) { string_preprocessing_chain ~> Convert.HashCT2Types.StringSha256(DSTaskConfig.out_keymap) }
       else string_preprocessing_chain
 
-    preprocessing_chain.process(env, input = in, output = DSTaskConfig.out_accumulated_AB)
+    preprocessing_chain.process(env, input = in, output = DSTaskConfig.out_accumulated_CT)
 
     env.execute(s"${DSTaskConfig.jobname}-preprocess")
     env.startNewSession()

@@ -37,11 +37,13 @@ class N11Sum__withN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInforma
     val ct_sum_n11 = ds.groupBy("a","b")
       .reduce((l,r) => {l.n11 += r.n11; l}) // .sum("n11")
 
+
     val n = ct_sum_n11.map(ct => ct.n11).reduce((l,r) => l+r)
     val ct_sum = ct_sum_n11
-      .crossWithTiny(n)((ct,n) => ct.toCT2(n = n))
+      .crossWithTiny(n)((ct,n) => ct.toCT2(n = n, n1dot = ct.n11, ndot1 = ct.n11))
 
     ct_sum
+
   }
 
 }
