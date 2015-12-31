@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.{Util, CT2Min, TextToCT2}
+import de.tudarmstadt.lt.flinkdt.{CT2, Util, CT2Min, TextToCT2}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.Path
@@ -32,7 +32,14 @@ object FullDT extends App {
   def process[T : ClassTag : TypeInformation]() = {
     { /* */
 //      ComputeDTSimplified.CT2MinGraph[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
-      ComputeDTSimplified.CT2MinJoin[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
+      new DSTask[CT2[T, T], CT2[T,T]] {
+        override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T, T]] = lineDS.map(CT2.fromString(_))
+        override def process(ds: DataSet[CT2[T, T]]): DataSet[CT2[T, T]] = {
+          val dsf = ds.filter(_.ndot1 > 1)
+          dsf.map((_,1)).groupBy("_1.b").sum(1).filter(_._2 > 1).map(_._1)
+        }
+      }
+      ComputeDTSimplified.CT2Join[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
       /* */
     }.process(env, input = s"${DSTaskConfig.out_accumulated_CT}")
 
