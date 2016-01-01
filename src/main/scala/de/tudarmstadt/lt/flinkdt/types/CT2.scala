@@ -18,9 +18,7 @@
 
 package de.tudarmstadt.lt.flinkdt.types
 
-import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
 import de.tudarmstadt.lt.flinkdt.StringConvert
-import de.tudarmstadt.lt.scalautils.FormatUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
 import scala.math._
@@ -33,7 +31,7 @@ object CT2 {
 
   implicit def string_conversion(x: String) = StringConvert.convert_toType_implicit(x)
 
-  def EMPTY_CT[T1 : ClassTag : TypeInformation, T2: ClassTag : TypeInformation] = new CT2[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
+  def EMPTY_CT[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
 
   def fromString[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):CT2[T1,T2] = fromStringArray(ct2AsString.split("\t"))
 
@@ -70,7 +68,7 @@ case class CT2[T1, T2](var a:T1, var b:T2,
                        var ndot1:Float = 1f,
                        var n:Float     = 1f,
                        val srcid:Option[Any] = None,
-                       val isflipped:Boolean = false) { //extends CT[T1,T2] {
+                       val isflipped:Boolean = false) extends CT[T1,T2] {
 
   implicit def string_conversion(x: Any) = StringConvert.convert_toString_implicit(x)
 

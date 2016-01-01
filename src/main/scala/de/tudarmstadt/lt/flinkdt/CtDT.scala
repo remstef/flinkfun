@@ -110,12 +110,12 @@ object CtDT extends App {
     .sortGroup("n11", Order.DESCENDING)
     .first(1000)
 
-  val joined = ct_all_filtered
+  val joined:DataSet[(CT2[String,String], CT2[String,String])] = ct_all_filtered
     .join(ct_all_filtered)
     .where("b")
     .equalTo("b")
 
-  val dt = joined.map(cts => CT2(cts._1.a, cts._2.a, n11=1f))
+  val dt = joined.map(cts => CT2[String,String](cts._1.a, cts._2.a, n11=1f))
     .groupBy("a", "b")
     .sum("n11")
     .filter(_.n11 > 1)
