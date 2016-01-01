@@ -50,11 +50,11 @@ class From_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : Type
       .reduce((l,r) => {l.ndot1 += r.ndot1; l})
 
     val cts_j1 = cts
-      .leftOuterJoin(ct_accumulated_A)
+      .join(ct_accumulated_A)
       .where("a").equalTo("a")((x, y) => { x.n1dot = y.n1dot; x })
 
     val cts_j_all = cts_j1
-      .leftOuterJoin(ct_accumulated_B)
+      .join(ct_accumulated_B)
       .where("b").equalTo("b")((x, y) => { x.ndot1 = y.ndot1; x })
 
     //    ct_all.filter(_._1.a == "banana").map(_._1.prettyPrint()).print() // pretty-print for debugging purposes
