@@ -50,7 +50,7 @@ object FullDT extends App {
 
   def preprocess(hash:Boolean = false) = {
 
-    val string_preprocessing_chain =
+    val string_preprocessing_chain:DSTask[String, CT2[String,String]] =
       { /* */
         Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
         /*  */

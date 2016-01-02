@@ -18,25 +18,17 @@ package de.tudarmstadt.lt.flinkdt.types
 
 import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
 
-import org.apache.flink.api.common.typeinfo.TypeInformation
-
-import scala.reflect.ClassTag
-
 /**
   * Created by Steffen Remus.
   */
-abstract class CT[T1, T2] extends Serializable with Comparable[CT[T1,T2]] with Cloneable{
+
+
+abstract class CT[T1, T2](implicit val ordering:Ordering[CT[T1,T2]]) extends Serializable with Ordered[CT[T1,T2]] with Cloneable {
 
   def a:T1
   def b:T2
 
-  override def compareTo(o: CT[T1,T2]): Int = {
-//    val c = a.compareTo(o.a)
-//    if(c != 0)
-//      return b.compareTo(o.b)
-//    return c
-    ???
-  }
+  override def compare(that: CT[T1, T2]): Int = ordering.compare(this,that)
 
   def copyClone():this.type = clone().asInstanceOf[this.type]
 
