@@ -18,7 +18,7 @@
 
 package de.tudarmstadt.lt.flinkdt.types
 
-import de.tudarmstadt.lt.flinkdt.StringConvert
+import de.tudarmstadt.lt.flinkdt.StringConvert._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
 import scala.math._
@@ -28,8 +28,6 @@ import scala.reflect._
   * Created by Steffen Remus.
   */
 object CT2 {
-
-  implicit def string_conversion(x: String) = StringConvert.convert_toType_implicit(x)
 
   def EMPTY_CT[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
 
@@ -70,7 +68,14 @@ case class CT2[T1, T2](var a:T1, var b:T2,
                        val srcid:Option[Any] = None,
                        val isflipped:Boolean = false) extends CT[T1,T2] {
 
-  implicit def string_conversion(x: Any) = StringConvert.convert_toString_implicit(x)
+//  def this(string:String) = this(
+//    string.split("\t") match {
+//      case  Array(_A,_B,n11,n1dot,ndot1,n,_*) => (_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
+//      case _ => (null.asInstanceOf[T1], null.asInstanceOf[T2], 0f, 0f, 0f, 0f)
+//    }
+//  )
+//
+//  def this(t:(T1,T2,Float,Float,Float,Float)) = this(t._1,t._2,t._3,t._4,t._5,t._6)
 
   def n12   = n1dot - n11
   def n21   = ndot1 - n11

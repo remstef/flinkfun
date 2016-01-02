@@ -26,11 +26,11 @@ import scala.reflect._
   */
 object StringConvert {
 
-  def convert_toType_implicit(x: String) = new {
+  implicit def string_conversion(x: String) = new {
     def toT[T : ClassTag]:T = convert_toType(x)
   }
 
-  def convert_toString_implicit(x: Any) = new {
+  implicit def string_conversion(x: Any) = new {
     def asString():String = convert_toString(x)
   }
 

@@ -1,6 +1,6 @@
 package de.tudarmstadt.lt.flinkdt.types
 
-import de.tudarmstadt.lt.flinkdt.StringConvert
+import de.tudarmstadt.lt.flinkdt.StringConvert._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import scala.reflect._
 
@@ -8,8 +8,6 @@ import scala.reflect._
   * Created by Steffen Remus
   */
 object CT2Min {
-
-  implicit def string_conversion(x: String) = StringConvert.convert_toType_implicit(x)
 
   def EMPTY_CT[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
 
@@ -28,8 +26,6 @@ object CT2Min {
 case class CT2Min[T1, T2](var a:T1,
                           var b:T2,
                           var n11:Float = 1f) extends CT[T1,T2] {
-
-  implicit def string_conversion(x: Any) = StringConvert.convert_toString_implicit(x)
 
   def +(other:CT2Min[T1, T2]):this.type = {
     val newct:this.type = copy().asInstanceOf[this.type]
@@ -59,14 +55,15 @@ case class CT2Min[T1, T2](var a:T1,
     val filler  = " "*width
     val filler_ = "-"*width
 
+
     s"""+++ ${getClass.getSimpleName}
   A = ${a.asString}     B = ${b.asString}
-        |  B       ${filler}   !B        | SUM
-             ---------------------------------${filler_}
-  CT2(A,B) =  A |  n11 = ${v}    n12 = ?    | n1dot = ?
-             !A |  n21 = ?${filler}   n22 = ?    | n2dot = ?
-             ----------------------------------------${filler_}
-        |  ndot1 = ?${filler} ndot2 = ?  | n = ?
+                |  B     ${filler}       !B         | SUM
+             -----------------------------------------${filler_}
+  CT2(A,B) =  A |  n11 = ${vf}       n12 = ?    | n1dot = ?
+             !A |  n21 = ?${filler}      n22 = ?    | n2dot = ?
+             -----------------------------------------${filler_}
+                |  ndot1 = ?${filler}    ndot2 = ?  | n = ?
 """
   }
 
