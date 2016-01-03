@@ -72,7 +72,7 @@ object FullDT extends App {
   def postprocess(hash:Boolean = false) = {
     env.startNewSession()
 
-    val sting_post_processing = FilterSortDT.CT2Min[String, String]()
+    val sting_post_processing = FilterSortDT.apply[CT2Min[String, String], String, String](_.n11)
 
     val postprocessing_chain =
       if(hash){ Convert.HashCT2MinTypes.Reverse[String, String](env, DSTaskConfig.out_keymap) ~> sting_post_processing }

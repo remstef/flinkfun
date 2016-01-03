@@ -17,6 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
+import de.tudarmstadt.lt.flinkdt.types.CT2Min
 import de.tudarmstadt.lt.flinkdt.{TextToCT2}
 import org.apache.flink.api.scala._
 
@@ -45,7 +46,7 @@ object SamplePipeline extends App {
       /*  */
       ComputeDTSimplified.CT2Join[String,String]() ~>
       /*  */
-      FilterSortDT.CT2Min[String,String]()
+      FilterSortDT[CT2Min[String,String],String, String](_.n11)
       /*  */
   }.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
 

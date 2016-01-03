@@ -59,7 +59,7 @@ object RerankDT extends App {
       }
     }
 
-  val rerank_chain = ct_computation_chain ~> FilterSortDT.CT2[String, String](_.lmi)
+  val rerank_chain = ct_computation_chain ~> FilterSortDT[CT2[String, String],String, String](_.lmi)
 
   rerank_chain.process(env, input = DSTaskConfig.out_dt, output = s"${DSTaskConfig.out_dt_sorted}-rerank")
 
