@@ -60,7 +60,7 @@ object Experimenter extends App {
     env.startNewSession()
 
     { /* */
-      FilterSortDT.CT2Min[String,String]()
+      FilterSortDT[CT2Min[String,String], String, String](_.n11)
       /* */
     }.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
 

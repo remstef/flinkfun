@@ -9,14 +9,14 @@ import scala.reflect._
   */
 object CT2Min {
 
-  def EMPTY_CT[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
+  def EMPTY_CT[T1 <: AnyRef : ClassTag : TypeInformation, T2 <: AnyRef : ClassTag : TypeInformation] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
 
-  def fromString[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString: String): CT2Min[T1, T2] = fromStringArray(ct2AsString.split("\t"))
+  def fromString[T1 <: AnyRef : ClassTag : TypeInformation, T2 <: AnyRef : ClassTag : TypeInformation](ct2AsString: String): CT2Min[T1, T2] = fromStringArray(ct2AsString.split("\t"))
 
-  def fromStringArray[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray: Array[String]): CT2Min[T1, T2] = {
+  def fromStringArray[T1 <: AnyRef : ClassTag : TypeInformation, T2 <: AnyRef : ClassTag : TypeInformation](ct2AsStringArray: Array[String]): CT2Min[T1, T2] = {
     ct2AsStringArray match {
-      case Array(_A, _B, n11, _*) => new CT2Min[T1, T2](_A.toT[T1], _B.toT[T2], n11.toFloat)
-      case Array(_A, _B) => new CT2Min(_A.toT[T1], _B.toT[T2], 1f)
+      case Array(_A, _B, n11, _*) => CT2Min[T1, T2](_A.toT[T1], _B.toT[T2], n11.toFloat)
+      case Array(_A, _B) => CT2Min(_A.toT[T1], _B.toT[T2], 1f)
       case _ => EMPTY_CT: CT2Min[T1, T2]
     }
   }

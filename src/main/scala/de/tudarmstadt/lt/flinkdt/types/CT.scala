@@ -35,8 +35,8 @@ abstract class CT[T1, T2](implicit val ordering:Ordering[CT[T1,T2]]) extends Ser
   def copyDeep():this.type = {
     val serialize = new ByteArrayOutputStream()
     new ObjectOutputStream(serialize).writeObject(this)
-    val deserialize = new ByteArrayInputStream(serialize.toByteArray());
-    return new ObjectInputStream(deserialize).readObject().asInstanceOf[this.type];
+    val deserialize = new ByteArrayInputStream(serialize.toByteArray())
+    return new ObjectInputStream(deserialize).readObject().asInstanceOf[this.type]
   }
 
 }

@@ -1,7 +1,6 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2Min, CT2}
-import de.tudarmstadt.lt.flinkdt.types.CT
+import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2Min, CT2, CT}
 import de.tudarmstadt.lt.scalautils.FormatUtils
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -15,18 +14,18 @@ import scala.reflect.ClassTag
   */
 object FilterSortDT {
 
-  def apply[C <: CT[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:C => Float, order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT[C, T1, T2](valfun, order, sort_B_desc_by_string)
+  def apply[C <: CT[T1, T2] : ClassTag : TypeInformation, T1 <: AnyRef : ClassTag : TypeInformation, T2 <: AnyRef : ClassTag : TypeInformation](valfun:C => Float, order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT[C, T1, T2](valfun, order, sort_B_desc_by_string)
 
-  def CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:CT2[_,_] => Float, order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT__CT2[T1,T2](valfun, order, sort_B_desc_by_string)
+  def CT2[T1 <: AnyRef : ClassTag : TypeInformation, T2 <: AnyRef : ClassTag : TypeInformation](valfun:CT2[_,_] => Float, order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT__CT2[T1,T2](valfun, order, sort_B_desc_by_string)
 
-  def CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT__CT2Min[T1,T2](order, sort_B_desc_by_string)
+  def CT2Min[T1 <: AnyRef : ClassTag : TypeInformation, T2 <: AnyRef : ClassTag : TypeInformation](order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT__CT2Min[T1,T2](order, sort_B_desc_by_string)
 
 }
 
 
-class FilterSortDT[C <: CT[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(C => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[C, C] {
+class FilterSortDT[C <: CT[T1,T2] : ClassTag : TypeInformation, T1 <: AnyRef : ClassTag : TypeInformation, T2 <: AnyRef : ClassTag : TypeInformation](valfun:(C => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[C, C] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[C] = ???
+  override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
 
   // TODO: this can surely be optimized
   override def process(ds: DataSet[C]): DataSet[C] = {
@@ -106,7 +105,7 @@ class FilterSortDT__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInf
 
 }
 
-class FilterSortDT__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](order:Order, sort_B_desc_by_string:Boolean) extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
+class FilterSortDT__CT2Min[T1 <: AnyRef : ClassTag : TypeInformation, T2 <: AnyRef : ClassTag : TypeInformation](order:Order, sort_B_desc_by_string:Boolean) extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
 
