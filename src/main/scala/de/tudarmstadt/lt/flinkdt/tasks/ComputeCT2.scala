@@ -27,7 +27,7 @@ import scala.reflect.ClassTag
   */
 object ComputeCT2 {
 
-  def fromCT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new From_CT2Min[T1,T2]()
+  def fromCT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = { N11Sum.toCT2withN[T1,T2] ~>  fromCT2withPartialN[T1,T2] }
 
   def fromCT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new From_CT2withPartialN[T1,T2]()
 
@@ -58,27 +58,6 @@ class From_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : Type
     //    ct_all.filter(_._1.a == "banana").map(_._1.prettyPrint()).print() // pretty-print for debugging purposes
 
     cts_joined
-  }
-
-}
-
-
-/**
-  *
-  * Needs to recompute N from what is provided!
-  *
-  * @tparam T1
-  * @tparam T2
-  */
-class From_CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2], CT2[T1,T2]] {
-
-  @transient
-  val chain:DSTask[CT2Min[T1,T2], CT2[T1,T2]] = N11Sum.toCT2withN[T1,T2]() ~>  ComputeCT2.fromCT2withPartialN[T1,T2]()
-
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(l => CT2Min.fromString[T1,T2](l))
-
-  override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2[T1,T2]] = {
-    chain(ds)
   }
 
 }

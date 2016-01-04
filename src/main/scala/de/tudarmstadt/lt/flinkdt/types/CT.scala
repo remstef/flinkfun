@@ -15,6 +15,7 @@
  */
 
 package de.tudarmstadt.lt.flinkdt.types
+import de.tudarmstadt.lt.flinkdt.StringConvert._
 
 import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
 
@@ -28,6 +29,46 @@ abstract class CT[T1, T2](implicit val ordering:Ordering[CT[T1,T2]]) extends Ser
   def a:T1
   def b:T2
 
+  def n11:Float
+  def n1dot:Float
+  def ndot1:Float
+  def n:Float
+
+  def n12:Float
+  def n21:Float
+  def n2dot:Float
+  def ndot2:Float
+  def n22:Float
+
+  def prettyPrint():String = {
+
+    val v = Array(
+      n11.asString,
+      n12.asString,
+      n21.asString,
+      n22.asString,
+      n1dot.asString,
+      n2dot.asString,
+      ndot1.asString,
+      ndot2.asString,
+      n.asString)
+
+    val maxwidth = v.map(_.length).max + 2
+    val vf = v.map(x => ("%-"+maxwidth+"s").format(x)).toIndexedSeq
+    val filler  = " "*maxwidth
+    val filler_ = "-"*2*maxwidth
+    s"""+++ ${getClass.getSimpleName} +++
+  A = ${a.asString}     B = ${b.asString}
+                |  B ${filler}        !B  ${filler}      | SUM
+             ---------------------------------${filler_}
+  CT2(A,B) =  A |  n11 = ${vf(0)}    n12 = ${vf(1)}    | n1. = ${vf(4)}
+             !A |  n21 = ${vf(2)}    n22 = ${vf(3)}    | n2. = ${vf(5)}
+             ---------------------------------${filler_}
+                |  n.1 = ${vf(6)}    n.2 = ${vf(7)}    | n = ${vf(8)}
+
+"""
+  }
+
   override def compare(that: CT[T1, T2]): Int = ordering.compare(this,that)
 
   def copyClone():this.type = clone().asInstanceOf[this.type]
@@ -37,6 +78,24 @@ abstract class CT[T1, T2](implicit val ordering:Ordering[CT[T1,T2]]) extends Ser
     new ObjectOutputStream(serialize).writeObject(this)
     val deserialize = new ByteArrayInputStream(serialize.toByteArray())
     return new ObjectInputStream(deserialize).readObject().asInstanceOf[this.type]
+  }
+
+  override def equals(that:Any):Boolean = basicEquals(that)
+
+  override def hashCode():Int = basicHashCode()
+
+  def basicEquals(that:Any):Boolean = {
+    if(that.isInstanceOf[this.type ]) {
+      val ct2 = that.asInstanceOf[this.type]
+      return  ((this.a == ct2.a) && (this.b == ct2.b))
+    }
+    return false
+  }
+
+  def basicHashCode():Int = {
+    41 * (
+      41 + (if(null == a) 0 else  a.hashCode)
+      ) + (if(null == b) 0 else  b.hashCode)
   }
 
 }

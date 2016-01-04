@@ -77,11 +77,12 @@ case class CT2[T1, T2](var a:T1, var b:T2,
 //
 //  def this(t:(T1,T2,Float,Float,Float,Float)) = this(t._1,t._2,t._3,t._4,t._5,t._6)
 
-  def n12   = n1dot - n11
-  def n21   = ndot1 - n11
-  def n2dot = n     - n1dot
-  def ndot2 = n     - ndot1
-  def n22   = ndot2 - n12 // n2dot - n21
+  override def n12   = n1dot - n11
+  override def n21   = ndot1 - n11
+  override def n22   = ndot2 - n12 // n2dot - n21
+
+  override def n2dot = n     - n1dot
+  override def ndot2 = n     - ndot1
 
   def log_pA():Float = (log(n11) - log(n1dot)).toFloat
   def log_pB():Float = (log(n11) - log(ndot1)).toFloat
@@ -141,7 +142,7 @@ case class CT2[T1, T2](var a:T1, var b:T2,
     return this
   }
 
-  def prettyPrint():String = {
+  override def prettyPrint():String = {
 
     val v = Array(
       n11.asString,
@@ -163,10 +164,10 @@ case class CT2[T1, T2](var a:T1, var b:T2,
   A = ${a.asString}     B = ${b.asString}
                 |  B ${filler}        !B  ${filler}      | SUM
              ---------------------------------${filler_}
-  CT2(A,B) =  A |  n11 = ${vf(0)}    n12 = ${vf(1)}    | n1dot = ${vf(4)}
-             !A |  n21 = ${vf(2)}    n22 = ${vf(3)}    | n2dot = ${vf(5)}
+  CT2(A,B) =  A |  n11 = ${vf(0)}    n12 = ${vf(1)}    | n1. = ${vf(4)}
+             !A |  n21 = ${vf(2)}    n22 = ${vf(3)}    | n2. = ${vf(5)}
              ---------------------------------${filler_}
-                |  ndot1 = ${vf(6)}  ndot2 = ${vf(7)}  | n = ${vf(8)}
+                |  n.1 = ${vf(6)}    n.2 = ${vf(7)}    | n = ${vf(8)}
 
   log p(A,B)    = ${log_pAB.asString}
   log p(A)      = ${log_pA.asString}
@@ -199,33 +200,6 @@ case class CT2[T1, T2](var a:T1, var b:T2,
   def toCT2Min() = CT2Min[T1,T2](a,b,n11)
 
   override def toString():String = toStringArray().mkString("\t")
-
-  override def equals(that:Any):Boolean = basicEquals(that)
-
-  override def hashCode():Int = basicHashCode()
-
-  def basicEquals(that:Any):Boolean = {
-    if(that.isInstanceOf[this.type ]) {
-      val ct2 = that.asInstanceOf[this.type]
-      return  ((this.a == ct2.a) && (this.b == ct2.b))
-    }
-    return false
-  }
-
-  def basicHashCode():Int = {
-    41 * (
-      41 + (if(null == a) 0 else  a.hashCode)
-      ) + (if(null == b) 0 else  b.hashCode)
-  }
-
-//  def copyClone():this.type = clone().asInstanceOf[this.type]
-//
-//  def copyDeep():this.type = {
-//    val serialize = new ByteArrayOutputStream()
-//    new ObjectOutputStream(serialize).writeObject(this)
-//    val deserialize = new ByteArrayInputStream(serialize.toByteArray());
-//    return new ObjectInputStream(deserialize).readObject().asInstanceOf[this.type];
-//  }
 
   def flipped():CT2[T2,T1] = {
     copy(

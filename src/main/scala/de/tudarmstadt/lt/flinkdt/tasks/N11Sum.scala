@@ -1,6 +1,6 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2, CT2Min}
+import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT, CT2, CT2Min}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 
@@ -11,23 +11,23 @@ import scala.reflect.ClassTag
   */
 object N11Sum {
 
-  def toCT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new N11Sum[T1,T2]()
+  def apply[C <: CT[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new N11Sum_new[C, T1, T2]()
 
   def toCT2withN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new N11Sum__withN[T1,T2]()
 
 }
 
-class N11Sum[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Min[T1,T2]] {
+class N11Sum_new[C <: CT[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[C, C] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
 
-  override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2Min[T1,T2]] = {
+  override def process(ds: DataSet[C]): DataSet[C] = {
     ds.groupBy("a","b")
-      .reduce((l,r) => {l.n11 += r.n11; l}) // .sum("n11")
+//      .reduce((l,r) => {l.n11 += r.n11; l}) // .sum("n11")
+      .sum("n11")
   }
 
 }
-
 
 class N11Sum__withN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2[T1,T2]] {
 

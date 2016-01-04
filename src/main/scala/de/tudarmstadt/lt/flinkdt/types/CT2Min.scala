@@ -9,11 +9,11 @@ import scala.reflect._
   */
 object CT2Min {
 
-  def EMPTY_CT[T1 <: AnyRef : ClassTag : TypeInformation, T2 <: AnyRef : ClassTag : TypeInformation] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
+  def EMPTY_CT[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
 
-  def fromString[T1 <: AnyRef : ClassTag : TypeInformation, T2 <: AnyRef : ClassTag : TypeInformation](ct2AsString: String): CT2Min[T1, T2] = fromStringArray(ct2AsString.split("\t"))
+  def fromString[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString: String): CT2Min[T1, T2] = fromStringArray(ct2AsString.split("\t"))
 
-  def fromStringArray[T1 <: AnyRef : ClassTag : TypeInformation, T2 <: AnyRef : ClassTag : TypeInformation](ct2AsStringArray: Array[String]): CT2Min[T1, T2] = {
+  def fromStringArray[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray: Array[String]): CT2Min[T1, T2] = {
     ct2AsStringArray match {
       case Array(_A, _B, n11, _*) => CT2Min[T1, T2](_A.toT[T1], _B.toT[T2], n11.toFloat)
       case Array(_A, _B) => CT2Min(_A.toT[T1], _B.toT[T2], 1f)
@@ -26,6 +26,18 @@ object CT2Min {
 case class CT2Min[T1, T2](var a:T1,
                           var b:T2,
                           var n11:Float = 1f) extends CT[T1,T2] {
+
+  override def n1dot: Float = n11
+  override def ndot1: Float = n11
+  override def n: Float = n11
+
+  override def n12: Float = 0f
+  override def n21: Float = 0f
+  override def n22: Float = 0f
+
+  override def n2dot: Float = 0f
+  override def ndot2: Float = 0f
+
 
   def +(other:CT2Min[T1, T2]):this.type = {
     val newct:this.type = copy().asInstanceOf[this.type]
@@ -47,25 +59,6 @@ case class CT2Min[T1, T2](var a:T1,
   }
 
   def toCT2(n1dot:Float=n11,ndot1:Float=n11,n:Float=n11):CT2[T1,T2] = CT2(a,b,n11,n1dot,ndot1,n)
-
-  def prettyPrint():String = {
-    val v = s"${n11.asString}"
-    val width = v.length + 2
-    val vf = ("%-"+width+"s").format(v)
-    val filler  = " "*width
-    val filler_ = "-"*width
-
-
-    s"""+++ ${getClass.getSimpleName}
-  A = ${a.asString}     B = ${b.asString}
-                |  B     ${filler}       !B         | SUM
-             -----------------------------------------${filler_}
-  CT2(A,B) =  A |  n11 = ${vf}       n12 = ?    | n1dot = ?
-             !A |  n21 = ?${filler}      n22 = ?    | n2dot = ?
-             -----------------------------------------${filler_}
-                |  ndot1 = ?${filler}    ndot2 = ?  | n = ?
-"""
-  }
 
   def toStringTuple():(String, String, String) = (
     s"${a.asString}",

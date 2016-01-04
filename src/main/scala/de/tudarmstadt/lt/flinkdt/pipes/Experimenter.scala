@@ -46,7 +46,7 @@ object Experimenter extends App {
     { /* */
       Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
       /*  */
-      N11Sum.toCT2Min[String, String]()
+      N11Sum[CT2Min[String,String], String, String]
       /*  */
     }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}")
 
