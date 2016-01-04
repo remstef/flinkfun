@@ -78,9 +78,9 @@ object Experimenter extends App {
   // get input data
   val in = DSTaskConfig.in_text
 
-  val preprocess_output_path:Path = new Path(DSTaskConfig.out_accumulated_AB)
-  if(!preprocess_output_path.getFileSystem.exists(preprocess_output_path))
-    preprocess()
+//  val preprocess_output_path:Path = new Path(DSTaskConfig.out_accumulated_AB)
+//  if(!preprocess_output_path.getFileSystem.exists(preprocess_output_path))
+  preprocess()
 
   process()
 

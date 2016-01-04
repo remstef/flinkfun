@@ -11,13 +11,13 @@ import scala.reflect.ClassTag
   */
 object N11Sum {
 
-  def apply[C <: CT[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new N11Sum_new[C, T1, T2]()
+  def apply[C <: CT[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new N11Sum[C, T1, T2]()
 
   def toCT2withN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new N11Sum__withN[T1,T2]()
 
 }
 
-class N11Sum_new[C <: CT[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[C, C] {
+class N11Sum[C <: CT[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[C, C] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
 
