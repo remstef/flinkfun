@@ -1,6 +1,6 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2Min, CT2}
+import de.tudarmstadt.lt.flinkdt.types.{CT2Full, CT2Min}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.util.Collector
@@ -40,11 +40,11 @@ class ComputeDTSimplified__fromCT2Min_join[T1 : ClassTag : TypeInformation, T2 :
 }
 
 
-class ComputeDTSimplified__fromCT2_join[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2[T1,T2], CT2Min[T1,T1]] {
+class ComputeDTSimplified__fromCT2_join[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Full[T1,T2], CT2Min[T1,T1]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(l => CT2.fromString(l))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1,T2]] = lineDS.map(l => CT2Full.fromString(l))
 
-  override def process(ds: DataSet[CT2[T1, T2]]): DataSet[CT2Min[T1, T1]] = {
+  override def process(ds: DataSet[CT2Full[T1, T2]]): DataSet[CT2Min[T1, T1]] = {
     val joined:DataSet[CT2Min[T1,T1]] = ds
       .join(ds)
       .where("b")

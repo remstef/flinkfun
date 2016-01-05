@@ -1,6 +1,6 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT}
+import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
@@ -13,12 +13,12 @@ import scala.reflect.ClassTag
   */
 object FilterSortDT {
 
-  def apply[C <: CT[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:C => Float, order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT[C, T1, T2](valfun, order, sort_B_desc_by_string)
+  def apply[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:C => Float, order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT[C, T1, T2](valfun, order, sort_B_desc_by_string)
 
 }
 
 
-class FilterSortDT[C <: CT[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(C => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[C, C] {
+class FilterSortDT[C <: CT2[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(C => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[C, C] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
 

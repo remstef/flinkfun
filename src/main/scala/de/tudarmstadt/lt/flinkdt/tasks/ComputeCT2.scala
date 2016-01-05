@@ -16,7 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2Min, CT2}
+import de.tudarmstadt.lt.flinkdt.types.{CT2Full}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 
@@ -33,11 +33,11 @@ object ComputeCT2 {
 
 }
 
-class From_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2[T1,T2], CT2[T1,T2]] {
+class From_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Full[T1,T2], CT2Full[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1,T2]] = lineDS.map(CT2.fromString[T1,T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1,T2]] = lineDS.map(CT2Full.fromString[T1,T2](_))
 
-  override def process(cts: DataSet[CT2[T1,T2]]): DataSet[CT2[T1,T2]] = {
+  override def process(cts: DataSet[CT2Full[T1,T2]]): DataSet[CT2Full[T1,T2]] = {
 
     //    cts.filter(_.a == "banana").map(_.prettyPrint()).print() // pretty-print for debugging purposes
 

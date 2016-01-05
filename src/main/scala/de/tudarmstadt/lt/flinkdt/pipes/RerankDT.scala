@@ -17,14 +17,8 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.types.{CT2, CT2Min}
-import de.tudarmstadt.lt.flinkdt.TextToCT2
-import org.apache.flink.api.common.operators.Order
-import org.apache.flink.api.common.typeinfo.TypeInformation
+import de.tudarmstadt.lt.flinkdt.types.{CT2Full}
 import org.apache.flink.api.scala._
-import org.apache.flink.core.fs.Path
-
-import scala.reflect.ClassTag
 
 /**
   * Created by Steffen Remus
@@ -59,7 +53,7 @@ object RerankDT extends App {
       }
     }
 
-  val rerank_chain = ct_computation_chain ~> FilterSortDT[CT2[String, String],String, String](_.lmi)
+  val rerank_chain = ct_computation_chain ~> FilterSortDT[CT2Full[String, String],String, String](_.lmi)
 
   rerank_chain.process(env, input = DSTaskConfig.out_dt, output = s"${DSTaskConfig.out_dt_sorted}-rerank")
 

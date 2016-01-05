@@ -17,8 +17,8 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.types.{CT2Min, CT2}
-import de.tudarmstadt.lt.flinkdt.{Util, TextToCT2}
+import de.tudarmstadt.lt.flinkdt.types.{CT2Full, CT2Min}
+import de.tudarmstadt.lt.flinkdt.{Util}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.Path
@@ -33,9 +33,9 @@ object FullDT extends App {
   def process[T : ClassTag : TypeInformation]() = {
     { /* */
 //      ComputeDTSimplified.CT2MinGraph[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
-      new DSTask[CT2[T, T], CT2[T,T]] {
-        override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T, T]] = lineDS.map(CT2.fromString(_))
-        override def process(ds: DataSet[CT2[T, T]]): DataSet[CT2[T, T]] = {
+      new DSTask[CT2Full[T, T], CT2Full[T,T]] {
+        override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T, T]] = lineDS.map(CT2Full.fromString(_))
+        override def process(ds: DataSet[CT2Full[T, T]]): DataSet[CT2Full[T, T]] = {
           val dsf = ds.filter(_.ndot1 > 1)
           dsf.map((_,1)).groupBy("_1.b").sum(1).filter(_._2 > 1).map(_._1)
         }
@@ -50,12 +50,12 @@ object FullDT extends App {
 
   def preprocess(hash:Boolean = false) = {
 
-    val string_preprocessing_chain:DSTask[String, CT2[String,String]] =
+    val string_preprocessing_chain:DSTask[String, CT2Full[String,String]] =
       { /* */
         Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
         /*  */
 //        N11Sum.toCT2Min[String, String]()
-        ComputeCT2.fromCT2Min()
+        ComputeCT2.fromCT2Min[String, String]()
       }
 
     val preprocessing_chain =

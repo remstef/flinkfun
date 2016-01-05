@@ -16,7 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2, CT2Min}
+import de.tudarmstadt.lt.flinkdt.types.{CT2Full, CT2Min}
 import de.tudarmstadt.lt.flinkdt.{StringConvert}
 import de.tudarmstadt.lt.utilities.HashUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -138,16 +138,16 @@ class ReverseConversion__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 :
 }
 
 
-class Convert__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](hashfunA:T1 => Array[Byte], hashfunB:T2 => Array[Byte], keymap_outputlocation:String) extends DSTask[CT2[T1,T2], CT2[Array[Byte], Array[Byte]]]{
+class Convert__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](hashfunA:T1 => Array[Byte], hashfunB:T2 => Array[Byte], keymap_outputlocation:String) extends DSTask[CT2Full[T1,T2], CT2Full[Array[Byte], Array[Byte]]]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1, T2]] = lineDS.map(CT2.fromString[T1,T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1, T2]] = lineDS.map(CT2Full.fromString[T1,T2](_))
 
-  override def process(ds: DataSet[CT2[T1, T2]]): DataSet[CT2[Array[Byte], Array[Byte]]] = {
+  override def process(ds: DataSet[CT2Full[T1, T2]]): DataSet[CT2Full[Array[Byte], Array[Byte]]] = {
 
     val mapStringCtToByteArray = ds.map(ct => {
       val id_A:Array[Byte] = hashfunA(ct.a)
       val id_B:Array[Byte] = hashfunB(ct.b)
-      val newct = CT2(id_A, id_B, ct.n11, ct.n1dot, ct.ndot1, ct.n, ct.srcid, ct.isflipped)
+      val newct = CT2Full(id_A, id_B, ct.n11, ct.n1dot, ct.ndot1, ct.n, ct.srcid, ct.isflipped)
       (newct, Seq((ct.a, id_A), (ct.b, id_B)))
     })
 
@@ -171,11 +171,11 @@ class Convert__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : T
 
 }
 
-class ReverseConversion__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](env:ExecutionEnvironment, keymap_location:String) extends DSTask[CT2[Array[Byte],Array[Byte]], CT2[T1,T2]]{
+class ReverseConversion__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](env:ExecutionEnvironment, keymap_location:String) extends DSTask[CT2Full[Array[Byte],Array[Byte]], CT2Full[T1,T2]]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[Array[Byte], Array[Byte]]] = lineDS.map(CT2.fromString[Array[Byte],Array[Byte]](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[Array[Byte], Array[Byte]]] = lineDS.map(CT2Full.fromString[Array[Byte],Array[Byte]](_))
 
-  override def process(ds: DataSet[CT2[Array[Byte], Array[Byte]]]): DataSet[CT2[T1, T2]] = {
+  override def process(ds: DataSet[CT2Full[Array[Byte], Array[Byte]]]): DataSet[CT2Full[T1, T2]] = {
 
     val id2string = DSReader(keymap_location, env)
       .process()
@@ -187,7 +187,7 @@ class ReverseConversion__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : Cl
     val converted = ds
       .join(id2string).where("a").equalTo(0)((ct,tup) => (ct, tup._2))
       .join(id2string).where("_1.b").equalTo(0)((ct_tup,tup) => {
-        CT2[T1,T2](
+        CT2Full[T1,T2](
           ct_tup._2.asInstanceOf[T1], // StringConvert.convert_toType[T1](ct_tup._2), TODO: replace
           tup._2.asInstanceOf[T2], //StringConvert.convert_toType[T2](tup._2),
           ct_tup._1.n11,

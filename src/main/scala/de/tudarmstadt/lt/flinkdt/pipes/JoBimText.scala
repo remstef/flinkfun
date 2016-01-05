@@ -16,7 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt.pipes
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2Min, CT2}
+import de.tudarmstadt.lt.flinkdt.types.{CT2Min, CT2Full$}
 import de.tudarmstadt.lt.flinkdt.{Util,TextToCT2}
 import de.tudarmstadt.lt.flinkdt.tasks._
 import org.apache.flink.api.common.operators.Order

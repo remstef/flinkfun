@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2, CT2Min}
+import de.tudarmstadt.lt.flinkdt.types.{CT2Full, CT2Min}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 
@@ -49,11 +49,11 @@ class NSum__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformat
 
 }
 
-class NSum__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2[T1,T2], CT2[T1,T2]]{
+class NSum__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Full[T1,T2], CT2Full[T1,T2]]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2[T1, T2]] = lineDS.map(CT2.fromString[T1,T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1, T2]] = lineDS.map(CT2Full.fromString[T1,T2](_))
 
-  override def process(ds: DataSet[CT2[T1, T2]]): DataSet[CT2[T1, T2]] = {
+  override def process(ds: DataSet[CT2Full[T1, T2]]): DataSet[CT2Full[T1, T2]] = {
     ???
   }
 

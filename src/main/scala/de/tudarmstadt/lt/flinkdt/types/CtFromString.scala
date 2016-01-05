@@ -27,21 +27,21 @@ import scala.reflect._
   */
 object CtFromString {
 
-  def apply[C <: CT[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):C = fromString[C, T1, T2](ct2AsString)
+  def apply[C <: CT2[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):C = fromString[C, T1, T2](ct2AsString)
 
-  def EMPTY_CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
+  def EMPTY_CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Full[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
 
   def EMPTY_CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
 
-  def fromString[C <: CT[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):C = classTag[C] match {
-    case t if t == classTag[CT2[T1,T2]] => _CT2[T1,T2](ct2AsString.split("\t")).asInstanceOf[C]
+  def fromString[C <: CT2[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):C = classTag[C] match {
+    case t if t == classTag[CT2Full[T1,T2]] => _CT2[T1,T2](ct2AsString.split("\t")).asInstanceOf[C]
     case t if t == classTag[CT2Min[T1,T2]] => _CT2Min[T1,T2](ct2AsString.split("\t")).asInstanceOf[C]
     case _ => null.asInstanceOf[C]
   }
 
-  def _CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray:Array[String]):CT2[T1,T2] = {
+  def _CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray:Array[String]):CT2Full[T1,T2] = {
     ct2AsStringArray match {
-      case  Array(_A,_B,n11,n1dot,ndot1,n,_*) => CT2[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
+      case  Array(_A,_B,n11,n1dot,ndot1,n,_*) => CT2Full[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
       case _ => EMPTY_CT2
     }
   }

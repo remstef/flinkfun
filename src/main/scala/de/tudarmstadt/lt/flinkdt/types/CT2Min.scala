@@ -25,7 +25,7 @@ object CT2Min {
 @SerialVersionUID(42L)
 case class CT2Min[T1, T2](var a:T1,
                           var b:T2,
-                          var n11:Float = 1f) extends CT[T1,T2] {
+                          var n11:Float = 1f) extends CT2[T1,T2] {
 
   override def n1dot: Float = n11
   override def ndot1: Float = n11
@@ -58,7 +58,7 @@ case class CT2Min[T1, T2](var a:T1,
     return this
   }
 
-  def toCT2(n1dot:Float=n11,ndot1:Float=n11,n:Float=n11):CT2[T1,T2] = CT2(a,b,n11,n1dot,ndot1,n)
+  def asCT2Full(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11):CT2Full[T1,T2] = CT2Full(a,b,n11,n1dot,ndot1,n)
 
   def toStringTuple():(String, String, String) = (
     s"${a.asString}",
