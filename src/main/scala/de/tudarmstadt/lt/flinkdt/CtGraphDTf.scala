@@ -58,7 +58,7 @@ object CtGraphDTf extends App {
     .groupBy("a","b")
     .sum("n11")
     .filter(_.n11 > 1)
-    .map(_.asCT2Full())
+    .map(_.asCT2def())
 
   writeIfExists("accAB", ct_accumulated)
 

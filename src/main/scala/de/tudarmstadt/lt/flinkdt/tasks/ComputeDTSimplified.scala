@@ -12,13 +12,13 @@ import scala.reflect.ClassTag
   */
 object ComputeDTSimplified {
 
-  def byJoin[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new ComputeDTSimplified__BY_JOIN[C,T1,T2]()
+  def byJoin[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new ComputeDTSimplified__byJoin[C,T1,T2]()
 
-  def byGraph[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new ComputeDTSimplified__BY_GRAPH[C,T1,T2]()
+  def byGraph[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new ComputeDTSimplified__byGraph[C,T1,T2]()
 
 }
 
-class ComputeDTSimplified__BY_JOIN[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[C, CT2red[T1,T1]] {
+class ComputeDTSimplified__byJoin[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[C, CT2red[T1,T1]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C, T1, T2](_))
 
@@ -39,7 +39,7 @@ class ComputeDTSimplified__BY_JOIN[C <: CT2[T1, T2] : ClassTag : TypeInformation
 }
 
 
-class ComputeDTSimplified__BY_GRAPH[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[C, CT2red[T1,T1]] {
+class ComputeDTSimplified__byGraph[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[C, CT2red[T1,T1]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C, T1, T2](_))
 

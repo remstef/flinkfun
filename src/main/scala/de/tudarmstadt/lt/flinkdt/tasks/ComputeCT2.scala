@@ -19,15 +19,14 @@ package de.tudarmstadt.lt.flinkdt.tasks
 import de.tudarmstadt.lt.flinkdt.types._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
-
-import scala.reflect.ClassTag
+import scala.reflect._
 
 /**
   * Created by Steffen Remus.
   */
 object ComputeCT2 {
 
-  def apply[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new ComputeCT2[C,T1,T2]()
+  def apply[CIN <: CT2[T1, T2] : ClassTag : TypeInformation, COUT <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new ComputeCT2[CIN, COUT,T1,T2]()
 
   def fromCT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = { N11Sum.toCT2withN[T1,T2] ~>  fromCT2withPartialN[T1,T2] }
 
@@ -35,18 +34,24 @@ object ComputeCT2 {
 
 }
 
-class ComputeCT2[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[C,C] {
+class ComputeCT2[CIN <: CT2[T1, T2] : ClassTag : TypeInformation, COUT <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CIN,COUT] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CIN] = lineDS.map(CtFromString[CIN,T1,T2](_))
 
-  override def process(ds: DataSet[C]): DataSet[C] = {
-    null
+  override def process(ds: DataSet[CIN]): DataSet[COUT] = classTag[CIN] match {
+    case t if t == classTag[CT2red[T1,T2]] => process_CT2red(ds.asInstanceOf[DataSet[CT2red[T1,T2]]])
+    case t if t == classTag[CT2def[T1,T2]] => ???
+    case t if t == classTag[CT2ext[T1,T2]] => ???
   }
 
-  def process_CT2red(ds: DataSet[C]) : DataSet[C] = {
-    ds.groupBy("a","b")
-      //      .reduce((l,r) => {l.n11 += r.n11; l}) // .sum("n11")
-      .sum("n11")
+
+  def process_CT2red(ds: DataSet[CT2red[T1,T2]]) : DataSet[COUT] = {
+    classTag[COUT] match {
+      case t if t == classTag[CT2red[T1,T2]] => ds.groupBy("a","b").sum("n11").asInstanceOf[DataSet[COUT]]
+      case t if t == classTag[CT2def[T1,T2]] => ???
+      case t if t == classTag[CT2ext[T1,T2]] => process_CT2ext__complete(ds.map(_.asCT2ext())).asInstanceOf[DataSet[COUT]]
+    }
+
   }
 
   def process_complete_CT2def(ds: DataSet[CT2def[T1,T2]]) : DataSet[CT2def[T1,T2]] = {
@@ -69,9 +74,13 @@ class ComputeCT2[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : 
 
   }
 
-  def process_complete_CT2ext(ds: DataSet[CT2ext[T1,T2]]) : DataSet[CT2ext[T1,T2]] = {
+  def process_CT2ext__complete(ds: DataSet[CT2ext[T1,T2]]) : DataSet[CT2ext[T1,T2]] = {
 
-    val ct_accumulated_AB = ds // process_CT2red(ds.asInstanceOf[DataSet[C]]).asInstanceOf[DataSet[CT2ext[T1,T2]]]
+//    val ct_accumulated_AB = ds // process_CT2red(ds.asInstanceOf[DataSet[C]]).asInstanceOf[DataSet[CT2ext[T1,T2]]]
+
+    val ct_accumulated_AB = ds
+      .groupBy("a","b")
+      .sum("n11")
 
     val ct_accumulated_A = ct_accumulated_AB
       .groupBy("a")
@@ -87,7 +96,11 @@ class ComputeCT2[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : 
       .join(ct_accumulated_B)
       .where("b").equalTo("b"){(l, r) => { l.ndot1 = r.ndot1; l.odot1 = r.odot1; l }}
 
-    cts_joined
+    val n = cts_joined.map(ct => {ct.n = ct.n11; ct.on = 1f; ct}).reduce((l,r) => {l.n += r.n; l.on += r.on; l})
+    val cts_joined_sum = cts_joined
+      .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct.on = n.on; ct}}.withForwardedFieldsFirst("*").withForwardedFieldsSecond("n->n; on->on")
+
+    cts_joined_sum
 
   }
 

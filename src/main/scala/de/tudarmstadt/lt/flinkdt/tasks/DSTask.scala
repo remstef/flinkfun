@@ -16,6 +16,7 @@ object DSTask {
       override def process(ds: DataSet[I]): DataSet[O] = processfun(ds)
     }
 }
+
 @SerialVersionUID(42L)
 abstract class DSTask[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation] extends (DataSet[I] => DataSet[O]) with Serializable  {
 

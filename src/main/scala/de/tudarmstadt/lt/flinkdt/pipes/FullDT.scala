@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2def, CT2red}
+import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CtFromString, CT2def, CT2red}
 import de.tudarmstadt.lt.flinkdt.{Util}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
@@ -31,15 +31,15 @@ import scala.reflect.ClassTag
 object FullDT extends App {
 
   def process[T : ClassTag : TypeInformation]() = {
-    { /* */
-      DSTask[CT2def[T,T], CT2def[T,T]](
-        CtFromString[CT2def[T,T],T,T](_),
-        _.filter(_.ndot1 > 1).map((_,1)).groupBy("_1.b").sum(1).filter(_._2 > 1).map(_._1)
-      ) ~>
-      //      ComputeDTSimplified.CT2MinGraph[T,T]()
-      ComputeDTSimplified.byJoin[CT2def[T,T],T,T]() ~>
-      DSWriter(DSTaskConfig.out_dt)
-      /* */
+    {/* */
+     DSTask[CT2ext[T,T], CT2ext[T,T]](
+        CtFromString[CT2ext[T,T],T,T](_),
+        ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) }
+     ) ~>
+     //      ComputeDTSimplified.CT2MinGraph[T,T]()
+     ComputeDTSimplified.byJoin[CT2ext[T,T],T,T]() ~>
+     DSWriter(DSTaskConfig.out_dt)
+     /* */
     }.process(env, input = s"${DSTaskConfig.out_accumulated_CT}")
 
     env.execute(s"${DSTaskConfig.jobname}-process")
@@ -48,19 +48,20 @@ object FullDT extends App {
 
   def preprocess(hash:Boolean = false) = {
 
-    val string_preprocessing_chain:DSTask[String, CT2def[String,String]] =
+    val string_preprocessing_chain:DSTask[String, CT2ext[String,String]] =
       { /* */
         Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
         /*  */
 //        N11Sum.toCT2Min[String, String]()
-        ComputeCT2.fromCT2Min[String, String]()
+        ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]()
       }
 
-    val preprocessing_chain =
-      if(hash) { string_preprocessing_chain ~> Convert.HashCT2Types.StringSha256(DSTaskConfig.out_keymap) }
-      else string_preprocessing_chain
+//    val preprocessing_chain =
+//      if(hash) { string_preprocessing_chain ~> Convert.HashCT2Types.StringSha256(DSTaskConfig.out_keymap) }
+//      else
+//        string_preprocessing_chain
 
-    preprocessing_chain.process(env, input = in, output = DSTaskConfig.out_accumulated_CT)
+    string_preprocessing_chain.process(env, input = in, output = DSTaskConfig.out_accumulated_CT)
 
     env.execute(s"${DSTaskConfig.jobname}-preprocess")
     env.startNewSession()
@@ -70,13 +71,13 @@ object FullDT extends App {
   def postprocess(hash:Boolean = false) = {
     env.startNewSession()
 
-    val sting_post_processing = FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
+    val string_post_processing = FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
 
-    val postprocessing_chain =
-      if(hash){ Convert.HashCT2MinTypes.Reverse[String, String](env, DSTaskConfig.out_keymap) ~> sting_post_processing }
-      else sting_post_processing
+//    val postprocessing_chain =
+//      if(hash){ Convert.HashCT2MinTypes.Reverse[String, String](env, DSTaskConfig.out_keymap) ~> string_post_processing }
+//      else string_post_processing
 
-    postprocessing_chain.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
+    string_post_processing.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
 
     env.execute(s"${DSTaskConfig.jobname}-postprocess")
 

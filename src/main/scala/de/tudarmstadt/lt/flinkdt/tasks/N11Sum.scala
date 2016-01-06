@@ -40,7 +40,7 @@ class N11Sum__withN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInforma
 
     val n = ct_sum_n11.map(ct => ct.n11).reduce((l,r) => l+r)
     val ct_sum = ct_sum_n11
-      .crossWithTiny(n)((ct,n) => ct.asCT2Full(n = n, n1dot = ct.n11, ndot1 = ct.n11))
+      .crossWithTiny(n)((ct,n) => ct.asCT2def(n = n, n1dot = ct.n11, ndot1 = ct.n11))
 
     ct_sum
 

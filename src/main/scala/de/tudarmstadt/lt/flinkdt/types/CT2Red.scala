@@ -52,7 +52,9 @@ case class CT2red[T1, T2](var a:T1,
     return this
   }
 
-  def asCT2Full(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11):CT2def[T1,T2] = CT2def(a,b,n11,n1dot,ndot1,n)
+  def asCT2def(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11):CT2def[T1,T2] = CT2def(a,b,n11,n1dot,ndot1,n)
+
+  def asCT2ext(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11, o1dot:Float=1f, odot1:Float=1f, on:Float=1f):CT2ext[T1,T2] = CT2ext(a,b,n11,n1dot,ndot1,n,o1dot,odot1,on)
 
   def toStringTuple():(String, String, String) = (
     s"${a.asString}",
