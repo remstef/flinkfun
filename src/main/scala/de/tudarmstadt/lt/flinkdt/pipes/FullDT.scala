@@ -32,15 +32,13 @@ object FullDT extends App {
 
   def process[T : ClassTag : TypeInformation]() = {
     { /* */
-//      ComputeDTSimplified.CT2MinGraph[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
-      new DSTask[CT2def[T, T], CT2def[T,T]] {
-        override def fromLines(lineDS: DataSet[String]): DataSet[CT2def[T, T]] = lineDS.map(CtFromString[CT2def[T,T],T,T](_))
-        override def process(ds: DataSet[CT2def[T, T]]): DataSet[CT2def[T, T]] = {
-          val dsf = ds.filter(_.ndot1 > 1)
-          dsf.map((_,1)).groupBy("_1.b").sum(1).filter(_._2 > 1).map(_._1)
-        }
-      }
-      ComputeDTSimplified.CT2Join[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
+      DSTask[CT2def[T,T], CT2def[T,T]](
+        CtFromString[CT2def[T,T],T,T](_),
+        _.filter(_.ndot1 > 1).map((_,1)).groupBy("_1.b").sum(1).filter(_._2 > 1).map(_._1)
+      ) ~>
+      //      ComputeDTSimplified.CT2MinGraph[T,T]()
+      ComputeDTSimplified.CT2Join[T,T]() ~>
+      DSWriter(DSTaskConfig.out_dt)
       /* */
     }.process(env, input = s"${DSTaskConfig.out_accumulated_CT}")
 

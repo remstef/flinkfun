@@ -8,6 +8,14 @@ import scala.reflect.ClassTag
 /**
   * Created by Steffen Remus
   */
+object DSTask {
+
+  def apply[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation](stringfun:String => I, processfun:DataSet[I] => DataSet[O]) =
+    new DSTask[I, O] {
+      override def fromLines(lineDS: DataSet[String]): DataSet[I] = lineDS.map(stringfun(_))
+      override def process(ds: DataSet[I]): DataSet[O] = processfun(ds)
+    }
+}
 @SerialVersionUID(42L)
 abstract class DSTask[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation] extends (DataSet[I] => DataSet[O]) with Serializable  {
 
