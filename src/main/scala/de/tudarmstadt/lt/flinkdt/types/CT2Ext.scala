@@ -157,8 +157,8 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
       require(o21 >= 0, "Check 'o21 >= 0' failed \n" + prettyPrint)
       require(o22 >= 0, "Check 'o22 >= 0' failed \n" + prettyPrint)
     }catch{
-      case e if fail_quietly => return false
-      case e => throw e
+      case e : Throwable if fail_quietly => return false
+      case e : Throwable => throw e
     }
     return true
   }

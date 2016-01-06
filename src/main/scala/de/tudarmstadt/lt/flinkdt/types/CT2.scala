@@ -80,8 +80,8 @@ abstract class CT2[T1, T2](implicit val ordering:Ordering[CT2[T1,T2]]) extends S
       require(n21 >= 0, "Check 'n21 >= 0' failed \n" + prettyPrint)
       require(n22 >= 0, "Check 'n22 >= 0' failed \n" + prettyPrint)
     }catch{
-      case e if fail_quietly => return false
-      case e => throw e
+      case e : Throwable if fail_quietly => return false
+      case e : Throwable => throw e
     }
     return true
   }

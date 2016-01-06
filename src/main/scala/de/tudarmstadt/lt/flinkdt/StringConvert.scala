@@ -31,7 +31,7 @@ object StringConvert {
   }
 
   implicit def string_conversion(x: Any) = new {
-    def asString():String = convert_toString(x)
+    def asString:String = convert_toString(x)
   }
 
   def convert_toType[T : ClassTag](x:String) = classTag[T] match {
