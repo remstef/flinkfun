@@ -19,44 +19,22 @@
 package de.tudarmstadt.lt.flinkdt.types
 
 import de.tudarmstadt.lt.flinkdt.StringConvert._
-import org.apache.flink.api.common.typeinfo.TypeInformation
-
 import scala.math._
-import scala.reflect._
 
 /**
   * Created by Steffen Remus.
   */
-object CT2Full {
-
-  def EMPTY_CT[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Full[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
-
-  def fromString[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):CT2Full[T1,T2] = fromStringArray(ct2AsString.split("\t"))
-
-  def fromStringArray[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray:Array[String]):CT2Full[T1,T2] = {
-    ct2AsStringArray match {
-      case  Array(_A,_B,n11,n1dot,ndot1,n,_*) => new CT2Full[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
-      case _ => EMPTY_CT
-    }
-  }
-
-}
 
 /*
  *                |  B      !B     | SUM
  *             ---------------------------
- *  CT2(A,B) =  A |  n11    n12    | n1dot
- *             !A |  n21    n22    | n2dot
+ *  CT2(A,B) =  A |  n11    n12    | n1.
+ *             !A |  n21    n22    | n2.
  *             ---------------------------
- *                |  ndot1  ndot2  |  n
+ *                |  n.1    n.2    | n
  *
  *
- *                |  B      !B     | SUM
- *             ---------------------------
- *  CT2(A,B) =  A |  o11=1  o12    | o1dot
- *             !A |  o21    o22    | o2dot
- *             ---------------------------
- *                |  odot1  odot2  |  on
+ * !!!! n.. must be always at least max{ n1. + (n.1 - n11), n.1 + (n1. - n11) }, when setting n11 to 0 -> (n1. + (n.1 - n11)) == (n.1 + (n1. - n11)) !!!!
  *
  */
 @SerialVersionUID(42L)
@@ -68,15 +46,6 @@ case class CT2Full[T1, T2](var a:T1, var b:T2,
                            val srcid:Option[Any] = None,
                            val isflipped:Boolean = false) extends CT2[T1,T2] {
 
-//  def this(string:String) = this(
-//    string.split("\t") match {
-//      case  Array(_A,_B,n11,n1dot,ndot1,n,_*) => (_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
-//      case _ => (null.asInstanceOf[T1], null.asInstanceOf[T2], 0f, 0f, 0f, 0f)
-//    }
-//  )
-//
-//  def this(t:(T1,T2,Float,Float,Float,Float)) = this(t._1,t._2,t._3,t._4,t._5,t._6)
-
   override def n12   = n1dot - n11
   override def n21   = ndot1 - n11
   override def n22   = ndot2 - n12 // n2dot - n21
@@ -84,8 +53,8 @@ case class CT2Full[T1, T2](var a:T1, var b:T2,
   override def n2dot = n     - n1dot
   override def ndot2 = n     - ndot1
 
-  def log_pA():Float = (log(n11) - log(n1dot)).toFloat
-  def log_pB():Float = (log(n11) - log(ndot1)).toFloat
+  def log_pA():Float = (log(n1dot) - log(n)).toFloat
+  def log_pB():Float = (log(ndot1) - log(n)).toFloat
   def log_pAB():Float = (log(n11) - log(n)).toFloat
   def log_pAgivenB():Float = (log(n11) - log(n1dot)).toFloat
   def log_pBgivenA():Float = (log(n11) - log(ndot1)).toFloat
@@ -93,13 +62,13 @@ case class CT2Full[T1, T2](var a:T1, var b:T2,
   /**
     * @return log( p(a,b) / p(a)p(b) )
     */
-  def log_pmi():Float = ((log(n11) + log(n)) - (log(n1dot) + log(ndot1))).toFloat
-  def log2_pmi():Float = (((log(n11) + log(n)) - (log(n1dot) + log(ndot1))) / log(2)).toFloat
+  def log_pmi():Float = (log(n11) + log(n) - log(n1dot) - log(ndot1)).toFloat
+  def log2_pmi():Float = (log_pmi / log(2)).toFloat
 
   /**
     * @return
     */
-  def lmi():Float = n11 * log2_pmi()
+  def lmi():Float = n11 * log2_pmi
 
   def +(other:CT2Full[T1, T2]):this.type = {
     val newct:this.type = copy().asInstanceOf[this.type]

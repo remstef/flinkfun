@@ -16,12 +16,11 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2Full, CT2Min}
+import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2Full, CT2Min}
 import de.tudarmstadt.lt.flinkdt.{StringConvert}
 import de.tudarmstadt.lt.utilities.HashUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
-import scala.collection.JavaConversions._
 
 import scala.reflect.ClassTag
 
@@ -80,7 +79,7 @@ object Convert {
 
 class Convert__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](hashfunA:T1 => Array[Byte], hashfunB:T2 => Array[Byte], keymap_outputlocation:String) extends DSTask[CT2Min[T1,T2], CT2Min[Array[Byte],Array[Byte]]]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1, T2]] = lineDS.map(CT2Min.fromString[T1,T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1, T2]] = lineDS.map(CtFromString[CT2Min[T1,T2], T1, T2](_))
 
   override def process(ds: DataSet[CT2Min[T1, T2]]): DataSet[CT2Min[Array[Byte], Array[Byte]]] = {
 
@@ -113,7 +112,7 @@ class Convert__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 : ClassTag 
 
 class ReverseConversion__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](env:ExecutionEnvironment, keymap_location:String) extends DSTask[CT2Min[Array[Byte],Array[Byte]], CT2Min[T1,T2]]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[Array[Byte], Array[Byte]]] = lineDS.map(CT2Min.fromString[Array[Byte],Array[Byte]](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[Array[Byte], Array[Byte]]] = lineDS.map(CtFromString[CT2Min[Array[Byte],Array[Byte]], Array[Byte],Array[Byte]](_))
 
   override def process(ds: DataSet[CT2Min[Array[Byte], Array[Byte]]]): DataSet[CT2Min[T1, T2]] = {
 
@@ -140,7 +139,7 @@ class ReverseConversion__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 :
 
 class Convert__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](hashfunA:T1 => Array[Byte], hashfunB:T2 => Array[Byte], keymap_outputlocation:String) extends DSTask[CT2Full[T1,T2], CT2Full[Array[Byte], Array[Byte]]]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1, T2]] = lineDS.map(CT2Full.fromString[T1,T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1, T2]] = lineDS.map(CtFromString[CT2Full[T1,T2], T1, T2](_))
 
   override def process(ds: DataSet[CT2Full[T1, T2]]): DataSet[CT2Full[Array[Byte], Array[Byte]]] = {
 
@@ -173,7 +172,7 @@ class Convert__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : T
 
 class ReverseConversion__Hash__CT2Types[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](env:ExecutionEnvironment, keymap_location:String) extends DSTask[CT2Full[Array[Byte],Array[Byte]], CT2Full[T1,T2]]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[Array[Byte], Array[Byte]]] = lineDS.map(CT2Full.fromString[Array[Byte],Array[Byte]](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[Array[Byte], Array[Byte]]] = lineDS.map(CtFromString[CT2Full[Array[Byte],Array[Byte]], Array[Byte], Array[Byte]](_))
 
   override def process(ds: DataSet[CT2Full[Array[Byte], Array[Byte]]]): DataSet[CT2Full[T1, T2]] = {
 

@@ -1,26 +1,18 @@
 package de.tudarmstadt.lt.flinkdt.types
 
 import de.tudarmstadt.lt.flinkdt.StringConvert._
-import org.apache.flink.api.common.typeinfo.TypeInformation
-import scala.reflect._
 
 /**
   * Created by Steffen Remus
   */
-object CT2Min {
-
-  def EMPTY_CT[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
-
-  def fromString[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString: String): CT2Min[T1, T2] = fromStringArray(ct2AsString.split("\t"))
-
-  def fromStringArray[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray: Array[String]): CT2Min[T1, T2] = {
-    ct2AsStringArray match {
-      case Array(_A, _B, n11, _*) => CT2Min[T1, T2](_A.toT[T1], _B.toT[T2], n11.toFloat)
-      case Array(_A, _B) => CT2Min(_A.toT[T1], _B.toT[T2], 1f)
-      case _ => EMPTY_CT: CT2Min[T1, T2]
-    }
-  }
-}
+/*
+ *                |  B      !B     | SUM
+ *             ---------------------------
+ *  CT2(A,B) =  A |  n11    0      | n11
+ *             !A |  0      0      | 0
+ *             ---------------------------
+ *                |  n11    0      | n11
+ */
 
 @SerialVersionUID(42L)
 case class CT2Min[T1, T2](var a:T1,

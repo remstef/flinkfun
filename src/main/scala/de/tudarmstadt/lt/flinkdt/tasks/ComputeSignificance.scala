@@ -16,7 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2Full, CT2Min}
+import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2Full, CT2Min}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
@@ -54,7 +54,7 @@ class Sig_from_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : 
   @transient
   val compute_ct:DSTask[CT2Full[T1,T2], CT2Full[T1,T2]] = ComputeCT2.fromCT2withPartialN[T1,T2]()
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1,T2]] = lineDS.map(CT2Full.fromString[T1,T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1,T2]] = lineDS.map(CtFromString[CT2Full[T1,T2],T1,T2](_))
 
   override def process(cts: DataSet[CT2Full[T1,T2]]): DataSet[(CT2Full[T1,T2], Float)] = {
     compute_ct(cts)
@@ -76,7 +76,7 @@ class Sig__from_CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInfo
   @transient
   val chain:DSTask[CT2Min[T1,T2], (CT2Full[T1,T2], Float)] = N11Sum.toCT2withN[T1,T2]() ~>  ComputeSignificance.fromCT2withPartialN[T1,T2]()
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(l => CT2Min.fromString[T1,T2](l))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CtFromString[CT2Min[T1,T2], T1, T2](_))
 
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[(CT2Full[T1,T2], Float)] = {
     chain(ds)
@@ -92,7 +92,7 @@ class Sig__from_CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInfo
   */
 class SigFilter_from_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:CT2Full[_,_] => Float) extends DSTask[CT2Full[T1,T2],CT2Full[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1,T2]] = lineDS.map(CT2Full.fromString[T1,T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1,T2]] = lineDS.map(CtFromString[CT2Full[T1,T2], T1, T2](_))
 
   override def process(cts: DataSet[CT2Full[T1,T2]]): DataSet[CT2Full[T1,T2]] = {
 
@@ -143,7 +143,7 @@ class SigFilter__from_CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : Ty
   @transient
   val chain:DSTask[CT2Min[T1,T2], CT2Full[T1,T2]] = N11Sum.toCT2withN[T1,T2]() ~>  ComputeSignificanceFiltered.fromCT2withPartialN[T1,T2](sigfun)
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(l => CT2Min.fromString[T1,T2](l))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CtFromString[CT2Min[T1,T2], T1, T2](_))
 
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2Full[T1,T2]] = {
     chain(ds)

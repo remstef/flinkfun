@@ -31,7 +31,7 @@ class N11Sum[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : Type
 
 class N11Sum__withN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Min[T1,T2],CT2Full[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CT2Min.fromString(_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CtFromString[CT2Min[T1,T2], T1, T2](_))
 
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2Full[T1,T2]] = {
     val ct_sum_n11 = ds.groupBy("a","b")

@@ -23,7 +23,18 @@ import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, Byt
   * Created by Steffen Remus.
   */
 
-
+/*
+ *                |  B      !B     | SUM
+ *             ---------------------------
+ *  CT2(A,B) =  A |  n11    n12    | n1.
+ *             !A |  n21    n22    | n2.
+ *             ---------------------------
+ *                |  n.1    n.2    | n
+ *
+ *
+ * !!!! n.. must be always at least max{ n1. + (n.1 - n11), n.1 + (n1. - n11) }, when setting n11 to 0 -> (n1. + (n.1 - n11)) == (n.1 + (n1. - n11)) !!!!
+ *
+ */
 abstract class CT2[T1, T2](implicit val ordering:Ordering[CT2[T1,T2]]) extends Serializable with Ordered[CT2[T1,T2]] with Cloneable {
 
   def a:T1
@@ -39,6 +50,43 @@ abstract class CT2[T1, T2](implicit val ordering:Ordering[CT2[T1,T2]]) extends S
   def n2dot:Float
   def ndot2:Float
   def n22:Float
+
+  /**
+    * Check consistency:
+    *
+    * n11 <= n1dot
+    * n11 <= ndot1
+    * n11 <= n
+    * n1dot <= n
+    * ndot1 <= n
+    * n >= n1dot + ndot1 - n11
+    * n >= ndot1 + n1dot - n11
+    * n12 >= 0
+    * n21 >= 0
+    * n22 >= 0
+    *
+    * @return true if all tests passed
+    */
+  def requireConsistency(fail_quietly:Boolean = true):Boolean = {
+    try {
+      require(n11 <= n1dot, "Check 'n11 <= n1.' failed \n" + prettyPrint)
+      require(n11 <= ndot1, "Check 'n11 <= n.1' failed \n" + prettyPrint)
+      require(n11 <= n, "Check 'n11 <= n' failed \n" + prettyPrint)
+      require(n1dot <= n, "Check 'n1. <= n' failed \n" + prettyPrint)
+      require(ndot1 <= n, "Check 'n.1 <= n' failed \n" + prettyPrint)
+      require(n >= n1dot + ndot1 - n11, "Check 'n >= n1. + n.1 - n11' failed \n" + prettyPrint)
+      require(n >= ndot1 + n1dot - n11, "Check 'n >= n.1 + n1. - n11' failed \n" + prettyPrint)
+      require(n12 >= 0, "Check 'n12 >= 0' failed \n" + prettyPrint)
+      require(n21 >= 0, "Check 'n21 >= 0' failed \n" + prettyPrint)
+      require(n22 >= 0, "Check 'n22 >= 0' failed \n" + prettyPrint)
+    }catch{
+      case e if fail_quietly => return false
+      case e => throw e
+    }
+    return true
+  }
+
+
 
   def prettyPrint():String = {
 

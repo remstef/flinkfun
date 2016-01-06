@@ -19,6 +19,7 @@ package de.tudarmstadt.lt.flinkdt.types
 import de.tudarmstadt.lt.flinkdt.StringConvert._
 
 import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.api.scala._
 
 import scala.reflect._
 
@@ -29,20 +30,22 @@ object CtFromString {
 
   def apply[C <: CT2[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):C = fromString[C, T1, T2](ct2AsString)
 
-  def EMPTY_CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Full[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
+  def EMPTY_CT2_DEFAULT[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Full[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
 
-  def EMPTY_CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
+  def EMPTY_CT2_REDUCED[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Min[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f)
+
+  def EMPTY_CT2_EXTENDED[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2Ext[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f, o1dot = 0f, odot1 = 0f, on = 0f)
 
   def fromString[C <: CT2[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):C = classTag[C] match {
-    case t if t == classTag[CT2Full[T1,T2]] => _CT2[T1,T2](ct2AsString.split("\t")).asInstanceOf[C]
+    case t if t == classTag[CT2Full[T1,T2]] => _CT2Full[T1,T2](ct2AsString.split("\t")).asInstanceOf[C]
     case t if t == classTag[CT2Min[T1,T2]] => _CT2Min[T1,T2](ct2AsString.split("\t")).asInstanceOf[C]
     case _ => null.asInstanceOf[C]
   }
 
-  def _CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray:Array[String]):CT2Full[T1,T2] = {
+  def _CT2Full[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray:Array[String]):CT2Full[T1,T2] = {
     ct2AsStringArray match {
       case  Array(_A,_B,n11,n1dot,ndot1,n,_*) => CT2Full[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
-      case _ => EMPTY_CT2
+      case _ => EMPTY_CT2_DEFAULT
     }
   }
 
@@ -50,7 +53,14 @@ object CtFromString {
     ct2AsStringArray match {
       case Array(_A, _B, n11, _*) => CT2Min[T1, T2](_A.toT[T1], _B.toT[T2], n11.toFloat)
       case Array(_A, _B) => CT2Min(_A.toT[T1], _B.toT[T2], 1f)
-      case _ => EMPTY_CT2Min: CT2Min[T1, T2]
+      case _ => EMPTY_CT2_REDUCED
+    }
+  }
+
+  def _CT2Max[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray:Array[String]):CT2Ext[T1,T2] = {
+    ct2AsStringArray match {
+      case  Array(_A,_B,n11,n1dot,ndot1,n,o1dot,odot1,on,_*) => CT2Ext[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat,o1dot.toFloat,odot1.toFloat,on.toFloat)
+      case _ => EMPTY_CT2_EXTENDED
     }
   }
 

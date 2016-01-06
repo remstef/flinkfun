@@ -16,7 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2Full, CT2Min}
+import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2Full, CT2Min}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 
@@ -47,7 +47,7 @@ object WhiteListFilter {
   */
 class WhiteListFilter__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment, extended_resolution:Boolean = true) extends DSTask[CT2Full[T1, T2],CT2Full[T1, T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1,T2]] = lineDS.map(CT2Full.fromString[T1,T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1,T2]] = lineDS.map(CtFromString[CT2Full[T1,T2], T1, T2](_))
 
   override def process(ds: DataSet[CT2Full[T1,T2]]): DataSet[CT2Full[T1,T2]] = {
 
@@ -90,7 +90,7 @@ class WhiteListFilter__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : T
   @transient
   val whitelistFilterWrapped = new WhiteListFilter__CT2[T1,T2](whitelist, env, extended_resolution)
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(l => CT2Min.fromString[T1,T2](l))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CtFromString[CT2Min[T1,T2], T1, T2](_))
 
   override def process(ds: DataSet[CT2Min[T1,T2]]): DataSet[CT2Min[T1,T2]] = {
     val ds_ct2:DataSet[CT2Full[T1, T2]] = ds.map(_.asCT2Full())

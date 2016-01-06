@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.types.{CT2Full, CT2Min}
+import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2Full, CT2Min}
 import de.tudarmstadt.lt.flinkdt.{Util}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
@@ -34,7 +34,7 @@ object FullDT extends App {
     { /* */
 //      ComputeDTSimplified.CT2MinGraph[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
       new DSTask[CT2Full[T, T], CT2Full[T,T]] {
-        override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T, T]] = lineDS.map(CT2Full.fromString(_))
+        override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T, T]] = lineDS.map(CtFromString[CT2Full[T,T],T,T](_))
         override def process(ds: DataSet[CT2Full[T, T]]): DataSet[CT2Full[T, T]] = {
           val dsf = ds.filter(_.ndot1 > 1)
           dsf.map((_,1)).groupBy("_1.b").sum(1).filter(_._2 > 1).map(_._1)
