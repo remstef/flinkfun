@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.types.CT2red
+import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2red}
 import de.tudarmstadt.lt.flinkdt.{TextToCT2}
 import org.apache.flink.api.scala._
 
@@ -44,7 +44,7 @@ object SamplePipeline extends App {
       /*  */
       ComputeSignificanceFiltered.fromCT2withPartialN[String,String](sigfun = _.lmi) ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       /*  */
-      ComputeDTSimplified.CT2Join[String,String]() ~>
+      ComputeDTSimplified.byJoin[CT2def[String,String],String,String]() ~>
       /*  */
       FilterSortDT[CT2red[String,String],String, String](_.n11)
       /*  */

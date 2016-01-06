@@ -16,7 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt.pipes
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2red}
+import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2red}
 import de.tudarmstadt.lt.flinkdt.{Util,TextToCT2}
 import de.tudarmstadt.lt.flinkdt.tasks._
 import org.apache.flink.api.common.operators.Order
@@ -38,7 +38,7 @@ object JoBimText extends App {
       /* */
       ComputeSignificanceFiltered.fromCT2withPartialN[String,String](sigfun = _.lmi) ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       /*  */
-      ComputeDTSimplified.CT2Join[String,String]()
+      ComputeDTSimplified.byJoin[CT2def[String,String],String,String]()
       /* */
     }.process(env, input = DSTaskConfig.out_accumulated_AB, output =  DSTaskConfig.out_dt)
 

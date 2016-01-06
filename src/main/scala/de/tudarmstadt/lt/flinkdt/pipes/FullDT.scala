@@ -37,7 +37,7 @@ object FullDT extends App {
         _.filter(_.ndot1 > 1).map((_,1)).groupBy("_1.b").sum(1).filter(_._2 > 1).map(_._1)
       ) ~>
       //      ComputeDTSimplified.CT2MinGraph[T,T]()
-      ComputeDTSimplified.CT2Join[T,T]() ~>
+      ComputeDTSimplified.byJoin[CT2def[T,T],T,T]() ~>
       DSWriter(DSTaskConfig.out_dt)
       /* */
     }.process(env, input = s"${DSTaskConfig.out_accumulated_CT}")
