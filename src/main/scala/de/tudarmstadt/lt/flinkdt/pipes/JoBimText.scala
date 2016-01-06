@@ -16,7 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt.pipes
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2Min, CT2Full$}
+import de.tudarmstadt.lt.flinkdt.types.{CT2red}
 import de.tudarmstadt.lt.flinkdt.{Util,TextToCT2}
 import de.tudarmstadt.lt.flinkdt.tasks._
 import org.apache.flink.api.common.operators.Order
@@ -65,7 +65,7 @@ object JoBimText extends App {
     env.startNewSession()
 
     { /* */
-      FilterSortDT[CT2Min[String, String],String, String](_.n11)
+      FilterSortDT[CT2red[String, String],String, String](_.n11)
       /* */
     }.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
 
@@ -75,7 +75,7 @@ object JoBimText extends App {
 
   DSTaskConfig.load(args, getClass.getSimpleName.replaceAllLiterally("$",""))
 
-  def extractorfun:String => TraversableOnce[CT2Min[String,String]] = Util.getExtractorfunFromJobname()
+  def extractorfun:String => TraversableOnce[CT2red[String,String]] = Util.getExtractorfunFromJobname()
 
   // set up the execution environment
   val env = ExecutionEnvironment.getExecutionEnvironment

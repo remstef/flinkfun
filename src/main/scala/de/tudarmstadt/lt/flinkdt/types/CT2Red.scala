@@ -3,19 +3,21 @@ package de.tudarmstadt.lt.flinkdt.types
 import de.tudarmstadt.lt.flinkdt.StringConvert._
 
 /**
+  * REDUCED CT2
+  *
+  *                |  B      !B     | SUM
+  *             ---------------------------
+  *  CT2(A,B) =  A |  n11    0      | n11
+  *             !A |  0      0      | 0
+  *             ---------------------------
+  *                |  n11    0      | n11
+  *
   * Created by Steffen Remus
+  *
   */
-/*
- *                |  B      !B     | SUM
- *             ---------------------------
- *  CT2(A,B) =  A |  n11    0      | n11
- *             !A |  0      0      | 0
- *             ---------------------------
- *                |  n11    0      | n11
- */
 
 @SerialVersionUID(42L)
-case class CT2Min[T1, T2](var a:T1,
+case class CT2red[T1, T2](var a:T1,
                           var b:T2,
                           var n11:Float = 1f) extends CT2[T1,T2] {
 
@@ -31,7 +33,7 @@ case class CT2Min[T1, T2](var a:T1,
   override def ndot2: Float = 0f
 
 
-  def +(other:CT2Min[T1, T2]):this.type = {
+  def +(other:CT2red[T1, T2]):this.type = {
     val newct:this.type = copy().asInstanceOf[this.type]
     if(a == other.a && b == other.b)
       newct.n11 += other.n11
@@ -44,13 +46,13 @@ case class CT2Min[T1, T2](var a:T1,
     * @param other
     * @return
     */
-  def +=(other:CT2Min[T1, T2]):this.type = synchronized {
+  def +=(other:CT2red[T1, T2]):this.type = synchronized {
     if(a == other.a && b == other.b)
       n11 += other.n11
     return this
   }
 
-  def asCT2Full(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11):CT2Full[T1,T2] = CT2Full(a,b,n11,n1dot,ndot1,n)
+  def asCT2Full(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11):CT2def[T1,T2] = CT2def(a,b,n11,n1dot,ndot1,n)
 
   def toStringTuple():(String, String, String) = (
     s"${a.asString}",

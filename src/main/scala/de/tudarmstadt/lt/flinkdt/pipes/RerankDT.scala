@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.types.{CT2Full}
+import de.tudarmstadt.lt.flinkdt.types.{CT2def}
 import org.apache.flink.api.scala._
 
 /**
@@ -53,7 +53,7 @@ object RerankDT extends App {
       }
     }
 
-  val rerank_chain = ct_computation_chain ~> FilterSortDT[CT2Full[String, String],String, String](_.lmi)
+  val rerank_chain = ct_computation_chain ~> FilterSortDT[CT2def[String, String],String, String](_.lmi)
 
   rerank_chain.process(env, input = DSTaskConfig.out_dt, output = s"${DSTaskConfig.out_dt_sorted}-rerank")
 

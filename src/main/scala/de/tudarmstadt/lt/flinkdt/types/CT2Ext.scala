@@ -21,27 +21,30 @@ import de.tudarmstadt.lt.flinkdt.StringConvert._
 import scala.math._
 
 
-/*
- *                |  B      !B     | SUM
- *             ---------------------------
- *  CT2(A,B) =  A |  n11    n12    | n1dot
- *             !A |  n21    n22    | n2dot
- *             ---------------------------
- *                |  ndot1  ndot2  |  n
- *
- *
- *                |  B      !B     | SUM
- *             ---------------------------
- *  CT2(A,B) =  A |  o11=1  o12    | o1dot
- *             !A |  o21    o22    | o2dot
- *             ---------------------------
- *                |  odot1  odot2  |  on
- *
- * !!!! n.. must be always at least max{ n1. + (n.1 - n11), n.1 + (n1. - n11) }, when setting n11 to 0 -> (n1. + (n.1 - n11)) == (n.1 + (n1. - n11)) !!!!
- *
- */
+/**
+  *  EXTENDED CT2
+  *                |  B      !B     | SUM
+  *             ---------------------------
+  *  CT2(A,B) =  A |  n11    n12    | n1dot
+  *             !A |  n21    n22    | n2dot
+  *             ---------------------------
+  *                |  ndot1  ndot2  |  n
+  *
+  *
+  *                |  B      !B     | SUM
+  *             ---------------------------
+  *  CT2(A,B) =  A |  o11=1  o12    | o1dot
+  *             !A |  o21    o22    | o2dot
+  *             ---------------------------
+  *                |  odot1  odot2  |  on
+  *
+  * !!!! n.. must be always at least max{ n1. + (n.1 - n11), n.1 + (n1. - n11) }, when setting n11 to 0 -> (n1. + (n.1 - n11)) == (n.1 + (n1. - n11)) !!!!
+  *
+  * Created by Steffen Remus.
+  *
+  */
 @SerialVersionUID(42L)
-case class CT2Ext[T1, T2](var a:T1, var b:T2,
+case class CT2ext[T1, T2](var a:T1, var b:T2,
                           var n11:Float   = 1f,
                           var n1dot:Float = 1f,
                           var ndot1:Float = 1f,
@@ -92,7 +95,7 @@ case class CT2Ext[T1, T2](var a:T1, var b:T2,
   def lmi_o():Float = log2_pmi_o // 1 * pmi
 
 
-  def +(other:CT2Ext[T1, T2]):this.type = {
+  def +(other:CT2ext[T1, T2]):this.type = {
     val newct:this.type = copy().asInstanceOf[this.type]
     newct.n += other.n11
     if(a == other.a) {
@@ -119,7 +122,7 @@ case class CT2Ext[T1, T2](var a:T1, var b:T2,
     * @param other
     * @return
     */
-  def +=(other:CT2Ext[T1, T2]):this.type = synchronized {
+  def +=(other:CT2ext[T1, T2]):this.type = synchronized {
     this.n += other.n11
     if(this.a == other.a) {
       if(this.b == other.b){
@@ -250,12 +253,12 @@ case class CT2Ext[T1, T2](var a:T1, var b:T2,
     Array(t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9, t._10, t._11, t._12, t._13, t._14, t._15)
   }
 
-  def toCT2Min() = CT2Min[T1,T2](a,b,n11)
-  def toCT2Full() = CT2Full[T1,T2](a,b,n11,n1dot,ndot1,n,srcid,isflipped)
+  def toCT2Min() = CT2red[T1,T2](a,b,n11)
+  def toCT2Full() = CT2def[T1,T2](a,b,n11,n1dot,ndot1,n,srcid,isflipped)
 
   override def toString():String = toStringArray().mkString("\t")
 
-  def flipped():CT2Ext[T2,T1] = {
+  def flipped():CT2ext[T2,T1] = {
     copy(
       a = this.b,
       b = this.a,

@@ -3,7 +3,7 @@ package de.tudarmstadt.lt.flinkdt
 import java.io.File
 
 import com.typesafe.config.{Config, ConfigFactory}
-import de.tudarmstadt.lt.flinkdt.types.CT2Min
+import de.tudarmstadt.lt.flinkdt.types.CT2red
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.FileSystem
 import org.apache.flink.util.Collector
@@ -27,7 +27,7 @@ object CtGraphDT extends App {
     outputbasedir.mkdirs()
   val pipe = outputconfig.getStringList("pipeline").toArray
 
-  def writeIfExists[T1 <: Any, T2 <: Any](conf_path:String, ds:DataSet[CT2Min[T1, T2]], stringfun:((CT2Min[T1, T2]) => String) = ((ct2:CT2Min[T1, T2]) => ct2.toString)): Unit = {
+  def writeIfExists[T1 <: Any, T2 <: Any](conf_path:String, ds:DataSet[CT2red[T1, T2]], stringfun:((CT2red[T1, T2]) => String) = ((ct2:CT2red[T1, T2]) => ct2.toString)): Unit = {
     if(outputconfig.hasPath(conf_path)){
       val o = ds.map(stringfun).map(Tuple1(_))
       if(outputconfig.getString(conf_path) equals "stdout") {
@@ -51,7 +51,7 @@ object CtGraphDT extends App {
 
   val text:DataSet[String] = if(new File(in).exists) env.readTextFile(in) else env.fromCollection(in.split('\n'))
 
-  val ct_raw:DataSet[CT2Min[String,String]] = text
+  val ct_raw:DataSet[CT2red[String,String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
     .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
@@ -59,7 +59,7 @@ object CtGraphDT extends App {
   val mapStringCtToInt = ct_raw.map(ct => {
     val id_A:Int = ct.a.hashCode
     val id_B:Int = ct.b.hashCode
-    val newct = CT2Min(id_A, id_B, ct.n11)
+    val newct = CT2red(id_A, id_B, ct.n11)
     (newct, Seq((id_A, ct.a), (id_B, ct.b)))
   })
 
@@ -74,10 +74,10 @@ object CtGraphDT extends App {
 
   val adjacencyListsRev = ctagg
     .groupBy("b")
-    .reduceGroup((iter, out:Collector[CT2Min[Int, Int]]) => {
+    .reduceGroup((iter, out:Collector[CT2red[Int, Int]]) => {
       val l = iter.map(_.a).toIterable
       // TODO: might be a bottleneck, it creates multiple new sequences (one new sequence per each entry)
-      l.foreach(a => l.map(b => out.collect(CT2Min(a, b)))) // this could by optimized due to symmetry
+      l.foreach(a => l.map(b => out.collect(CT2red(a, b)))) // this could by optimized due to symmetry
     })
 
   val dt_int = adjacencyListsRev
@@ -86,7 +86,7 @@ object CtGraphDT extends App {
 
   val dt = dt_int
     .join(id2string).where("a").equalTo(0)((ct,tup) => (ct, tup._2))
-    .join(id2string).where("_1.b").equalTo(0)((ct_tup,tup) => CT2Min[String,String](ct_tup._2, tup._2, ct_tup._1.n11))
+    .join(id2string).where("_1.b").equalTo(0)((ct_tup,tup) => CT2red[String,String](ct_tup._2, tup._2, ct_tup._1.n11))
 
   writeIfExists("dt", dt)
 

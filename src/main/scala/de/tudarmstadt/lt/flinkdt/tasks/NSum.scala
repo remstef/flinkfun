@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
 
-import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2Full, CT2Min}
+import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2def, CT2red}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 
@@ -36,11 +36,11 @@ object NSum {
 
 case class N(val n:Float, val n_distinct:Float)
 
-class NSum__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](broadcastName:String = "NSum", env:ExecutionEnvironment = null) extends DSTask[CT2Min[T1,T2], CT2Min[T1,T2]]{
+class NSum__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](broadcastName:String = "NSum", env:ExecutionEnvironment = null) extends DSTask[CT2red[T1,T2], CT2red[T1,T2]]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Min[T1,T2]] = lineDS.map(CtFromString[CT2Min[T1,T2], T1, T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2red[T1,T2]] = lineDS.map(CtFromString[CT2red[T1,T2], T1, T2](_))
 
-  override def process(ds: DataSet[CT2Min[T1, T2]]): DataSet[CT2Min[T1, T2]] = {
+  override def process(ds: DataSet[CT2red[T1, T2]]): DataSet[CT2red[T1, T2]] = {
     val ds_sum = ds
       .map(ct => N(ct.n11, 1f))
       .reduce((l,r) => N(l.n + r.n, l.n_distinct + r.n_distinct))
@@ -49,11 +49,11 @@ class NSum__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformat
 
 }
 
-class NSum__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2Full[T1,T2], CT2Full[T1,T2]]{
+class NSum__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2def[T1,T2], CT2def[T1,T2]]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T1, T2]] = lineDS.map(CtFromString[CT2Full[T1,T2], T1, T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2def[T1, T2]] = lineDS.map(CtFromString[CT2def[T1,T2], T1, T2](_))
 
-  override def process(ds: DataSet[CT2Full[T1, T2]]): DataSet[CT2Full[T1, T2]] = {
+  override def process(ds: DataSet[CT2def[T1, T2]]): DataSet[CT2def[T1, T2]] = {
     ???
   }
 

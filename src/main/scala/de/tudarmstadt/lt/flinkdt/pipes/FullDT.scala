@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2Full, CT2Min}
+import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2def, CT2red}
 import de.tudarmstadt.lt.flinkdt.{Util}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
@@ -33,9 +33,9 @@ object FullDT extends App {
   def process[T : ClassTag : TypeInformation]() = {
     { /* */
 //      ComputeDTSimplified.CT2MinGraph[T,T]() ~> DSWriter(DSTaskConfig.out_dt)
-      new DSTask[CT2Full[T, T], CT2Full[T,T]] {
-        override def fromLines(lineDS: DataSet[String]): DataSet[CT2Full[T, T]] = lineDS.map(CtFromString[CT2Full[T,T],T,T](_))
-        override def process(ds: DataSet[CT2Full[T, T]]): DataSet[CT2Full[T, T]] = {
+      new DSTask[CT2def[T, T], CT2def[T,T]] {
+        override def fromLines(lineDS: DataSet[String]): DataSet[CT2def[T, T]] = lineDS.map(CtFromString[CT2def[T,T],T,T](_))
+        override def process(ds: DataSet[CT2def[T, T]]): DataSet[CT2def[T, T]] = {
           val dsf = ds.filter(_.ndot1 > 1)
           dsf.map((_,1)).groupBy("_1.b").sum(1).filter(_._2 > 1).map(_._1)
         }
@@ -50,7 +50,7 @@ object FullDT extends App {
 
   def preprocess(hash:Boolean = false) = {
 
-    val string_preprocessing_chain:DSTask[String, CT2Full[String,String]] =
+    val string_preprocessing_chain:DSTask[String, CT2def[String,String]] =
       { /* */
         Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
         /*  */
@@ -72,7 +72,7 @@ object FullDT extends App {
   def postprocess(hash:Boolean = false) = {
     env.startNewSession()
 
-    val sting_post_processing = FilterSortDT.apply[CT2Min[String, String], String, String](_.n11)
+    val sting_post_processing = FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
 
     val postprocessing_chain =
       if(hash){ Convert.HashCT2MinTypes.Reverse[String, String](env, DSTaskConfig.out_keymap) ~> sting_post_processing }
@@ -86,7 +86,7 @@ object FullDT extends App {
 
   DSTaskConfig.load(args, getClass.getSimpleName.replaceAllLiterally("$",""))
 
-  def extractorfun:String => TraversableOnce[CT2Min[String,String]] = Util.getExtractorfunFromJobname()
+  def extractorfun:String => TraversableOnce[CT2red[String,String]] = Util.getExtractorfunFromJobname()
 
   // set up the execution environment
   val env = ExecutionEnvironment.getExecutionEnvironment

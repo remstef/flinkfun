@@ -22,29 +22,28 @@ import de.tudarmstadt.lt.flinkdt.StringConvert._
 import scala.math._
 
 /**
+  *  DEFAULT CT2
+  *                |  B      !B     | SUM
+  *             ---------------------------
+  *  CT2(A,B) =  A |  n11    n12    | n1.
+  *             !A |  n21    n22    | n2.
+  *             ---------------------------
+  *                |  n.1    n.2    | n
+  *
+  *
+  * !!!! n.. must be always at least max{ n1. + (n.1 - n11), n.1 + (n1. - n11) }, when setting n11 to 0 -> (n1. + (n.1 - n11)) == (n.1 + (n1. - n11)) !!!!
+  *
   * Created by Steffen Remus.
+  *
   */
-
-/*
- *                |  B      !B     | SUM
- *             ---------------------------
- *  CT2(A,B) =  A |  n11    n12    | n1.
- *             !A |  n21    n22    | n2.
- *             ---------------------------
- *                |  n.1    n.2    | n
- *
- *
- * !!!! n.. must be always at least max{ n1. + (n.1 - n11), n.1 + (n1. - n11) }, when setting n11 to 0 -> (n1. + (n.1 - n11)) == (n.1 + (n1. - n11)) !!!!
- *
- */
 @SerialVersionUID(42L)
-case class CT2Full[T1, T2](var a:T1, var b:T2,
-                           var n11:Float   = 1f,
-                           var n1dot:Float = 1f,
-                           var ndot1:Float = 1f,
-                           var n:Float     = 1f,
-                           val srcid:Option[Any] = None,
-                           val isflipped:Boolean = false) extends CT2[T1,T2] {
+case class CT2def[T1, T2](var a:T1, var b:T2,
+                          var n11:Float   = 1f,
+                          var n1dot:Float = 1f,
+                          var ndot1:Float = 1f,
+                          var n:Float     = 1f,
+                          val srcid:Option[Any] = None,
+                          val isflipped:Boolean = false) extends CT2[T1,T2] {
 
   override def n12   = n1dot - n11
   override def n21   = ndot1 - n11
@@ -70,7 +69,7 @@ case class CT2Full[T1, T2](var a:T1, var b:T2,
     */
   def lmi():Float = n11 * log2_pmi
 
-  def +(other:CT2Full[T1, T2]):this.type = {
+  def +(other:CT2def[T1, T2]):this.type = {
     val newct:this.type = copy().asInstanceOf[this.type]
     newct.n += other.n11
     if(a == other.a) {
@@ -94,7 +93,7 @@ case class CT2Full[T1, T2](var a:T1, var b:T2,
     * @param other
     * @return
     */
-  def +=(other:CT2Full[T1, T2]):this.type = synchronized {
+  def +=(other:CT2def[T1, T2]):this.type = synchronized {
     this.n += other.n11
     if(this.a == other.a) {
       if(this.b == other.b){
@@ -166,11 +165,11 @@ case class CT2Full[T1, T2](var a:T1, var b:T2,
     Array(t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9)
   }
 
-  def toCT2Min() = CT2Min[T1,T2](a,b,n11)
+  def toCT2Min() = CT2red[T1,T2](a,b,n11)
 
   override def toString():String = toStringArray().mkString("\t")
 
-  def flipped():CT2Full[T2,T1] = {
+  def flipped():CT2def[T2,T1] = {
     copy(
       this.b,
       this.a,

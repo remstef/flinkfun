@@ -5,7 +5,7 @@ import _root_.java.lang
 import java.io.File
 
 import com.typesafe.config.{Config, ConfigFactory}
-import de.tudarmstadt.lt.flinkdt.types.{CT2Full}
+import de.tudarmstadt.lt.flinkdt.types.{CT2def}
 import org.apache.flink.api.common.functions.GroupReduceFunction
 import org.apache.flink.api.scala.{DataSet, _}
 import org.apache.flink.core.fs.FileSystem
@@ -19,7 +19,7 @@ import scala.util.Try
   */
 object CtGraphDText extends App {
 
-  case class AdjacencyList[T1, T2](source: CT2Full[T1, T2], targets: Array[CT2Full[T1, T2]])
+  case class AdjacencyList[T1, T2](source: CT2def[T1, T2], targets: Array[CT2def[T1, T2]])
 
   val config:Config =
     if(args.length > 0)
@@ -34,7 +34,7 @@ object CtGraphDText extends App {
     outputbasedir.mkdirs()
   val pipe = outputconfig.getStringList("pipeline").toArray
 
-  def writeIfExists[T1 <: Any, T2 <: Any](conf_path:String, ds:DataSet[CT2Full[T1, T2]], stringfun:((CT2Full[T1, T2]) => String) = ((ct2:CT2Full[T1, T2]) => ct2.toString)): Unit = {
+  def writeIfExists[T1 <: Any, T2 <: Any](conf_path:String, ds:DataSet[CT2def[T1, T2]], stringfun:((CT2def[T1, T2]) => String) = ((ct2:CT2def[T1, T2]) => ct2.toString)): Unit = {
     if(outputconfig.hasPath(conf_path)){
       val o = ds.map(stringfun).map(Tuple1(_))
       if(outputconfig.getString(conf_path) equals "stdout") {
@@ -58,7 +58,7 @@ object CtGraphDText extends App {
 
   val text:DataSet[String] = if(new File(in).exists) env.readTextFile(in) else env.fromCollection(in.split('\n'))
 
-  val ct_raw:DataSet[CT2Full[String,String]] = text
+  val ct_raw:DataSet[CT2def[String,String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
     .flatMap(s => Util.collapseCT2(TextToCT2.ngram_patterns(s,5,3).map(_.asCT2Full())).flatMap(c => Seq(c, c.flipped())))
@@ -71,9 +71,9 @@ object CtGraphDText extends App {
 
   val adjacencyLists = ct_raw
     .groupBy("a","isflipped")
-    .reduceGroup(new GroupReduceFunction[CT2Full[String,String], AdjacencyList[String, String]]() {
-      override def reduce(values: lang.Iterable[CT2Full[String,String]], out: Collector[AdjacencyList[String, String]]): Unit = {
-        val temp:CT2Full[String,String] = CT2Full(null,null, n11 = 0, ndot1 = 0, n1dot = 0, n = 0)
+    .reduceGroup(new GroupReduceFunction[CT2def[String,String], AdjacencyList[String, String]]() {
+      override def reduce(values: lang.Iterable[CT2def[String,String]], out: Collector[AdjacencyList[String, String]]): Unit = {
+        val temp:CT2def[String,String] = CT2def(null,null, n11 = 0, ndot1 = 0, n1dot = 0, n = 0)
         val l = values.asScala
           .map(t => {
             temp.a = t.a
@@ -97,8 +97,8 @@ object CtGraphDText extends App {
 
   val a = adjacencyLists.flatMap(_.targets)
     .groupBy("a","b")
-    .reduceGroup(new GroupReduceFunction[CT2Full[String,String], CT2Full[String,String]]() {
-      override def reduce(values: lang.Iterable[CT2Full[String,String]], out: Collector[CT2Full[String,String]]): Unit = {
+    .reduceGroup(new GroupReduceFunction[CT2def[String,String], CT2def[String,String]]() {
+      override def reduce(values: lang.Iterable[CT2def[String,String]], out: Collector[CT2def[String,String]]): Unit = {
         val s = values.asScala.toSeq
         assert(s.length == 2)
         assert(s(0).isflipped ^ s(1).isflipped)

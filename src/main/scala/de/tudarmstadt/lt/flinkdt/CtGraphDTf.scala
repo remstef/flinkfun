@@ -3,7 +3,7 @@ package de.tudarmstadt.lt.flinkdt
 import java.io.File
 
 import com.typesafe.config.{Config, ConfigFactory}
-import de.tudarmstadt.lt.flinkdt.types.{CT2Full}
+import de.tudarmstadt.lt.flinkdt.types.{CT2def}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala.{DataSet, _}
 import org.apache.flink.core.fs.FileSystem
@@ -28,7 +28,7 @@ object CtGraphDTf extends App {
     outputbasedir.mkdirs()
   val pipe = outputconfig.getStringList("pipeline").toArray
 
-  def writeIfExists[T1 <: Any, T2 <: Any](conf_path:String, ds:DataSet[CT2Full[T1, T2]], stringfun:((CT2Full[T1, T2]) => String) = ((ct2:CT2Full[T1, T2]) => ct2.toString)): Unit = {
+  def writeIfExists[T1 <: Any, T2 <: Any](conf_path:String, ds:DataSet[CT2def[T1, T2]], stringfun:((CT2def[T1, T2]) => String) = ((ct2:CT2def[T1, T2]) => ct2.toString)): Unit = {
     if(outputconfig.hasPath(conf_path)){
       val o = ds.map(stringfun).map(Tuple1(_))
       if(outputconfig.getString(conf_path) equals "stdout") {
@@ -51,7 +51,7 @@ object CtGraphDTf extends App {
 
   val text:DataSet[String] = if(new File(in).exists) env.readTextFile(in) else env.fromCollection(in.split('\n'))
 
-  val ct_accumulated:DataSet[CT2Full[String, String]] = text
+  val ct_accumulated:DataSet[CT2def[String, String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
     .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
@@ -67,7 +67,7 @@ object CtGraphDTf extends App {
 
   val adjacencyLists = ct_accumulated_n
     .groupBy("a")
-    .reduceGroup((iter, out:Collector[CT2Full[String, String]]) => {
+    .reduceGroup((iter, out:Collector[CT2def[String, String]]) => {
       var n1dot:Float = 0f
       val l = iter.toIterable
       l.foreach(t => n1dot += t.n11)
@@ -82,16 +82,16 @@ object CtGraphDTf extends App {
 
   writeIfExists("accA", adjacencyLists)
 
-  val descending_ordering = new Ordering[(CT2Full[String,String],Float)] {
-    def compare(o1:(CT2Full[String,String], Float), o2:(CT2Full[String,String], Float)): Int = {
+  val descending_ordering = new Ordering[(CT2def[String,String],Float)] {
+    def compare(o1:(CT2def[String,String], Float), o2:(CT2def[String,String], Float)): Int = {
       -o1._2.compareTo(o2._2)
     }
   }
 
   val adjacencyListsRev = adjacencyLists
     .groupBy("b")
-    .reduceGroup((iter, out:Collector[CT2Full[String, String]]) => {
-      val temp:CT2Full[String,String] = CT2Full(null,null, n11 = 0, n1dot = 0, ndot1 = 0)
+    .reduceGroup((iter, out:Collector[CT2def[String, String]]) => {
+      val temp:CT2def[String,String] = CT2def(null,null, n11 = 0, n1dot = 0, ndot1 = 0)
       val l = iter.toSeq
       l.foreach(t => {
         temp.b = t.b
@@ -131,7 +131,7 @@ object CtGraphDTf extends App {
         lll.foreach(ct_x => {
           lll.foreach(ct_y => {
             if (ct_y._2 > 0)
-              out.collect(CT2Full(ct_x._1.a, ct_y._1.a, 1f))
+              out.collect(CT2def(ct_x._1.a, ct_y._1.a, 1f))
           })
         })
       }

@@ -1,6 +1,6 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.CT2Min
+import de.tudarmstadt.lt.flinkdt.types.CT2red
 import de.tudarmstadt.lt.flinkdt.{TextToCT2}
 import org.apache.flink.api.scala._
 
@@ -9,15 +9,15 @@ import org.apache.flink.api.scala._
   */
 object Extractor {
 
-  def apply(extractorfun:String => TraversableOnce[CT2Min[String, String]], inputcolumn:Int = -1) = new Extractor(extractorfun, inputcolumn)
+  def apply(extractorfun:String => TraversableOnce[CT2red[String, String]], inputcolumn:Int = -1) = new Extractor(extractorfun, inputcolumn)
 
 }
 
-class Extractor(extractorfun:String => TraversableOnce[CT2Min[String, String]], textcol:Int) extends DSTask[String, CT2Min[String,String]] {
+class Extractor(extractorfun:String => TraversableOnce[CT2red[String, String]], textcol:Int) extends DSTask[String, CT2red[String,String]] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[String] = lineDS
 
-  override def process(ds: DataSet[String]): DataSet[CT2Min[String,String]] = {
+  override def process(ds: DataSet[String]): DataSet[CT2red[String,String]] = {
 
     val dsf = ds
       .filter(_ != null)
@@ -25,7 +25,7 @@ class Extractor(extractorfun:String => TraversableOnce[CT2Min[String, String]], 
 
     val dsfc = if(textcol > -1) dsf.map(_.split("\t")(textcol)).filter(_.trim.length > 0) else dsf
 
-    val ct_raw:DataSet[CT2Min[String,String]] = dsfc
+    val ct_raw:DataSet[CT2red[String,String]] = dsfc
       .flatMap(s => extractorfun(s))
 
     ct_raw

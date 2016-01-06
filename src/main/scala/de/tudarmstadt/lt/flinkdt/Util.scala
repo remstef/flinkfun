@@ -1,7 +1,7 @@
 package de.tudarmstadt.lt.flinkdt
 
 import de.tudarmstadt.lt.flinkdt.tasks.DSTaskConfig
-import de.tudarmstadt.lt.flinkdt.types.{CT2Full, CT2Min}
+import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2red}
 
 import scala.collection.mutable
 
@@ -10,7 +10,7 @@ import scala.collection.mutable
   */
 object Util {
 
-  def getExtractorfunFromJobname():String => TraversableOnce[CT2Min[String,String]] = {
+  def getExtractorfunFromJobname():String => TraversableOnce[CT2red[String,String]] = {
     if(DSTaskConfig.jobname.contains("pair"))
       TextToCT2.ngramPatternWordPairs(_:String, nmax = 5)
     else if(DSTaskConfig.jobname.contains("pattern"))
@@ -26,15 +26,15 @@ object Util {
     * @param cts a sequence of CT2 objects (not necessarily distinct)
     * @return a sequence of distinct CT2 objects where CT2s are collapsed
     */
-  def collapseCT2[T1, T2](cts:TraversableOnce[CT2Full[T1, T2]]):TraversableOnce[CT2Full[T1, T2]] = {
+  def collapseCT2[T1, T2](cts:TraversableOnce[CT2def[T1, T2]]):TraversableOnce[CT2def[T1, T2]] = {
     return collapse_foldleft_set_CT2(cts)
   }
 
-  def collapseCT2Min[T1, T2](cts:TraversableOnce[CT2Min[T1, T2]]):TraversableOnce[CT2Min[T1, T2]] = {
+  def collapseCT2Min[T1, T2](cts:TraversableOnce[CT2red[T1, T2]]):TraversableOnce[CT2red[T1, T2]] = {
     return collapse_foldleft_set_CT2Min(cts)
   }
 
-  def collapse_foldleft[T1, T2](cts:Traversable[CT2Full[T1, T2]]):TraversableOnce[CT2Full[T1, T2]] = {
+  def collapse_foldleft[T1, T2](cts:Traversable[CT2def[T1, T2]]):TraversableOnce[CT2def[T1, T2]] = {
     throw new NotImplementedError()
     //    val partially_collapsed = cts.groupBy(ct => (ct.a, ct.b)).map({case ((a,b), ctlist) => {
     //      ctlist.foreach(ct_x => {
@@ -90,27 +90,27 @@ object Util {
 
   }
 
-  def collapse_foldleft_set_CT2Min[T1, T2](cts:TraversableOnce[CT2Min[T1, T2]]):TraversableOnce[CT2Min[T1, T2]] = {
-    cts.foldLeft(Set[CT2Min[T1, T2]]())((s, x) => {
-      val t:CT2Min[T1, T2] = x.copy()
+  def collapse_foldleft_set_CT2Min[T1, T2](cts:TraversableOnce[CT2red[T1, T2]]):TraversableOnce[CT2red[T1, T2]] = {
+    cts.foldLeft(Set[CT2red[T1, T2]]())((s, x) => {
+      val t:CT2red[T1, T2] = x.copy()
       s.foreach(y => {x += y; y += t })
       s + x
     })
   }
 
-  def collapse_foldleft_set_CT2[T1, T2](cts:TraversableOnce[CT2Full[T1, T2]]):TraversableOnce[CT2Full[T1, T2]] = {
-    cts.foldLeft(Set[CT2Full[T1, T2]]())((s, x) => {
-      val t:CT2Full[T1, T2] = x.copy()
+  def collapse_foldleft_set_CT2[T1, T2](cts:TraversableOnce[CT2def[T1, T2]]):TraversableOnce[CT2def[T1, T2]] = {
+    cts.foldLeft(Set[CT2def[T1, T2]]())((s, x) => {
+      val t:CT2def[T1, T2] = x.copy()
       s.foreach(y => {x += y; y += t })
       s + x
     })
   }
 
 
-  def collapse_explicit_loop_mutable[T1, T2](cts:TraversableOnce[CT2Full[T1, T2]]):TraversableOnce[CT2Full[T1, T2]] = {
-    val cts_collapsed:mutable.Set[CT2Full[T1, T2]] = mutable.Set()
+  def collapse_explicit_loop_mutable[T1, T2](cts:TraversableOnce[CT2def[T1, T2]]):TraversableOnce[CT2def[T1, T2]] = {
+    val cts_collapsed:mutable.Set[CT2def[T1, T2]] = mutable.Set()
     for(ct2_x <- cts){
-      val temp:CT2Full[T1, T2] = ct2_x.copy()
+      val temp:CT2def[T1, T2] = ct2_x.copy()
       for(ct2_y <- cts_collapsed){
         ct2_x.+=(ct2_y)
         ct2_y.+=(temp)

@@ -26,7 +26,7 @@ object CtDT extends App {
     outputbasedir.mkdirs()
   val pipe = outputconfig.getStringList("pipeline").toArray
 
-  def writeIfExists[T1 <: Any, T2 <: Any](conf_path:String, ds:DataSet[CT2Full[T1,T2]], stringfun:((CT2Full[T1,T2]) => String) = ((ct2:CT2Full[T1,T2]) => ct2.toString)): Unit = {
+  def writeIfExists[T1 <: Any, T2 <: Any](conf_path:String, ds:DataSet[CT2def[T1,T2]], stringfun:((CT2def[T1,T2]) => String) = ((ct2:CT2def[T1,T2]) => ct2.toString)): Unit = {
     if(outputconfig.hasPath(conf_path)){
       val o = ds.map(stringfun).map(Tuple1(_))
       if(outputconfig.getString(conf_path) equals "stdout") {
@@ -50,7 +50,7 @@ object CtDT extends App {
 
   val text:DataSet[String] = if(new File(in).exists) env.readTextFile(in) else env.fromCollection(in.split('\n'))
 
-  val ct_accumulated:DataSet[CT2Full[String, String]] = text
+  val ct_accumulated:DataSet[CT2def[String, String]] = text
     .filter(_ != null)
     .filter(!_.trim().isEmpty())
     .flatMap(s => TextToCT2.ngram_patterns(s,5,3))
@@ -110,12 +110,12 @@ object CtDT extends App {
     .sortGroup("n11", Order.DESCENDING)
     .first(1000)
 
-  val joined:DataSet[(CT2Full[String,String], CT2Full[String,String])] = ct_all_filtered
+  val joined:DataSet[(CT2def[String,String], CT2def[String,String])] = ct_all_filtered
     .join(ct_all_filtered)
     .where("b")
     .equalTo("b")
 
-  val dt = joined.map(cts => CT2Full[String,String](cts._1.a, cts._2.a, n11=1f))
+  val dt = joined.map(cts => CT2def[String,String](cts._1.a, cts._2.a, n11=1f))
     .groupBy("a", "b")
     .sum("n11")
     .filter(_.n11 > 1)
