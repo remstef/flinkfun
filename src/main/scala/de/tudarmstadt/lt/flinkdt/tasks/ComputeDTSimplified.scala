@@ -52,7 +52,7 @@ class ComputeDTSimplified__BY_GRAPH[C <: CT2[T1, T2] : ClassTag : TypeInformatio
         // TODO: check if collecting the single ct2 or the sequence of ct2s is better
         // TODO: check if this could be optimized due to symmetry
         l.foreach(a => l.foreach(b => out.collect(CT2red[T1,T1](a, b, 1f))))
-      })
+      }).withForwardedFields("a->a; a->b")
 
     val dt = adjacencyListsRev
       .groupBy("a","b")
