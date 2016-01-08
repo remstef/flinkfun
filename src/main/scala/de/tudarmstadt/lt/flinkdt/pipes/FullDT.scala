@@ -94,7 +94,7 @@ object FullDT extends App {
   val in = DSTaskConfig.in_text
   val hash = DSTaskConfig.jobname.toLowerCase.contains("hash")
 
-  val preprocess_output_path:Path = new Path(DSTaskConfig.out_accumulated_AB)
+  val preprocess_output_path:Path = new Path(DSTaskConfig.out_accumulated_CT)
   if(!preprocess_output_path.getFileSystem.exists(preprocess_output_path))
     preprocess(hash)
 
