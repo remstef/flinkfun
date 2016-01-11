@@ -61,12 +61,10 @@ case class CT2red[T1, T2](var a:T1,
     s"${b.asString}",
     s"${n11.asString}")
 
-  def toStringArray():Array[String] = {
+  override def toStringArray():Array[String] = {
     val t = toStringTuple()
     Array(t._1, t._2, t._3)
   }
-
-  override def toString():String = toStringArray().mkString("\t")
 
   override def equals(that:Any):Boolean = {
     if(that.isInstanceOf[this.type ]) {

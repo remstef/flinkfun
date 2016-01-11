@@ -16,7 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2def, CT2red}
+import de.tudarmstadt.lt.flinkdt.types.{CT2, CtFromString, CT2def, CT2red}
 import de.tudarmstadt.lt.flinkdt.{StringConvert}
 import de.tudarmstadt.lt.utilities.HashUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -28,6 +28,12 @@ import scala.reflect.ClassTag
   * Created by Steffen Remus.
   */
 object Convert {
+
+  object Hash {
+
+    def StringSha256[C <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = ???
+
+  }
 
   object HashCT2MinTypes {
 
@@ -76,6 +82,48 @@ object Convert {
   }
 
 }
+
+
+//class Convert__Hash[C[T1_,T2_] <: CT2[T1_, T2_] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](hashfunA:T1 => Array[Byte], hashfunB:T2 => Array[Byte], keymap_outputlocation:String) extends DSTask[C[T1,T2], C[Array[Byte],Array[Byte]]]{
+//
+//  override def fromLines(lineDS: DataSet[String]): DataSet[C[T1,T2]] = lineDS.map(CtFromString[C[T1,T2],T1,T2](_))
+//
+//  override def process(ds: DataSet[C[T1,T2]]): DataSet[CT2[Array[Byte], Array[Byte]]] = {
+//
+//    val mapStringCtToByteArray = ds.map(ct => {
+//      val id_A:Array[Byte] = hashfunA(ct.a)
+//      val id_B:Array[Byte] = hashfunB(ct.b)
+//      val newct = getNewCT(ct, id_A, id_B)
+//      (newct, Seq((ct.a, id_A), (ct.b, id_B)))
+//    })
+//
+//    // get mapping Array[Byte] -> String mapping
+//    val string2id = mapStringCtToByteArray
+//      .map(_._2)
+//      .flatMap(l => l)
+//      .map(t => (StringConvert.convert_toString(t._1), HashUtils.encodeHexString(t._2)))
+//      .distinct(0)
+//      .map(t => s"${t._1}\t${t._2}")
+//
+//    // write mapping
+//    DSWriter[String](keymap_outputlocation).process(string2id)
+//
+//    // TODO: whats the best strategy to deal with collisions? Currently we ignore this issue!
+//    // should we sum the values again? just to be sure they are unique?
+//    // return int-cts
+//    mapStringCtToByteArray.map(_._1)
+//
+//  }
+//
+//  def getNewCT(ct:C[T1,T2], newA:Array[Byte], newB:Array[Byte]):C[Array[Byte],Array[Byte]] = {
+//    // go the easy way via serialization and deserialization
+////    ct.
+//    CT2red(newA, newB, ct.n11)
+//    null
+//  }
+//
+//}
+
 
 class Convert__Hash__CT2MinTypes[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](hashfunA:T1 => Array[Byte], hashfunB:T2 => Array[Byte], keymap_outputlocation:String) extends DSTask[CT2red[T1,T2], CT2red[Array[Byte],Array[Byte]]]{
 

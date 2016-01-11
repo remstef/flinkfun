@@ -146,4 +146,8 @@ abstract class CT2[T1, T2](implicit val ordering:Ordering[CT2[T1,T2]]) extends S
       ) + (if(null == b) 0 else  b.hashCode)
   }
 
+  def toStringArray():Array[String]
+
+  override def toString():String = toStringArray().mkString("\t")
+
 }

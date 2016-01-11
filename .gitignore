@@ -21,6 +21,7 @@ project/plugins/project/
 # Steffen specific
 data/
 temp/
+*delete_me*
 
 # Created by https://www.gitignore.io/api/scala,intellij,eclipse,maven,sbt
 

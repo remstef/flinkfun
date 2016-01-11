@@ -256,8 +256,6 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
   def toCT2Min() = CT2red[T1,T2](a,b,n11)
   def toCT2Full() = CT2def[T1,T2](a,b,n11,n1dot,ndot1,n,srcid,isflipped)
 
-  override def toString():String = toStringArray().mkString("\t")
-
   def flipped():CT2ext[T2,T1] = {
     copy(
       a = this.b,

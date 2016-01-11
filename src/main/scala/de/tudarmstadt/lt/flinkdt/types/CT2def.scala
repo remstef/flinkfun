@@ -167,8 +167,6 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
 
   def toCT2Min() = CT2red[T1,T2](a,b,n11)
 
-  override def toString():String = toStringArray().mkString("\t")
-
   def flipped():CT2def[T2,T1] = {
     copy(
       this.b,
