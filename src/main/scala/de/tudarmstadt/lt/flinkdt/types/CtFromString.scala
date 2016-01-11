@@ -36,10 +36,12 @@ object CtFromString {
 
   def EMPTY_CT2_EXTENDED[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2ext[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f, o1dot = 0f, odot1 = 0f, on = 0f)
 
-  def fromString[C <: CT2[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):C = classTag[C] match {
-    case t if t == classTag[CT2def[T1,T2]] => _CT2def[T1,T2](ct2AsString.split("\t")).asInstanceOf[C]
-    case t if t == classTag[CT2red[T1,T2]] => _CT2red[T1,T2](ct2AsString.split("\t")).asInstanceOf[C]
-    case t if t == classTag[CT2ext[T1,T2]] => _CT2ext[T1,T2](ct2AsString.split("\t")).asInstanceOf[C]
+  def fromString[C <: CT2[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):C = fromStringArray[C,T1,T2](ct2AsString.split("\t"))
+
+  def fromStringArray[C <: CT2[T1,T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray:Array[String]):C = classTag[C] match {
+    case t if t == classTag[CT2def[T1,T2]] => _CT2def[T1,T2](ct2AsStringArray).asInstanceOf[C]
+    case t if t == classTag[CT2red[T1,T2]] => _CT2red[T1,T2](ct2AsStringArray).asInstanceOf[C]
+    case t if t == classTag[CT2ext[T1,T2]] => _CT2ext[T1,T2](ct2AsStringArray).asInstanceOf[C]
     case _ => null.asInstanceOf[C]
   }
 

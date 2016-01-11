@@ -37,6 +37,19 @@ import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, Byt
  */
 abstract class CT2[T1, T2](implicit val ordering:Ordering[CT2[T1,T2]]) extends Serializable with Ordered[CT2[T1,T2]] with Cloneable {
 
+  // TODO: think about : https://twitter.github.io/scala_school/advanced-types.html
+  //  scala> trait Foo[M[_]] { type t[A] = M[A] }
+  //  defined trait Foo
+  //
+  //  scala> val x: Foo[List]#t[Int] = List(1)
+  //  x: List[Int] = List(1)
+  //
+  // in order to avoid repetitions, e.g. CtFromString[CT2[Srting,String],String,String] => CtFromString[CT2#T1[String]#T2[String]]
+  // scala> abstract class Foo{ type t1; def a:t1}
+  // scala> class Bar[T1](val a:T1) extends Foo {type t1=T1}
+  // scala> val x:Foo = new Bar("hello")
+
+
   def a:T1
   def b:T2
 

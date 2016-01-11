@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.types.{CT2def}
+import de.tudarmstadt.lt.flinkdt.types.{CT2, CT2def}
 import org.apache.flink.api.scala._
 
 /**
@@ -42,7 +42,7 @@ object RerankDT extends App {
         /* */
         ComputeCT2.fromCT2Min[Array[Byte], Array[Byte]]() ~>
         /* */
-        Convert.HashCT2Types.Reverse[String, String](env, DSTaskConfig.out_keymap)
+        Convert.Hash.Reverse[CT2def[Array[Byte], Array[Byte]], CT2def[String, String], String, String](DSTaskConfig.out_keymap)
         /* */
       }
     } else {
