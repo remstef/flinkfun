@@ -43,7 +43,10 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
                           var ndot1:Float = 1f,
                           var n:Float     = 1f,
                           val srcid:Option[Any] = None,
-                          val isflipped:Boolean = false) extends CT2[T1,T2] {
+                          val isflipped:Boolean = false) extends CT2 {
+
+  override type typeA = T1
+  override type typeB = T2
 
   override def n12   = n1dot - n11
   override def n21   = ndot1 - n11

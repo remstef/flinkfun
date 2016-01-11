@@ -26,7 +26,7 @@ import scala.reflect._
   */
 object ComputeCT2 {
 
-  def apply[CIN <: CT2[T1, T2] : ClassTag : TypeInformation, COUT <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new ComputeCT2[CIN, COUT,T1,T2]()
+  def apply[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new ComputeCT2[CIN, COUT,T1,T2]()
 
   def fromCT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = { N11Sum.toCT2withN[T1,T2] ~>  fromCT2withPartialN[T1,T2] }
 
@@ -34,7 +34,7 @@ object ComputeCT2 {
 
 }
 
-class ComputeCT2[CIN <: CT2[T1, T2] : ClassTag : TypeInformation, COUT <: CT2[T1, T2] : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CIN,COUT] {
+class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CIN,COUT] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CIN] = lineDS.map(CtFromString[CIN,T1,T2](_))
 

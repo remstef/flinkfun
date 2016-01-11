@@ -35,7 +35,7 @@ import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, Byt
  * !!!! n.. must be always at least max{ n1. + (n.1 - n11), n.1 + (n1. - n11) }, when setting n11 to 0 -> (n1. + (n.1 - n11)) == (n.1 + (n1. - n11)) !!!!
  *
  */
-abstract class CT2[T1, T2](implicit val ordering:Ordering[CT2[T1,T2]]) extends Serializable with Ordered[CT2[T1,T2]] with Cloneable {
+abstract class CT2(implicit val ordering:Ordering[CT2]) extends Serializable with Ordered[CT2] with Cloneable {
 
   // TODO: think about : https://twitter.github.io/scala_school/advanced-types.html
   //  scala> trait Foo[M[_]] { type t[A] = M[A] }
@@ -49,9 +49,11 @@ abstract class CT2[T1, T2](implicit val ordering:Ordering[CT2[T1,T2]]) extends S
   // scala> class Bar[T1](val a:T1) extends Foo {type t1=T1}
   // scala> val x:Foo = new Bar("hello")
 
+  type typeA
+  type typeB
 
-  def a:T1
-  def b:T2
+  def a:typeA
+  def b:typeB
 
   def n11:Float
   def n1dot:Float
@@ -130,7 +132,7 @@ abstract class CT2[T1, T2](implicit val ordering:Ordering[CT2[T1,T2]]) extends S
 """
   }
 
-  override def compare(that: CT2[T1, T2]): Int = ordering.compare(this,that)
+  override def compare(that: CT2): Int = ordering.compare(this,that)
 
   def copyClone():this.type = clone().asInstanceOf[this.type]
 

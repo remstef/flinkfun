@@ -31,22 +31,22 @@ object Convert {
 
   object Hash {
 
-    def StringSha256[CIN <: CT2[T1, T2] : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation, COUT <: CT2[Array[Byte], Array[Byte]] : ClassTag : TypeInformation](keymap_location: String) = {
+    def StringSha256[CIN <: CT2 : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation](keymap_location: String) = {
       val hf: Any => Array[Byte] = t => HashUtils.string_hash_sha256(t.toString)
       new Convert__Hash[CIN, T1, T2, COUT](hf, hf, keymap_location)
     }
 
-    def StringHashCode[CIN <: CT2[T1, T2] : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation, COUT <: CT2[Array[Byte], Array[Byte]] : ClassTag : TypeInformation](keymap_location: String) = {
+    def StringHashCode[CIN <: CT2 : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation](keymap_location: String) = {
       val hf: Any => Array[Byte] = t => HashUtils.decodeHexString(Integer.toHexString(t.toString.hashCode))
       new Convert__Hash[CIN, T1, T2, COUT](hf, hf, keymap_location)
     }
 
-    def StringMurmur3_32bit[CIN <: CT2[T1, T2] : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation, COUT <: CT2[Array[Byte], Array[Byte]] : ClassTag : TypeInformation](keymap_location: String) = {
+    def StringMurmur3_32bit[CIN <: CT2 : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation](keymap_location: String) = {
       val hf: Any => Array[Byte] = t => HashUtils.decodeHexString(Integer.toHexString(HashUtils.string_hash_murmur3_32bit(t.toString)))
       new Convert__Hash[CIN, T1, T2, COUT](hf, hf, keymap_location)
     }
 
-    def Reverse[CIN <: CT2[Array[Byte], Array[Byte]] : ClassTag : TypeInformation, COUT <: CT2[T1, T2] : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation](keymap_location: String) = {
+    def Reverse[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation](keymap_location: String) = {
       new ReverseConversion[CIN, COUT, T1, T2](keymap_location)
     }
 
@@ -55,15 +55,15 @@ object Convert {
 }
 
 
-class Convert__Hash[CIN <: CT2[T1, T2] : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation, COUT <: CT2[Array[Byte], Array[Byte]] : ClassTag : TypeInformation](hashfunA: T1 => Array[Byte], hashfunB: T2 => Array[Byte], keymap_outputlocation: String) extends DSTask[CIN, COUT] {
+class Convert__Hash[CIN <: CT2 : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation](hashfunA: T1 => Array[Byte], hashfunB: T2 => Array[Byte], keymap_outputlocation: String) extends DSTask[CIN, COUT] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CIN] = lineDS.map(CtFromString[CIN, T1, T2](_))
 
   override def process(ds: DataSet[CIN]): DataSet[COUT] = {
 
     val mapStringCtToByteArray = ds.map(ct => {
-      val id_A: Array[Byte] = hashfunA(ct.a)
-      val id_B: Array[Byte] = hashfunB(ct.b)
+      val id_A: Array[Byte] = hashfunA(ct.a.asInstanceOf[T1])
+      val id_B: Array[Byte] = hashfunB(ct.b.asInstanceOf[T2])
       val newct = getNewCT(ct, id_A, id_B)
       (newct, Seq((ct.a, id_A), (ct.b, id_B)))
     })
@@ -98,7 +98,7 @@ class Convert__Hash[CIN <: CT2[T1, T2] : ClassTag : TypeInformation, T1: ClassTa
 }
 
 
-class ReverseConversion[CIN <: CT2[Array[Byte], Array[Byte]] : ClassTag : TypeInformation, COUT <: CT2[T1, T2] : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation](keymap_location: String) extends DSTask[CIN, COUT] {
+class ReverseConversion[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation](keymap_location: String) extends DSTask[CIN, COUT] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[CIN] = lineDS.map(CtFromString[CIN, Array[Byte], Array[Byte]](_))
 

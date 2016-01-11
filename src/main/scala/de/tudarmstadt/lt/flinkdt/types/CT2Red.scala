@@ -19,7 +19,10 @@ import de.tudarmstadt.lt.flinkdt.StringConvert._
 @SerialVersionUID(42L)
 case class CT2red[T1, T2](var a:T1,
                           var b:T2,
-                          var n11:Float = 1f) extends CT2[T1,T2] {
+                          var n11:Float = 1f) extends CT2 {
+
+  override type typeA = T1
+  override type typeB = T2
 
   override def n1dot: Float = n11
   override def ndot1: Float = n11
