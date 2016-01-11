@@ -56,12 +56,12 @@ object FullDT extends App {
         ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]()
       }
 
-//    val preprocessing_chain =
-//      if(hash) { string_preprocessing_chain ~> Convert.HashCT2Types.StringSha256(DSTaskConfig.out_keymap) }
-//      else
-//        string_preprocessing_chain
+    val preprocessing_chain =
+      if(hash) { string_preprocessing_chain ~> Convert.Hash.StringSha256[CT2ext[String,String], String, String, CT2ext[Array[Byte], Array[Byte]]](DSTaskConfig.out_keymap) }
+      else
+        string_preprocessing_chain
 
-    string_preprocessing_chain.process(env, input = in, output = DSTaskConfig.out_accumulated_CT)
+    preprocessing_chain.process(env, input = in, output = DSTaskConfig.out_accumulated_CT)
 
     env.execute(s"${DSTaskConfig.jobname}-preprocess")
     env.startNewSession()
@@ -73,9 +73,9 @@ object FullDT extends App {
 
     val string_post_processing = FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
 
-//    val postprocessing_chain =
-//      if(hash){ Convert.HashCT2MinTypes.Reverse[String, String](env, DSTaskConfig.out_keymap) ~> string_post_processing }
-//      else string_post_processing
+    val postprocessing_chain =
+      if(hash){ Convert.Hash.Reverse[CT2red[Array[Byte], Array[Byte]], CT2red[String,String], String, String](DSTaskConfig.out_keymap) ~> string_post_processing }
+      else string_post_processing
 
     string_post_processing.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
 

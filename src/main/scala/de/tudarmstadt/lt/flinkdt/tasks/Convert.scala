@@ -89,8 +89,8 @@ class Convert__Hash[CIN <: CT2 : ClassTag : TypeInformation, T1: ClassTag : Type
   def getNewCT(ct: CIN, newA: Array[Byte], newB: Array[Byte]): COUT = {
     // go the easy way via serialization and deserialization
     val serialized = ct.toStringArray()
-    serialized(1) = StringConvert.convert_toString(newA)
-    serialized(2) = StringConvert.convert_toString(newB)
+    serialized(0) = StringConvert.convert_toString(newA)
+    serialized(1) = StringConvert.convert_toString(newB)
     val deserialized = CtFromString.fromStringArray[COUT, Array[Byte], Array[Byte]](serialized)
     return deserialized
   }
@@ -119,8 +119,8 @@ class ReverseConversion[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : C
   def getNewCT(ct: CIN, newA: String, newB: String): COUT = {
     // go the easy way via serialization and deserialization
     val serialized = ct.toStringArray()
-    serialized(1) = StringConvert.convert_toString(newA)
-    serialized(2) = StringConvert.convert_toString(newB)
+    serialized(0) = StringConvert.convert_toString(newA)
+    serialized(1) = StringConvert.convert_toString(newB)
     val deserialized = CtFromString.fromStringArray[COUT, T1, T2](serialized)
     return deserialized
   }
