@@ -77,7 +77,7 @@ object FullDT extends App {
       if(hash){ Convert.Hash.Reverse[CT2red[Array[Byte], Array[Byte]], CT2red[String,String], String, String](DSTaskConfig.out_keymap) ~> string_post_processing }
       else string_post_processing
 
-    string_post_processing.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
+    postprocessing_chain.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
 
     env.execute(s"${DSTaskConfig.jobname}-postprocess")
 
