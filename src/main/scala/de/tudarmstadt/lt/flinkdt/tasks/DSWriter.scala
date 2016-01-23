@@ -39,13 +39,10 @@ class DSWriter[T : ClassTag : TypeInformation](out:String) extends DSTask[T,T] {
   override def process(ds: DataSet[T]): DataSet[T] = {
     if (out == null)
       return ds
-    val o = ds
-      .map(_.toString)
-      .map(Tuple1(_))
     if(out == "stdout")
-      o.print()
+      ds.print() // calls x.toString()
     else
-      o.writeAsCsv(out, "\n", "\t", writeMode = FileSystem.WriteMode.OVERWRITE)
+      ds.writeAsText(out, writeMode = FileSystem.WriteMode.OVERWRITE) // calls x.toString()
     ds
   }
 
