@@ -1,6 +1,7 @@
 package de.tudarmstadt.lt.flinkdt
 
 import de.tudarmstadt.lt.flinkdt.tasks.DSTaskConfig
+import de.tudarmstadt.lt.flinkdt.textutils.TextToCT2
 import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2red}
 
 import scala.collection.mutable

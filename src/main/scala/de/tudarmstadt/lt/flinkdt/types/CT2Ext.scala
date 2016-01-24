@@ -16,7 +16,8 @@
 
 package de.tudarmstadt.lt.flinkdt.types
 
-import de.tudarmstadt.lt.flinkdt.StringConvert._
+import de.tudarmstadt.lt.flinkdt.textutils.StringConvert
+import StringConvert._
 
 import scala.math._
 

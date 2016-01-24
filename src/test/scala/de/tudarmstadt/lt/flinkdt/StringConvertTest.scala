@@ -16,8 +16,6 @@
 
 package de.tudarmstadt.lt.flinkdt
 
-import scala.reflect.ClassTag
-
 /**
   * Created by Steffen Remus.
   */

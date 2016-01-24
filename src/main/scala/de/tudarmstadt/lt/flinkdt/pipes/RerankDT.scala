@@ -25,8 +25,6 @@ import org.apache.flink.api.scala._
   */
 object RerankDT extends App {
 
-
-
   DSTaskConfig.load(args, getClass.getSimpleName.replaceAllLiterally("$",""))
 
   // set up the execution environment

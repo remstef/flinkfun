@@ -1,7 +1,6 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
 import de.tudarmstadt.lt.flinkdt.types.CT2red
-import de.tudarmstadt.lt.flinkdt.{TextToCT2}
 import org.apache.flink.api.scala._
 
 /**

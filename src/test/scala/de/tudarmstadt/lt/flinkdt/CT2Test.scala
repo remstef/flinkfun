@@ -1,5 +1,6 @@
 package de.tudarmstadt.lt.flinkdt
 
+import de.tudarmstadt.lt.flinkdt.textutils.TextToCT2
 import de.tudarmstadt.lt.flinkdt.types.{CT2red, CT2ext, CT2def}
 import org.scalatest.FunSuite
 

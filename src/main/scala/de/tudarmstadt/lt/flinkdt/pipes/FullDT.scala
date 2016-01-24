@@ -17,7 +17,8 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CtFromString, CT2def, CT2red}
+import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
+import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2def, CT2red}
 import de.tudarmstadt.lt.flinkdt.{Util}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._

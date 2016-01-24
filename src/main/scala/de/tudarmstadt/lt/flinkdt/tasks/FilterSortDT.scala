@@ -1,6 +1,7 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CtFromString, CT2}
+import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
+import de.tudarmstadt.lt.flinkdt.types.CT2
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._

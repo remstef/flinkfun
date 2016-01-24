@@ -16,8 +16,8 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
+import de.tudarmstadt.lt.flinkdt.textutils.{CtFromString, StringConvert}
 import de.tudarmstadt.lt.flinkdt.types._
-import de.tudarmstadt.lt.flinkdt.{StringConvert}
 import de.tudarmstadt.lt.utilities.HashUtils
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._

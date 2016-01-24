@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2015
+ *  Copyright (c) 2016
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package de.tudarmstadt.lt.flinkdt
+package de.tudarmstadt.lt.flinkdt.textutils
 
 import de.tudarmstadt.lt.flinkdt.types.CT2red
 import de.tudarmstadt.lt.scalautils.PatGen
@@ -25,6 +25,11 @@ import de.tudarmstadt.lt.scalautils.PatGen
 object TextToCT2 {
 
   implicit val wildcard = "*"
+
+  def coocurrence(text:String): TraversableOnce[CT2red[String,String]] = {
+    val seq = text.split("\\s+").toSeq
+    for(w1 <- seq; w2 <- seq if w1 != w2) yield CT2red(w1, w2)
+  }
 
   def ngrams(text:String, n:Int=5): TraversableOnce[CT2red[String,String]] = {
     val nh = Math.max(1,n/2)

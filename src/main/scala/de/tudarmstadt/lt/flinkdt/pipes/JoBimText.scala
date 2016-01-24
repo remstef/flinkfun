@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2red}
-import de.tudarmstadt.lt.flinkdt.{Util,TextToCT2}
+import de.tudarmstadt.lt.flinkdt.Util
 import de.tudarmstadt.lt.flinkdt.tasks._
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation

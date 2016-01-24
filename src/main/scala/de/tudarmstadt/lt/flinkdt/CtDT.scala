@@ -3,6 +3,7 @@ package de.tudarmstadt.lt.flinkdt
 import java.io.File
 
 import com.typesafe.config.{Config, ConfigFactory}
+import de.tudarmstadt.lt.flinkdt.textutils.TextToCT2
 import de.tudarmstadt.lt.flinkdt.types._
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala._

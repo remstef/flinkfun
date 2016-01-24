@@ -45,6 +45,7 @@ under the License.
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<scala.version>2.10.4</scala.version>
 	</properties>
 
 	<!-- 

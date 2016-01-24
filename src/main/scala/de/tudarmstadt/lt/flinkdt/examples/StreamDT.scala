@@ -1,4 +1,20 @@
-package de.tudarmstadt.lt.flinkdt
+/*
+ *  Copyright (c) 2016
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+package de.tudarmstadt.lt.flinkdt.examples
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -18,7 +34,13 @@ package de.tudarmstadt.lt.flinkdt
  * limitations under the License.
  */
 
+import java.util.concurrent.TimeUnit
+
+import de.tudarmstadt.lt.flinkdt.textutils.TextToCT2
+import de.tudarmstadt.lt.flinkdt.types.CT2red
 import org.apache.flink.streaming.api.scala._
+import org.apache.flink.streaming.api.windowing.assigners.{TumblingTimeWindows, SlidingTimeWindows}
+import org.apache.flink.streaming.api.windowing.time.Time
 
 /**
  * This example shows an implementation of WordCount with data from a text socket.
@@ -42,13 +64,9 @@ import org.apache.flink.streaming.api.scala._
  *   - write a simple Flink Streaming program in scala.
  *   - write and use user-defined functions.
  */
-object SocketTextStreamWordCount {
+object StreamDT {
 
   def main(args: Array[String]) {
-//    if (args.length != 2) {
-//      System.err.println("USAGE:\nSocketTextStreamWordCount <hostname> <port>")
-//      return
-//    }
 
     val hostName = "localhost" //args(0)
     val port = 9999 //args(1).toInt
@@ -57,29 +75,28 @@ object SocketTextStreamWordCount {
 
     //Create streams for names and ages by mapping the inputs to the corresponding objects
     val text = env.socketTextStream(hostName, port)
-    val jobims = text.flatMap(_.split("\\W+").sliding(3).map(x => (x(1), x(0) + " @ "  + x(2))))
 
-    val cooc = jobims.map((_, 1))
-      .keyBy(0)
-      .sum(1)
+    val ct2s = text.flatMap(TextToCT2.coocurrence(_))
 
-    val occ_jo = jobims.map(x=>(x._1, 1))
-      .keyBy(0)
-      .sum(1)
+    val occ = ct2s.keyBy(_.b)
 
-    val occ_bim = jobims.map( x => (x._2, 1))
-      .keyBy(0)
-      .sum(1)
+    occ.map("jobim: " + _.toString()).print()
 
-    val join = cooc
-//      .map( x => (x._1._1, (x._1._2, x._2)))
-//      .join(occ_jo).onWindow(30, TimeUnit.SECONDS).every(5, TimeUnit.SECONDS).where(0).equalTo(0){(c1, c2) => (c1._1, c1._2._1, c1._2._2, c2._2)}
-//      .map(x=>(x._2, (x._1, x._3, x._4)))
-//      .join(occ_bim).onWindow(2, TimeUnit.SECONDS).every(5, TimeUnit.SECONDS).where(0).equalTo(0){(c1,c2) => (c1._2._1, c1._1, c1._2._2, c1._2._3, c2._2)}
+    val join = occ
+      .join(occ).where(_.b).equalTo(_.b)
+//      .window(SlidingTimeWindows.of(Time.of(10, TimeUnit.SECONDS), Time.of(10, TimeUnit.SECONDS)))
+      .window(TumblingTimeWindows.of(Time.seconds(10)))
+      .apply { (l, r) => CT2red(l.a, r.a) }
 
+    val dt = join
+      .keyBy("a","b")
+      .sum("n11")
 
-      join.print()
+    dt//.filter(_.n11 > 1)
+      .map("dtentry: " + _.toString())
+      .print()
 
+    println("---")
 
     env.execute("Scala SocketTextStreamWordCount Example")
   }

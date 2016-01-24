@@ -1,6 +1,7 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.types.{CT2, CtFromString, CT2def, CT2red}
+import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
+import de.tudarmstadt.lt.flinkdt.types.{CT2, CT2def, CT2red}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.util.Collector

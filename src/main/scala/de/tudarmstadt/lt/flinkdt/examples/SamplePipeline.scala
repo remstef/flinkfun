@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015
+ *  Copyright (c) 2016
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  *  limitations under the License.
  */
 
-package de.tudarmstadt.lt.flinkdt.pipes
+package de.tudarmstadt.lt.flinkdt.examples
 
 import de.tudarmstadt.lt.flinkdt.tasks._
+import de.tudarmstadt.lt.flinkdt.textutils.TextToCT2
 import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2red}
-import de.tudarmstadt.lt.flinkdt.{TextToCT2}
 import org.apache.flink.api.scala._
 
 /**
