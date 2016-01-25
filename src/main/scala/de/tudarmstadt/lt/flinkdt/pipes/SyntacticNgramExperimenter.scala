@@ -68,7 +68,10 @@ object SyntacticNgramExperimenter extends App {
      FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
    }
 
-  full_dt_pipeline.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
+  if(args.contains("full"))
+    full_dt_pipeline.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
+  else
+    default_jobimtext_pipeline.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
 
   env.execute(DSTaskConfig.jobname)
 
