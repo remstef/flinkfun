@@ -28,6 +28,7 @@ import scala.reflect.ClassTag
 /**
   * Created by Steffen Remus
   */
+@deprecated
 object ComputeSignificance {
 
   def fromCT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation]() = new Sig__from_CT2Min[T1,T2]()
@@ -50,6 +51,7 @@ object ComputeSignificanceFiltered {
   * @tparam T1
   * @tparam T2
   */
+@deprecated
 class Sig_from_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2def[T1,T2],(CT2def[T1,T2], Float)] {
 
   @transient
@@ -72,6 +74,7 @@ class Sig_from_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : 
   * @tparam T1
   * @tparam T2
   */
+@deprecated
 class Sig__from_CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2red[T1,T2],(CT2def[T1,T2], Float)] {
 
   @transient
@@ -121,7 +124,7 @@ class SigFilter_from_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : Class
       .filter(_._2 >= DSTaskConfig.param_min_sig)
       .groupBy("_1.a")
       .sortGroup("_2", Order.DESCENDING)
-      .first(DSTaskConfig.param_topn_f)
+      .first(DSTaskConfig.param_topn_sig)
       .map(_._1)
 
     ct_all_filtered

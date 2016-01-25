@@ -39,13 +39,18 @@ object SyntacticNgramExperimenter extends App {
 
   val default_jobimtext_pipeline = {
       /*  */
-      N11Sum.toCT2withN[String,String]() ~>
-        DSWriter(DSTaskConfig.out_accumulated_AB) ~>
-      /*  */
-      ComputeSignificanceFiltered.fromCT2withPartialN[String,String](sigfun = _.lmi) ~>
+//      N11Sum.toCT2withN[String,String]() ~>
+//        DSWriter(DSTaskConfig.out_accumulated_AB) ~>
+//      /*  */
+//      ComputeSignificanceFiltered.fromCT2withPartialN[String,String](sigfun = _.lmi) ~>
+//        DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+      ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]() ~>
         DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       /*  */
-      ComputeDTSimplified.byJoin[CT2def[String,String],String,String]() ~>
+      Prune[CT2ext[String, String], String, String](sigfun = _.lmi_n) ~>
+        DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+        /*  */
+      ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
         DSWriter(DSTaskConfig.out_dt) ~>
       /*  */
       FilterSortDT[CT2red[String,String],String, String](_.n11)

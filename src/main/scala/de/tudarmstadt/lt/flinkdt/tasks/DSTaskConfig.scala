@@ -28,13 +28,13 @@ package de.tudarmstadt.lt.flinkdt.tasks
   * min_odot1    == -wpfmin  (2)
   *
   * min_sig      == -s       (0)
-  * topn_f       == -p       (1000)
-  * topn_s       == -t       (200)
+  * topn_sig     == -p       (1000)
+  * topn_sim     == -t       (200)
   * min_sim      == -ms      (2)
   *
-  * exclusively for jbtct:
+  * exclusively for flinkdt:
   * min_sim_distinct    (2) // number of distinct similar entries including the Jo itself
-  * [min_docs           (1)]
+  * [min_docs           (1)] // TODO:
   *
   */
 @SerialVersionUID(42l)
@@ -49,11 +49,11 @@ object DSTaskConfig extends Serializable{
   var param_max_odot1:Float                 = 1000f
 
   var param_min_sig:Float                   = 0f
-  var param_topn_f:Int                      = 1000
+  var param_topn_sig:Int                    = 1000
 
   var param_min_sim:Float                   = 2f
-  var param_min_sim_ndistinct:Int           = 2
-  var param_topn_s:Int                      = 200
+  var param_min_sim_distinct:Int            = 2
+  var param_topn_sim:Int                    = 200
 
   var jobname:String                        = "flinkjob"
 
@@ -120,10 +120,10 @@ object DSTaskConfig extends Serializable{
     param_max_odot1         = config_filter.getDouble("max-odot1").toFloat
 
     param_min_sig           = config_filter.getDouble("min-sig").toFloat
-    param_topn_f            = config_filter.getInt("topn-f")
+    param_topn_sig            = config_filter.getInt("topn-sig")
     param_min_sim           = config_filter.getDouble("min-sim").toFloat
-    param_min_sim_ndistinct = config_filter.getInt("min-sim-ndistinct")
-    param_topn_s            = config_filter.getInt("topn-s")
+    param_min_sim_distinct = config_filter.getInt("min-sim-distinct")
+    param_topn_sim            = config_filter.getInt("topn-sim")
 
   }
 

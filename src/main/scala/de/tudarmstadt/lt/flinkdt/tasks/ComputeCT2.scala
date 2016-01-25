@@ -41,71 +41,90 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
 
   override def process(ds: DataSet[CIN]): DataSet[COUT] = classTag[CIN] match {
     case t if t == classTag[CT2red[T1,T2]] => process_CT2red(ds.asInstanceOf[DataSet[CT2red[T1,T2]]])
-    case t if t == classTag[CT2def[T1,T2]] => ???
+    case t if t == classTag[CT2def[T1,T2]] => process_CT2def(ds.asInstanceOf[DataSet[CT2def[T1,T2]]])
     case t if t == classTag[CT2ext[T1,T2]] => ???
   }
-
 
   def process_CT2red(ds: DataSet[CT2red[T1,T2]]) : DataSet[COUT] = {
     classTag[COUT] match {
       case t if t == classTag[CT2red[T1,T2]] => ds.groupBy("a","b").sum("n11").asInstanceOf[DataSet[COUT]]
-      case t if t == classTag[CT2def[T1,T2]] => ???
+      case t if t == classTag[CT2def[T1,T2]] => process_CT2def_complete(ds.map(_.asCT2def())).asInstanceOf[DataSet[COUT]]
       case t if t == classTag[CT2ext[T1,T2]] => process_CT2ext__complete(ds.map(_.asCT2ext())).asInstanceOf[DataSet[COUT]]
     }
-
   }
 
-  def process_complete_CT2def(ds: DataSet[CT2def[T1,T2]]) : DataSet[CT2def[T1,T2]] = {
+  def process_CT2def(ds: DataSet[CT2def[T1,T2]]) : DataSet[COUT] = {
+    classTag[COUT] match {
+      case t if t == classTag[CT2red[T1,T2]] => ???
+      case t if t == classTag[CT2def[T1,T2]] => process_CT2def_complete(ds).asInstanceOf[DataSet[COUT]]
+      case t if t == classTag[CT2ext[T1,T2]] => process_CT2ext__complete(ds.map(_.asCT2ext())).asInstanceOf[DataSet[COUT]]
+    }
+  }
 
-    val ct_accumulated_A = ds
+  def process_CT2def_complete(ds: DataSet[CT2def[T1,T2]]) : DataSet[CT2def[T1,T2]] = {
+
+    val n11 = ds
+      .groupBy("a","b")
+      .sum("n11")
+
+    val n = n11.map(ct => {ct.n = ct.n11; ct}).reduce((l,r) => {l.n += r.n; l}) //.sum("n")
+
+    val n1dot = n11
+      .map(ct => {ct.n1dot = ct.n11; ct})
       .groupBy("a")
-      .sum("n1dot")
+      .reduce((l,r) => {l.n1dot += r.n1dot; l}) // .sum("n1dot")
 
-    val ct_accumulated_B = ds
+    val ndot1 = n11
+      .map(ct => {ct.ndot1 = ct.n11; ct})
       .groupBy("b")
-      .sum("ndot1")
+      .reduce((l,r) => {l.ndot1 += r.ndot1; l}) // .sum("ndot1")
 
-    val cts_joined = ds
-      .join(ct_accumulated_A)
+    var joined = n11
+      .join(n1dot)
       .where("a").equalTo("a"){(l, r) => { l.n1dot = r.n1dot; l }}
-      .join(ct_accumulated_B)
+      .join(ndot1)
       .where("b").equalTo("b"){(l, r) => { l.ndot1 = r.ndot1; l }}
 
-    cts_joined
+    joined = joined
+      .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct}}.withForwardedFieldsFirst("*").withForwardedFieldsSecond("n->n; on->on")
+
+    joined
 
   }
 
   def process_CT2ext__complete(ds: DataSet[CT2ext[T1,T2]]) : DataSet[CT2ext[T1,T2]] = {
 
-//    val ct_accumulated_AB = ds // process_CT2red(ds.asInstanceOf[DataSet[C]]).asInstanceOf[DataSet[CT2ext[T1,T2]]]
-
-    val ct_accumulated_AB = ds
+    val n11 = ds
       .groupBy("a","b")
       .sum("n11")
 
-    val ct_accumulated_A = ct_accumulated_AB
+    val n = n11.map(ct => {ct.n = ct.n11; ct.on = 1f; ct}).reduce((l,r) => {l.n += r.n; l.on += r.on; l})
+
+    val n1dot = n11
+      .map(ct => {ct.n1dot = ct.n11; ct.o1dot = 1f; ct})
       .groupBy("a")
       .reduce((l,r) => {l.n1dot += r.n1dot; l.o1dot += r.o1dot; l}) // .sum("n1dot, o1dot")
 
-    val ct_accumulated_B = ct_accumulated_AB
+    val ndot1 = n11
+      .map(ct => {ct.ndot1 = ct.n11; ct.odot1 = 1f; ct})
       .groupBy("b")
       .reduce((l,r) => {l.ndot1 += r.ndot1; l.odot1 += r.odot1; l}) // .sum("ndot1, odot1")
 
-    val cts_joined = ct_accumulated_AB
-      .join(ct_accumulated_A)
+    var joined = n11
+      .join(n1dot)
       .where("a").equalTo("a"){(l, r) => { l.n1dot = r.n1dot; l.o1dot = r.o1dot; l }}
-      .join(ct_accumulated_B)
+      .join(ndot1)
       .where("b").equalTo("b"){(l, r) => { l.ndot1 = r.ndot1; l.odot1 = r.odot1; l }}
 
-    val n = cts_joined.map(ct => {ct.n = ct.n11; ct.on = 1f; ct}).reduce((l,r) => {l.n += r.n; l.on += r.on; l})
-    val cts_joined_sum = cts_joined
+    joined = joined
       .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct.on = n.on; ct}}.withForwardedFieldsFirst("*").withForwardedFieldsSecond("n->n; on->on")
 
-    cts_joined_sum
+    joined
 
   }
 
 }
+
 
 @deprecated
 class From_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[CT2def[T1,T2], CT2def[T1,T2]] {
