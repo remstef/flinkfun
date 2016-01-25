@@ -17,11 +17,15 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2red}
+import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
+import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2def, CT2red}
 import org.apache.flink.api.scala._
 
 /**
   * Created by Steffen Remus
+  *
+  * // temp/flink-0.10.1-hadoop26-scala_2.11/bin/flink run -m yarn-cluster -yn 192 -ys 1 -ytm 2048 -yqu shortrunning -c de.tudarmstadt.lt.flinkdt.pipes.SyntacticNgramExperimenter target/flinkdt-0.1.jar googlesyntactics-app.conf
+  *
   */
 object SyntacticNgramExperimenter extends App {
 
@@ -33,7 +37,7 @@ object SyntacticNgramExperimenter extends App {
   // get input data
   val in = DSTaskConfig.in_text
 
-  val ds = {
+  val default_jobimtext_pipeline = {
       /*  */
       N11Sum.toCT2withN[String,String]() ~>
         DSWriter(DSTaskConfig.out_accumulated_AB) ~>
@@ -46,9 +50,26 @@ object SyntacticNgramExperimenter extends App {
       /*  */
       FilterSortDT[CT2red[String,String],String, String](_.n11)
     /*  */
-  }.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
+  }
+
+   val full_dt_pipeline = {
+     /*  */
+     ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]() ~>
+       DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+     /* */
+     DSTask(
+       CtFromString[CT2ext[String,String],String,String](_),
+       ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) }
+     ) ~>
+     /* */
+     ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
+       DSWriter(DSTaskConfig.out_dt) ~>
+     /* */
+     FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
+   }
+
+  full_dt_pipeline.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
 
   env.execute(DSTaskConfig.jobname)
-
 
 }
