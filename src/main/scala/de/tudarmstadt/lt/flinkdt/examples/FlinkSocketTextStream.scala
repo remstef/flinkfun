@@ -40,7 +40,7 @@ import org.apache.flink.streaming.api.scala._
   *   - write a simple Flink Streaming program in scala.
   *   - write and use user-defined functions.
   */
-object SocketTextStreamWordCount {
+object FlinkSocketTextStream {
 
   def main(args: Array[String]) {
     if (args.length != 2) {
