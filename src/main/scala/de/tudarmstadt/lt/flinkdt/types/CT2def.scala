@@ -169,7 +169,7 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
     Array(t._1, t._2, t._3, t._4, t._5, t._6, t._7, t._8, t._9)
   }
 
-  def CT2Min() = CT2red[T1,T2](a,b,n11)
+  def asCT2red() = CT2red[T1,T2](a,b,n11)
 
   def asCT2ext(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11, o1dot:Float=1f, odot1:Float=1f, on:Float=1f):CT2ext[T1,T2] = CT2ext(a,b,n11,n1dot,ndot1,n,o1dot,odot1,on)
 

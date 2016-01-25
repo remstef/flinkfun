@@ -95,7 +95,7 @@ class WhiteListFilter__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : T
 
   override def process(ds: DataSet[CT2red[T1,T2]]): DataSet[CT2red[T1,T2]] = {
     val ds_ct2:DataSet[CT2def[T1, T2]] = ds.map(_.asCT2def())
-    whitelistFilterWrapped.process(ds_ct2).map(_.toCT2Min())
+    whitelistFilterWrapped.process(ds_ct2).map(_.asCT2red())
   }
 
 }

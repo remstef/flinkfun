@@ -19,6 +19,7 @@ package de.tudarmstadt.lt.flinkdt.pipes
 import de.tudarmstadt.lt.flinkdt.tasks._
 import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2def, CT2red}
+import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala._
 
 /**
@@ -47,7 +48,7 @@ object SyntacticNgramExperimenter extends App {
       ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]() ~>
         DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       /*  */
-      Prune[CT2ext[String, String], String, String](sigfun = _.lmi_n) ~>
+      Prune[String, String](sigfun = _.lmi_n, Order.DESCENDING) ~>
         DSWriter(DSTaskConfig.out_accumulated_CT) ~>
         /*  */
       ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>

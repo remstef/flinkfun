@@ -17,12 +17,10 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
 import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
-import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2}
+import de.tudarmstadt.lt.flinkdt.types.{CT2ext}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.core.fs.FileSystem
 import org.apache.flink.api.scala._
-import org.apache.flink.util.Collector
 
 import scala.reflect.ClassTag
 
@@ -31,16 +29,16 @@ import scala.reflect.ClassTag
   */
 object Prune {
 
-  def apply[C <: CT2ext : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:C => Float, order:Order = Order.DESCENDING) = new Prune[C, T1, T2](sigfun, order)
+  def apply[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:CT2ext[T1,T2] => Float, order:Order = Order.DESCENDING) = new Prune[T1, T2](sigfun, order)
 
 }
 
 
-class Prune[C <: CT2ext : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:(C => Float), order:Order) extends DSTask[C, C] {
+class Prune[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:(CT2ext[T1,T2] => Float), order:Order) extends DSTask[CT2ext[T1,T2], CT2ext[T1,T2]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
+  override def fromLines(lineDS: DataSet[String]): DataSet[CT2ext[T1,T2]] = lineDS.map(CtFromString[CT2ext[T1,T2],T1,T2](_))
 
-  override def process(ds: DataSet[C]): DataSet[C] = {
+  override def process(ds: DataSet[CT2ext[T1,T2]]): DataSet[CT2ext[T1,T2]] = {
 
     var dsf = ds
       .filter(_.n11 >= DSTaskConfig.param_min_n11)
