@@ -48,7 +48,7 @@ object SyntacticNgramExperimenter extends App {
       ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]() ~>
         DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       /*  */
-      Prune[String, String](sigfun = _.lmi_n, Order.DESCENDING) ~>
+      Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~>
         DSWriter(DSTaskConfig.out_accumulated_CT) ~>
         /*  */
       ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>

@@ -34,8 +34,8 @@ env.setParallelism(Int.MaxValue)
 // filter
 // ct.filter(_.a == "xyz")
 
-// sort globally by arbitrary value
-// ct.map(c => (1, c.lmi_n, c)).groupBy(0).sortGroup(1, Order.DESCENDING).map(_._3)
+// sort globally by arbitrary value, e.g. top 100 by lmi
+// ct.map(c => (1, c.lmi_n, c)).filter(_._2 >= 0).groupBy(0).sortGroup(1, Order.ASCENDING).first(100).map(_._3)
 
 // compute CT2
 //val ctp = ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]().process(ct)

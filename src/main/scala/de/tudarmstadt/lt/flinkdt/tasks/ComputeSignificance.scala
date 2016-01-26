@@ -123,7 +123,7 @@ class SigFilter_from_CT2withPartialN[T1 : ClassTag : TypeInformation, T2 : Class
     val ct_all_filtered = ct_all
       .filter(_._2 >= DSTaskConfig.param_min_sig)
       .groupBy("_1.a")
-      .sortGroup("_2", Order.DESCENDING)
+      .sortGroup("_2", Order.ASCENDING)
       .first(DSTaskConfig.param_topn_sig)
       .map(_._1)
 

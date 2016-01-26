@@ -29,7 +29,7 @@ import scala.reflect.ClassTag
   */
 object Prune {
 
-  def apply[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:CT2ext[T1,T2] => Float, order:Order = Order.DESCENDING) = new Prune[T1, T2](sigfun, order)
+  def apply[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:CT2ext[T1,T2] => Float, order:Order = Order.ASCENDING) = new Prune[T1, T2](sigfun, order)
 
 }
 
@@ -54,6 +54,7 @@ class Prune[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](si
       .map(_._1)
 
     dsf
+
   }
 
 }
