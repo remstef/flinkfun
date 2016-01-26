@@ -16,6 +16,8 @@
 
 package de.tudarmstadt.lt.flinkdt
 
+import org.apache.flink.types.StringValue
+
 /**
   * Created by Steffen Remus.
   */
@@ -34,9 +36,9 @@ class StringConvertTest {
   }
 
   def conv(x:Any) = x match {
-    case t if t == classOf[String] => "bu"
-    case t if x.isInstanceOf[Number] => "bo"
-    case t if x.isInstanceOf[Array[Byte]] => "yay"
+    case t:CharSequence => "buhuhu"
+    case t:Number => "bo"
+    case t:Array[Byte] => "yay"
 
     case _ => x.toString
   }
@@ -48,11 +50,14 @@ class StringConvertTest {
     val c:Int = 1010000000
     println(c.asString())
     val d:Array[Byte] = Array(1.toByte,2.toByte,3.toByte)
+    val e:StringValue = new StringValue("hellö")
 
     println(conv(a))
     println(conv(b))
     println(conv(c))
     println(conv(d))
+    println(conv(e))
+
 
     println(a.getClass)
     println(b.getClass)

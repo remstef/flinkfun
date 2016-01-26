@@ -41,8 +41,8 @@ object StringConvert {
   }
 
   def convert_toString(x:Any) =  x match {
-    case _ if x.isInstanceOf[Number] => FormatUtils.format(x.asInstanceOf[Number])
-    case _ if x.isInstanceOf[Array[Byte]] => HashUtils.encodeHexString(x.asInstanceOf[Array[Byte]])
+    case t:Number => FormatUtils.format(x.asInstanceOf[Number])
+    case t:Array[Byte] => HashUtils.encodeHexString(x.asInstanceOf[Array[Byte]])
     case _ => x.toString()
   }
 

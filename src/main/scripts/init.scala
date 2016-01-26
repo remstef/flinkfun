@@ -19,6 +19,7 @@ import de.tudarmstadt.lt.flinkdt.examples._
 // set parallelism to maximum
 ///
 env.setParallelism(Int.MaxValue)
+println("increased parallelism to maximum")
 
 ///
 // useful commands
