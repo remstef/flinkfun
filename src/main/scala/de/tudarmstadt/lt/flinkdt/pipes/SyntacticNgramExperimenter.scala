@@ -25,7 +25,7 @@ import org.apache.flink.api.scala._
 /**
   * Created by Steffen Remus
   *
-  * // temp/flink-0.10.1-hadoop26-scala_2.11/bin/flink run -m yarn-cluster -yn 192 -ys 1 -ytm 2048 -yqu shortrunning -c de.tudarmstadt.lt.flinkdt.pipes.SyntacticNgramExperimenter target/flinkdt-0.1.jar googlesyntactics-app.conf
+  * flink run -m yarn-cluster -yn 192 -ys 1 -ytm 2048 -yqu shortrunning -c de.tudarmstadt.lt.flinkdt.pipes.SyntacticNgramExperimenter target/flinkdt-0.1.jar googlesyntactics-app.conf
   *
   */
 object SyntacticNgramExperimenter extends App {
@@ -59,11 +59,8 @@ object SyntacticNgramExperimenter extends App {
   }
 
    val full_dt_pipeline = {
-     /*  */
-     ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]() ~>
-       DSWriter(DSTaskConfig.out_accumulated_CT) ~>
-     /* */
-     DSTask(
+     /* minimal pruning */
+     DSTask[CT2ext[String, String], CT2ext[String, String]](
        CtFromString[CT2ext[String,String],String,String](_),
        ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) }
      ) ~>
