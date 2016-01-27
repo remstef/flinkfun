@@ -1,9 +1,9 @@
 ///
 // make script compilable (for development purposes)
 ///
-import org.apache.flink.api.scala._
-val env = ExecutionEnvironment.getExecutionEnvironment
-val d = env.readTextFile("")
+//import org.apache.flink.api.scala._
+//val env = ExecutionEnvironment.getExecutionEnvironment
+//val d = env.readTextFile("")
 
 ///
 // convenience: import all flinkdt resources
