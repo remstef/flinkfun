@@ -1,9 +1,9 @@
 ///
 // make script compilable (for development purposes)
 ///
-//import org.apache.flink.api.scala._
-//val env = ExecutionEnvironment.getExecutionEnvironment
-//val d = env.readTextFile("")
+import org.apache.flink.api.scala._
+val env = ExecutionEnvironment.getExecutionEnvironment
+val d = env.readTextFile("")
 
 ///
 // convenience: import all flinkdt resources
@@ -36,7 +36,7 @@ println("defined ct2red.computeCT2ext")
 
 implicit def dt_computation(x: DataSet[CT2ext[String,String]]) = new {
   def computeDT(prune: Boolean = false):DataSet[CT2red[String,String]] = {
-    val p = ComputeDTSimplified.byJoin[CT2ext[String, String], String, String]()
+    val p:DSTask[CT2ext[String,String], CT2red[String,String]] = ComputeDTSimplified.byJoin[CT2ext[String, String], String, String]()
     if(prune)
       { Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~> p }.process(x)
     else
