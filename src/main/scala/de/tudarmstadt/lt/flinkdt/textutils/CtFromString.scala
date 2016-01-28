@@ -29,13 +29,17 @@ object CtFromString {
 
   def apply[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsString:String):C = fromString[C, T1, T2](ct2AsString)
 
-  def getStringCT2(ct2AsString:String):CT2 = getStringCT2(ct2AsString.split("\t"))
+//  def getStringCT2(ct2AsString:String):CT2 = ct2AsString.split("\t") match {
+//    case a:Array[String] if a.length == 3 => fromStringArray[CT2red[String,String],String,String](a)
+//    case a:Array[String] if a.length == 6 => fromStringArray[CT2def[String,String],String,String](a)
+//    case a:Array[String] if a.length == 9 => fromStringArray[CT2ext[String,String],String,String](a)
+//  }
 
-  def getStringCT2(ct2AsStringArray:Array[String]):CT2 = ct2AsStringArray match {
-    case a:Array[String] if a.length == 3 => fromStringArray[CT2red[String,String],String,String](a)
-    case a:Array[String] if a.length == 6 => fromStringArray[CT2def[String,String],String,String](a)
-    case a:Array[String] if a.length == 9 => fromStringArray[CT2ext[String,String],String,String](a)
-  }
+//  def getStringCT2(ct2AsStringArray:Array[String]):CT2 = ct2AsStringArray match {
+//    case a:Array[String] if a.length == 3 => fromStringArray[CT2red[String,String],String,String](a)
+//    case a:Array[String] if a.length == 6 => fromStringArray[CT2def[String,String],String,String](a)
+//    case a:Array[String] if a.length == 9 => fromStringArray[CT2ext[String,String],String,String](a)
+//  }
 
   def EMPTY_CT2_DEFAULT[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] = new CT2def[T1, T2](a = null.asInstanceOf[T1], b = null.asInstanceOf[T2], n11 = 0f, n1dot = 0f, ndot1 = 0f, n = 0f)
 
