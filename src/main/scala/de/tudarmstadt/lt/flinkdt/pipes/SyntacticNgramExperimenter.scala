@@ -63,12 +63,14 @@ object SyntacticNgramExperimenter extends App {
     FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
   }
 
+  val ct_location = in.stripSuffix("/") + ".ct2.acc.all"
+
   if(args.contains("prepare"))
-    setup_ct2ext.process(env, input = in, output = in.stripSuffix("/") + ".ct2.acc.all")
+    setup_ct2ext.process(env, input = in, output = ct_location)
   else if(args.contains("full"))
-    full_dt_pipeline.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
+    full_dt_pipeline.process(env = env, input = ct_location, output = DSTaskConfig.out_dt_sorted)
   else
-    default_jobimtext_pipeline.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
+    default_jobimtext_pipeline.process(env = env, input = ct_location, output = DSTaskConfig.out_dt_sorted)
 
   env.execute(DSTaskConfig.jobname)
 
