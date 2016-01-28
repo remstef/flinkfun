@@ -16,7 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt.textutils
 
-import de.tudarmstadt.lt.flinkdt.textutils.StringConvert._
+import de.tudarmstadt.lt.flinkdt.Implicits._
 import de.tudarmstadt.lt.flinkdt.types.{CT2, CT2def, CT2ext, CT2red}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 

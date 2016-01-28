@@ -26,14 +26,6 @@ import scala.reflect._
   */
 object StringConvert {
 
-  implicit def string_conversion(x: String) = new {
-    def toT[T : ClassTag]:T = convert_toType(x)
-  }
-
-  implicit def string_conversion(x: Any) = new {
-    def asString:String = convert_toString(x)
-  }
-
   def convert_toType[T : ClassTag](x:String) = classTag[T] match {
     case t if t == classTag[String] => x.asInstanceOf[T]
     case t if t == classTag[Array[Byte]] => HashUtils.decodeHexString(x).asInstanceOf[T]

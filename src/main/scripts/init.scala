@@ -8,54 +8,23 @@
 ///
 // convenience: import all flinkdt resources
 ///
+import org.apache.flink.api.scala.DataSet
+
 import sys.process._
 import de.tudarmstadt.lt.flinkdt.textutils._
 import de.tudarmstadt.lt.flinkdt.types._
 import de.tudarmstadt.lt.flinkdt.tasks._
 import de.tudarmstadt.lt.flinkdt.pipes._
 import de.tudarmstadt.lt.flinkdt.examples._
-
+import de.tudarmstadt.lt.flinkdt.Implicits._
 ///
-// other necessary imports
+// print some information about available implicit functions
 ///
-import org.apache.flink.api.common.operators.Order
-import org.apache.flink.api.common.typeinfo.TypeInformation
-import scala.reflect.ClassTag
-
-///
-// convenience: define some implicit functions on CT2 objects
-///
-def readCT2[C <: CT2 : ClassTag : TypeInformation](in:String) : DataSet[C] = env.readTextFile(in).map(CtFromString[C, String, String](_))
-println("defined readCT2(\"path\")")
-
-implicit def ct2_ext_computation(x: DataSet[CT2red[String,String]]) = new {
-  def computeCT2ext:DataSet[CT2ext[String,String]] =
-    ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]().process(x)
-}
+println("defined env.readCT2r(\"path\")")
+println("defined env.readCT2d(\"path\")")
+println("defined env.readCT2e(\"path\")")
 println("defined ct2red.computeCT2ext")
-
-implicit def dt_computation(x: DataSet[CT2ext[String,String]]) = new {
-  def computeDT(prune: Boolean = false):DataSet[CT2red[String,String]] = {
-    val p:DSTask[CT2ext[String,String], CT2red[String,String]] = ComputeDTSimplified.byJoin[CT2ext[String, String], String, String]()
-    if(prune)
-      { Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~> p }.process(x)
-    else
-      p.process(x)
-  }
-}
 println("defined ct2ext.computeDT(prune=false)")
-
-implicit def ct2_get_top[CT <: CT2 : ClassTag : TypeInformation](x: DataSet[CT]) = new {
-  def topN(n:Int, valfun:CT => Float = _.n11, order:Order = Order.DESCENDING):DataSet[CT] = {
-    val ds_first_n = x
-      .map(ct => (ct, valfun(ct))) // apply valfun
-      .groupBy("_1.a")
-      .sortGroup(1, order)
-      .first(n)
-      .map(_._1)
-    ds_first_n
-  }
-}
 println("defined ct.topN(n, valfun=_.n11, order=Order.DESCENDING)")
 
 ///
