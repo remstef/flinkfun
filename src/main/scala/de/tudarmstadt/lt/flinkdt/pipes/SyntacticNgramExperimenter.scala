@@ -21,6 +21,7 @@ import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2def, CT2red}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala._
+import org.apache.flink.core.fs.Path
 
 /**
   * Created by Steffen Remus
@@ -65,10 +66,9 @@ object SyntacticNgramExperimenter extends App {
 
   val ct_location = in.stripSuffix("/") + ".ct2.acc.all"
 
-  if(args.contains("prepare")) {
+  val preprocess_output_path:Path = new Path(ct_location)
+  if(!preprocess_output_path.getFileSystem.exists(preprocess_output_path))
     setup_ct2ext.process(env, input = in, output = ct_location)
-    env.execute(DSTaskConfig.jobname)
-  }
   else if(args.contains("full"))
     full_dt_pipeline.process(env = env, input = ct_location, output = DSTaskConfig.out_dt_sorted)
   else
