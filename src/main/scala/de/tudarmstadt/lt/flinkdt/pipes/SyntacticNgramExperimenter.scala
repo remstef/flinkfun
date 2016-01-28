@@ -38,40 +38,34 @@ object SyntacticNgramExperimenter extends App {
   // get input data
   val in = DSTaskConfig.in_text
 
+  val setup_ct2ext = ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]()
+
   val default_jobimtext_pipeline = {
-      /*  */
-//      N11Sum.toCT2withN[String,String]() ~>
-//        DSWriter(DSTaskConfig.out_accumulated_AB) ~>
-//      /*  */
-//      ComputeSignificanceFiltered.fromCT2withPartialN[String,String](sigfun = _.lmi) ~>
-//        DSWriter(DSTaskConfig.out_accumulated_CT) ~>
-      ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]() ~>
-        DSWriter(DSTaskConfig.out_accumulated_CT) ~>
-      /*  */
-      Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~>
-        DSWriter(DSTaskConfig.out_accumulated_CT) ~>
-        /*  */
-      ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
-        DSWriter(DSTaskConfig.out_dt) ~>
-      /*  */
-      FilterSortDT[CT2red[String,String],String, String](_.n11)
+    Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~>
+    /*  */
+    ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
+    DSWriter(DSTaskConfig.out_dt) ~>
+    /*  */
+    FilterSortDT[CT2red[String,String],String, String](_.n11)
     /*  */
   }
 
-   val full_dt_pipeline = {
-     /* minimal pruning */
-     DSTask[CT2ext[String, String], CT2ext[String, String]](
-       CtFromString[CT2ext[String,String],String,String](_),
-       ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) }
-     ) ~>
-     /* */
-     ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
-       DSWriter(DSTaskConfig.out_dt) ~>
-     /* */
-     FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
-   }
+  val full_dt_pipeline = {
+    /* minimal pruning */
+    DSTask[CT2ext[String, String], CT2ext[String, String]](
+      CtFromString[CT2ext[String,String],String,String](_),
+      ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) }
+    ) ~>
+    /* */
+    ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
+    DSWriter(DSTaskConfig.out_dt) ~>
+    /* */
+    FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
+  }
 
-  if(args.contains("full"))
+  if(args.contains("prepare"))
+    setup_ct2ext.process(env, input = in, output = in.stripSuffix("/") + ".ct2.acc.all")
+  else if(args.contains("full"))
     full_dt_pipeline.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
   else
     default_jobimtext_pipeline.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
