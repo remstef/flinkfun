@@ -66,8 +66,8 @@ object SyntacticNgramExperimenter extends App {
 
   val ct_location = in.stripSuffix("/") + ".ct2.acc.all"
 
-  val preprocess_output_path:Path = new Path(ct_location)
-  if(!preprocess_output_path.getFileSystem.exists(preprocess_output_path))
+  val ct_location_path:Path = new Path(ct_location)
+  if(!ct_location_path.getFileSystem.exists(ct_location_path))
     setup_ct2ext.process(env, input = in, output = ct_location)
   else if(args.contains("full"))
     full_dt_pipeline.process(env = env, input = ct_location, output = DSTaskConfig.out_dt_sorted)
