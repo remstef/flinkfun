@@ -85,8 +85,8 @@ object FullDT extends App {
   }
 
   var config = DSTaskConfig.resolveConfig(args)
-  if(!config.hasPath("DT.jobname"))
-    config = DSTaskConfig.resolveConfig(args ++ Array("-DT.jobname", getClass.getSimpleName.replaceAllLiterally("$","")))
+  if(!config.hasPath("dt.jobname"))
+    config = DSTaskConfig.resolveConfig(args ++ Array("-dt.jobname", getClass.getSimpleName.replaceAllLiterally("$","")))
   DSTaskConfig.load(config)
 
   def extractorfun:String => TraversableOnce[CT2red[String,String]] = Util.getExtractorfunFromJobname()

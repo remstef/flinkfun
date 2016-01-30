@@ -94,7 +94,7 @@ object DSTaskConfig extends Serializable{
 
   def load(config:Config) = {
 
-    val config_dt = config.getConfig("DT")
+    val config_dt = config.getConfig("dt")
 
     if(config_dt.hasPath("jobname"))
       jobname = config_dt.getString("jobname")

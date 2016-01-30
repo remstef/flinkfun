@@ -38,13 +38,13 @@ class ConfTest extends FunSuite {
     var conf:Config = null
     conf = ConfigFactory.parseFile(new File("app.conf")).withFallback(ConfigFactory.load()).resolve()
 
-    System.setProperty("DT.question","What?")
+    System.setProperty("dt.question","What?")
 
-    for(entry <- conf.getConfig("DT").entrySet()){
+    for(entry <- conf.getConfig("dt").entrySet()){
       println(entry.getKey + "\t" + entry.getValue.render() + ":" + entry.getValue.valueType())
     }
 
-    println(conf.getConfig("DT").getConfig("output").hasPath("dt"))
+    println(conf.getConfig("dt").getConfig("output").hasPath("dt"))
 
     LOG.trace("this is a trace message")
     LOG.debug("this is a debug message")
