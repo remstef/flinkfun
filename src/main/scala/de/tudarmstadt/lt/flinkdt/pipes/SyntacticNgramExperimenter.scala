@@ -71,7 +71,7 @@ object SyntacticNgramExperimenter extends App {
   if(!ct_location_path.getFileSystem.exists(ct_location_path))
     setup_ct2ext.process(env, input = in, output = ct_location)
 
-  if(args.contains("full"))
+  if(DSTaskConfig.jobname.contains("full"))
     full_dt_pipeline.process(env = env, input = ct_location, output = DSTaskConfig.out_dt_sorted)
   else
     default_jobimtext_pipeline.process(env = env, input = ct_location, output = DSTaskConfig.out_dt_sorted)
