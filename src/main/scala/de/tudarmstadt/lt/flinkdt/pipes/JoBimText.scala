@@ -73,7 +73,10 @@ object JoBimText extends App {
 
   }
 
-  DSTaskConfig.load(args, getClass.getSimpleName.replaceAllLiterally("$",""))
+  var config = DSTaskConfig.resolveConfig(args)
+  if(!config.hasPath("DT.jobname"))
+    config = DSTaskConfig.resolveConfig(args ++ Array("-DT.jobname", getClass.getSimpleName.replaceAllLiterally("$","")))
+  DSTaskConfig.load(config)
 
   def extractorfun:String => TraversableOnce[CT2red[String,String]] = Util.getExtractorfunFromJobname()
 

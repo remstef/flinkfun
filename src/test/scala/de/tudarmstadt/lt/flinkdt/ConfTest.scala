@@ -19,6 +19,7 @@ package de.tudarmstadt.lt.flinkdt
 import java.io.File
 
 import com.typesafe.config.{Config, ConfigFactory}
+import org.apache.flink.api.java.utils.ParameterTool
 import org.scalatest.FunSuite
 import org.slf4j.LoggerFactory
 
@@ -53,5 +54,13 @@ class ConfTest extends FunSuite {
 
   }
 
+}
+
+object testapp extends App {
+
+  val p = ParameterTool.fromArgs(args)
+  println(p.getProperties)
+  println(p.get("__NO_VALUE_KEY"))
+  println(p.toMap.keySet())
 
 }

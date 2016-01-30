@@ -26,7 +26,7 @@ import org.apache.flink.api.scala._
   */
 object SamplePipeline extends App {
 
-  DSTaskConfig.load(args)
+  DSTaskConfig.load(DSTaskConfig.resolveConfig(args))
 
   // set up the execution environment
   val env = ExecutionEnvironment.getExecutionEnvironment

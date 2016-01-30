@@ -16,6 +16,11 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
+import org.apache.flink.api.java.utils.ParameterTool
+import com.typesafe.config.{ConfigFactory, Config}
+import java.io.File
+import de.tudarmstadt.lt.utilities.TimeUtils
+
 /**
   * Created by Steffen Remus.
   *
@@ -72,27 +77,30 @@ object DSTaskConfig extends Serializable{
   var out_dt_sorted:String                  = null
   var out_keymap:String                     = appendPath(out_basedir, "keymap.tsv")
 
+  def resolveConfig(args:Array[String]): Config = {
 
-  def load(args:Array[String], jobname:String = null, caller:Class[_] = null) = {
+    if(args.length <= 0)
+      throw new RuntimeException("No configuration parameter.")
 
-    import com.typesafe.config.{ConfigFactory, Config}
-    import java.io.File
-    import de.tudarmstadt.lt.utilities.TimeUtils
-
+    val cli_args = ParameterTool.fromArgs(args)
     val config:Config =
-      if(args.length > 0)
-        ConfigFactory.parseFile(new File(args(0))).withFallback(ConfigFactory.load()).resolve() // load conf with fallback to default application.conf
+      if(cli_args.has("conf"))
+        ConfigFactory.parseMap(cli_args.toMap).withFallback(ConfigFactory.parseFile(new File(cli_args.get("conf"))).withFallback(ConfigFactory.load()).resolve()).resolve() // load conf with fallback to default application.conf
       else
-        ConfigFactory.load() // load default application.conf
+        ConfigFactory.parseMap(cli_args.toMap).withFallback(ConfigFactory.load()).resolve() // load default application.conf
+    config
 
-    if(args.length > 1)
-      this.jobname = args(1)
-    else if(jobname != null)
-      this.jobname = jobname
-    else
-      this.jobname = s"${TimeUtils.getSimple17}_${this.jobname}"
+  }
+
+  def load(config:Config) = {
 
     val config_dt = config.getConfig("DT")
+
+    if(config_dt.hasPath("jobname"))
+      jobname = config_dt.getString("jobname")
+    else
+      jobname = s"${TimeUtils.getSimple17}_${jobname}"
+
     val outputconfig = config_dt.getConfig("output.ct")
 
     out_basedir = appendPath(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", s"out-${this.jobname}")
@@ -120,10 +128,10 @@ object DSTaskConfig extends Serializable{
     param_max_odot1         = config_filter.getDouble("max-odot1").toFloat
 
     param_min_sig           = config_filter.getDouble("min-sig").toFloat
-    param_topn_sig            = config_filter.getInt("topn-sig")
+    param_topn_sig          = config_filter.getInt("topn-sig")
     param_min_sim           = config_filter.getDouble("min-sim").toFloat
-    param_min_sim_distinct = config_filter.getInt("min-sim-distinct")
-    param_topn_sim            = config_filter.getInt("topn-sim")
+    param_min_sim_distinct  = config_filter.getInt("min-sim-distinct")
+    param_topn_sim          = config_filter.getInt("topn-sim")
 
   }
 

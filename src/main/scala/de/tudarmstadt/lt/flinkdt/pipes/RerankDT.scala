@@ -25,7 +25,10 @@ import org.apache.flink.api.scala._
   */
 object RerankDT extends App {
 
-  DSTaskConfig.load(args, getClass.getSimpleName.replaceAllLiterally("$",""))
+  var config = DSTaskConfig.resolveConfig(args)
+  if(!config.hasPath("DT.jobname"))
+    config = DSTaskConfig.resolveConfig(args ++ Array("-DT.jobname", getClass.getSimpleName.replaceAllLiterally("$","")))
+  DSTaskConfig.load(config)
 
   // set up the execution environment
   val env = ExecutionEnvironment.getExecutionEnvironment
