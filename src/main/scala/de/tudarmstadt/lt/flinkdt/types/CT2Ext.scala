@@ -216,10 +216,10 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
 
                  |  B ${filler}        !B  ${filler}      | SUM
   Occurrences ---------------------------------${filler_}
-  CT2(A,B) =   A |  n11 = ${vf(9)}    n12 = ${vf(10)}    | n1. = ${vf(13)}
-              !A |  n21 = ${vf(11)}    n22 = ${vf(12)}    | n2. = ${vf(14)}
+  CT2(A,B) =   A |  o11 = ${vf(9)}    o12 = ${vf(10)}    | o1. = ${vf(13)}
+              !A |  o21 = ${vf(11)}    o22 = ${vf(12)}    | o2. = ${vf(14)}
               ---------------------------------${filler_}
-                 |  n.1 = ${vf(15)}    n.2 = ${vf(16)}    | n = ${vf(17)}
+                 |  o.1 = ${vf(15)}    o.2 = ${vf(16)}    | on = ${vf(17)}
 
   log p(A,B)    = ${log_pAB_o.asString}
   log p(A)      = ${log_pA_o.asString}
