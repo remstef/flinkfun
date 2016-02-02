@@ -20,18 +20,22 @@ import de.tudarmstadt.lt.flinkdt.Implicits._
 ///
 // print some information about available implicit functions
 ///
-println("defined env.readCT2r(\"path\")")
-println("defined env.readCT2d(\"path\")")
-println("defined env.readCT2e(\"path\")")
-println("defined ct2red.computeCT2ext")
-println("defined ct2ext.computeDT(prune=false)")
-println("defined ct.topN(n, valfun=_.n11, order=Order.DESCENDING)")
+def help = {
+  println("defined env.readCT2r(\"path\")")
+  println("defined env.readCT2d(\"path\")")
+  println("defined env.readCT2e(\"path\")")
+  println("defined ct2red.computeCT2ext")
+  println("defined ct2ext.computeDT(prune=false)")
+  println("defined ct2ext.prettyprint")
+  println("defined ct.topN(n, valfun=_.n11, order=Order.DESCENDING)")
+}
 
 ///
 // set parallelism to maximum
 ///
 env.setParallelism(Int.MaxValue)
 println("increased parallelism to maximum")
+help
 
 ///
 // useful commands

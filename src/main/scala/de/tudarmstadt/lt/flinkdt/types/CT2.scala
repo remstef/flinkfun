@@ -85,16 +85,16 @@ abstract class CT2(implicit val ordering:Ordering[CT2]) extends Serializable wit
     */
   def requireConsistency(fail_quietly:Boolean = true):Boolean = {
     try {
-      require(n11 <= n1dot, "Check 'n11 <= n1.' failed \n" + prettyPrint)
-      require(n11 <= ndot1, "Check 'n11 <= n.1' failed \n" + prettyPrint)
-      require(n11 <= n, "Check 'n11 <= n' failed \n" + prettyPrint)
-      require(n1dot <= n, "Check 'n1. <= n' failed \n" + prettyPrint)
-      require(ndot1 <= n, "Check 'n.1 <= n' failed \n" + prettyPrint)
-      require(n >= n1dot + ndot1 - n11, "Check 'n >= n1. + n.1 - n11' failed \n" + prettyPrint)
-      require(n >= ndot1 + n1dot - n11, "Check 'n >= n.1 + n1. - n11' failed \n" + prettyPrint)
-      require(n12 >= 0, "Check 'n12 >= 0' failed \n" + prettyPrint)
-      require(n21 >= 0, "Check 'n21 >= 0' failed \n" + prettyPrint)
-      require(n22 >= 0, "Check 'n22 >= 0' failed \n" + prettyPrint)
+      require(n11 <= n1dot, "Check 'n11 <= n1.' failed \n" + prettyprint)
+      require(n11 <= ndot1, "Check 'n11 <= n.1' failed \n" + prettyprint)
+      require(n11 <= n, "Check 'n11 <= n' failed \n" + prettyprint)
+      require(n1dot <= n, "Check 'n1. <= n' failed \n" + prettyprint)
+      require(ndot1 <= n, "Check 'n.1 <= n' failed \n" + prettyprint)
+      require(n >= n1dot + ndot1 - n11, "Check 'n >= n1. + n.1 - n11' failed \n" + prettyprint)
+      require(n >= ndot1 + n1dot - n11, "Check 'n >= n.1 + n1. - n11' failed \n" + prettyprint)
+      require(n12 >= 0, "Check 'n12 >= 0' failed \n" + prettyprint)
+      require(n21 >= 0, "Check 'n21 >= 0' failed \n" + prettyprint)
+      require(n22 >= 0, "Check 'n22 >= 0' failed \n" + prettyprint)
     }catch{
       case e : Throwable if fail_quietly => return false
       case e : Throwable => throw e
@@ -104,7 +104,7 @@ abstract class CT2(implicit val ordering:Ordering[CT2]) extends Serializable wit
 
 
 
-  def prettyPrint():String = {
+  def prettyprint():String = {
 
     val v = Array(
       n11.asString,

@@ -149,16 +149,16 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
     if(!super.requireConsistency(fail_quietly))
       return false
     try {
-      require(1 <= o1dot, "Check '1 <= o1.' failed \n" + prettyPrint)
-      require(1 <= odot1, "Check '1 <= o.1' failed \n" + prettyPrint)
-      require(1 <= on, "Check '1 <= on' failed \n" + prettyPrint)
-      require(o1dot <= on, "Check 'o1. <= on' failed \n" + prettyPrint)
-      require(odot1 <= on, "Check 'o.1 <= on' failed \n" + prettyPrint)
-      require(on >= o1dot + odot1 - 1, "Check 'on >= o1. + o.1 - 1' failed \n" + prettyPrint)
-      require(on >= odot1 + o1dot - 1, "Check 'on >= o.1 + o1. - 1' failed \n" + prettyPrint)
-      require(o12 >= 0, "Check 'o12 >= 0' failed \n" + prettyPrint)
-      require(o21 >= 0, "Check 'o21 >= 0' failed \n" + prettyPrint)
-      require(o22 >= 0, "Check 'o22 >= 0' failed \n" + prettyPrint)
+      require(1 <= o1dot, "Check '1 <= o1.' failed \n" + prettyprint)
+      require(1 <= odot1, "Check '1 <= o.1' failed \n" + prettyprint)
+      require(1 <= on, "Check '1 <= on' failed \n" + prettyprint)
+      require(o1dot <= on, "Check 'o1. <= on' failed \n" + prettyprint)
+      require(odot1 <= on, "Check 'o.1 <= on' failed \n" + prettyprint)
+      require(on >= o1dot + odot1 - 1, "Check 'on >= o1. + o.1 - 1' failed \n" + prettyprint)
+      require(on >= odot1 + o1dot - 1, "Check 'on >= o.1 + o1. - 1' failed \n" + prettyprint)
+      require(o12 >= 0, "Check 'o12 >= 0' failed \n" + prettyprint)
+      require(o21 >= 0, "Check 'o21 >= 0' failed \n" + prettyprint)
+      require(o22 >= 0, "Check 'o22 >= 0' failed \n" + prettyprint)
     }catch{
       case e : Throwable if fail_quietly => return false
       case e : Throwable => throw e
@@ -166,7 +166,7 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
     return true
   }
 
-  override def prettyPrint():String = {
+  override def prettyprint():String = {
 
     val v = Array(
       n11.asString,

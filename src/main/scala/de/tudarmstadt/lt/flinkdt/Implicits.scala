@@ -80,4 +80,8 @@ object Implicits {
     }
   }
 
+  implicit def prettyprint_ct2[CT <: CT2 : ClassTag : TypeInformation](x: DataSet[CT]) = new {
+    def prettyprint = x.map(_.prettyprint).print
+  }
+
 }

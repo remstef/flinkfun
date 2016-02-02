@@ -113,7 +113,7 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
     return this
   }
 
-  override def prettyPrint():String = {
+  override def prettyprint():String = {
 
     val v = Array(
       n11.asString,

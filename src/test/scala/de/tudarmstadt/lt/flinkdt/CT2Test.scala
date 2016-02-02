@@ -30,15 +30,15 @@ class CT2Test extends FunSuite {
   test("Test prettyprint") {
 
     println("--- test pretty print CT2 reduced ---")
-    println(CT2red("a", "b", n11 = 42).prettyPrint())
+    println(CT2red("a", "b", n11 = 42).prettyprint())
 
 
     println("--- test pretty print CT2 default ---")
-    println(CT2def("a", "b", n11 = 1, n1dot = 2, ndot1 = 3, n = 10, srcid = Some("mydoc")).prettyPrint())
-    println(CT2def("a", "b", n11 = 1, n1dot = 2, ndot1 = 3, n = 10, isflipped = true).prettyPrint())
+    println(CT2def("a", "b", n11 = 1, n1dot = 2, ndot1 = 3, n = 10, srcid = Some("mydoc")).prettyprint())
+    println(CT2def("a", "b", n11 = 1, n1dot = 2, ndot1 = 3, n = 10, isflipped = true).prettyprint())
 
     println("--- test pretty print CT2 extended ---")
-    println(CT2ext("a", "b", n11 = 42, n1dot = 45, ndot1 = 48, n = 142, o1dot = 13, odot1 = 15, on = 27).prettyPrint())
+    println(CT2ext("a", "b", n11 = 42, n1dot = 45, ndot1 = 48, n = 142, o1dot = 13, odot1 = 15, on = 27).prettyprint())
 
   }
 
@@ -72,8 +72,8 @@ class CT2Test extends FunSuite {
     val d = CT2def("b", "a", n11 = 1, n1dot = 2, ndot1 = 3, n = 10)
     val e = CT2def("b", "b", n11 = 1, n1dot = 2, ndot1 = 3, n = 10)
 
-    println(a.prettyPrint())
-    println(b.prettyPrint())
+    println(a.prettyprint())
+    println(b.prettyprint())
     println(s"c  : ${c}")
     println(s"d  : ${d}")
     println(s"e  : ${e}")
@@ -116,7 +116,7 @@ class CT2Test extends FunSuite {
     println(s"${ct2s.size} == ${ct2s.size}")
     val collapsed_ct2s = Util.collapseCT2(ct2s)
     println(s"${collapsed_ct2s.size} == ${collapsed_ct2s.size}")
-    collapsed_ct2s.foreach(x => println(x.prettyPrint()))
+    collapsed_ct2s.foreach(x => println(x.prettyprint()))
 
     println("--- test collapsing more ---")
     val ct2sm = TextToCT2.ngrams("a a a a a b a a a a a", 3).toIterable

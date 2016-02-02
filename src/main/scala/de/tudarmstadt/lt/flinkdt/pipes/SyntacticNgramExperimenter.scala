@@ -24,7 +24,6 @@ import de.tudarmstadt.lt.flinkdt.tasks._
 import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2def, CT2red}
 import org.apache.flink.api.common.operators.Order
-import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.Path
 
