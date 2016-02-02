@@ -16,11 +16,15 @@
 
 package de.tudarmstadt.lt.flinkdt.pipes
 
+import java.text.SimpleDateFormat
+import java.time.Duration
+import java.util.Date
+
 import de.tudarmstadt.lt.flinkdt.types.CT2red
 import de.tudarmstadt.lt.flinkdt.Util
 import de.tudarmstadt.lt.flinkdt.tasks._
 import org.apache.flink.api.scala._
-import org.apache.flink.core.fs.Path
+
 
 /**
   * Created by Steffen Remus
@@ -73,6 +77,7 @@ object Experimenter extends App {
     config = DSTaskConfig.resolveConfig(args ++ Array("-dt.jobname", getClass.getSimpleName.replaceAllLiterally("$","")))
   DSTaskConfig.load(config)
 
+  val start = System.currentTimeMillis()
   def extractorfun:String => TraversableOnce[CT2red[String,String]] = Util.getExtractorfunFromJobname()
 
   // set up the execution environment
@@ -88,5 +93,11 @@ object Experimenter extends App {
   process()
 
   postprocess()
+
+  val end = System.currentTimeMillis()
+  val dur = Duration.ofMillis(end-start)
+  val tf = new SimpleDateFormat("yyyy-MM-dd\'T\'HH:mm:ssz")
+  val info = s"start: ${tf.format(new Date(start))} \nend: ${tf.format(new Date(end))} \nduration: ${dur.toHours} h ${dur.minusHours(dur.toHours).toMinutes} m ${dur.minusMinutes(dur.toMinutes).toMillis} ms"
+  DSTaskConfig.writeConfig(additional_comments = info)
 
 }

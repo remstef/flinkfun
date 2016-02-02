@@ -16,10 +16,13 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
+import java.net.URI
+
 import org.apache.flink.api.java.utils.ParameterTool
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{ConfigRenderOptions, ConfigFactory, Config}
 import java.io.File
 import de.tudarmstadt.lt.utilities.TimeUtils
+import org.apache.flink.core.fs.Path
 
 /**
   * Created by Steffen Remus.
@@ -46,6 +49,9 @@ import de.tudarmstadt.lt.utilities.TimeUtils
 object DSTaskConfig extends Serializable{
 
   def appendPath(url:String,path:String) = url + (if (url.endsWith("/")) "" else "/") + path
+
+  @transient
+  var config:Config                         = ConfigFactory.load()
 
   var param_min_ndot1:Float                 = 2f
   var param_min_n1dot:Float                 = 2f
@@ -77,25 +83,22 @@ object DSTaskConfig extends Serializable{
   var out_dt_sorted:String                  = null
   var out_keymap:String                     = appendPath(out_basedir, "keymap.tsv")
 
-  def resolveConfig(args:Array[String]): Config = {
-
-    if(args.length <= 0)
-      throw new RuntimeException("No configuration parameter.")
-
-    val cli_args = ParameterTool.fromArgs(args)
-    val config:Config =
-      if(cli_args.has("conf"))
+  def resolveConfig(args:Array[String] = null): Config = {
+    if (args == null || args.length <= 0)
+      ConfigFactory.load()
+    else {
+      val cli_args = ParameterTool.fromArgs(args)
+      if (cli_args.has("conf"))
         ConfigFactory.parseMap(cli_args.toMap).withFallback(ConfigFactory.parseFile(new File(cli_args.get("conf"))).withFallback(ConfigFactory.load()).resolve()).resolve() // load conf with fallback to default application.conf
       else
         ConfigFactory.parseMap(cli_args.toMap).withFallback(ConfigFactory.load()).resolve() // load default application.conf
-    config
-
+    }
   }
 
+
   def load(config:Config) = {
-
+    this.config = config
     val config_dt = config.getConfig("dt")
-
     if(config_dt.hasPath("jobname"))
       jobname = config_dt.getString("jobname")
     else
@@ -103,7 +106,11 @@ object DSTaskConfig extends Serializable{
 
     val outputconfig = config_dt.getConfig("output.ct")
 
-    out_basedir = appendPath(if(config_dt.hasPath("output.basedir")) config_dt.getString("output.basedir") else "./", s"out-${this.jobname}")
+    out_basedir =
+      if(config_dt.hasPath("output.basedir"))
+        config_dt.getString("output.basedir")
+      else
+        appendPath("./", s"out-${this.jobname}")
 
     // get input data and output data
     in_text                        = config_dt.getString("input.text")
@@ -133,6 +140,25 @@ object DSTaskConfig extends Serializable{
     param_min_sim_distinct  = config_filter.getInt("min-sim-distinct")
     param_topn_sim          = config_filter.getInt("topn-sim")
 
+  }
+
+  override def toString() = toString(false)
+
+  def toString(verbose:Boolean = false) = { if(verbose) config else config.getConfig("dt").atKey("dt") }.root().render(ConfigRenderOptions.concise.setFormatted(true).setComments(true).setJson(false))
+
+  def writeConfig(dest:String=null, additional_comments:String = null, verbose:Boolean = false): Unit = {
+    val dest_ = if(dest == null || dest.isEmpty) appendPath(out_basedir, s"${jobname}.conf") else dest
+    val path:Path = new Path(dest_)
+    val w = path.getFileSystem.create(path,true)
+    if(additional_comments != null && !additional_comments.isEmpty) {
+      w.write("# # # \n# \n# additional comments: \n# \n".getBytes)
+      for (line <- additional_comments.split('\n'))
+        w.write(("#  " + line + '\n').getBytes)
+      w.write("# \n# # # \n".getBytes)
+    }
+    w.write(DSTaskConfig.toString(verbose).getBytes)
+    w.flush()
+    w.close()
   }
 
 }
