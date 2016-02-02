@@ -45,21 +45,19 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
     case t if t == classTag[CT2ext[T1,T2]] => ???
   }
 
-  def process_CT2red(ds: DataSet[CT2red[T1,T2]]) : DataSet[COUT] = {
-    classTag[COUT] match {
-      case t if t == classTag[CT2red[T1,T2]] => ds.groupBy("a","b").sum("n11").asInstanceOf[DataSet[COUT]]
-      case t if t == classTag[CT2def[T1,T2]] => process_CT2def_complete(ds.map(_.asCT2def())).asInstanceOf[DataSet[COUT]]
-      case t if t == classTag[CT2ext[T1,T2]] => process_CT2ext__complete(ds.map(_.asCT2ext())).asInstanceOf[DataSet[COUT]]
-    }
+  def process_CT2red(ds: DataSet[CT2red[T1,T2]]) : DataSet[COUT] = classTag[COUT] match {
+    case t if t == classTag[CT2red[T1,T2]] => ds.groupBy("a","b").sum("n11").asInstanceOf[DataSet[COUT]]
+    case t if t == classTag[CT2def[T1,T2]] => process_CT2def_complete(ds.map(_.asCT2def())).asInstanceOf[DataSet[COUT]]
+    case t if t == classTag[CT2ext[T1,T2]] => process_CT2ext__complete(ds.map(_.asCT2ext())).asInstanceOf[DataSet[COUT]]
   }
 
-  def process_CT2def(ds: DataSet[CT2def[T1,T2]]) : DataSet[COUT] = {
-    classTag[COUT] match {
-      case t if t == classTag[CT2red[T1,T2]] => ???
-      case t if t == classTag[CT2def[T1,T2]] => process_CT2def_complete(ds).asInstanceOf[DataSet[COUT]]
-      case t if t == classTag[CT2ext[T1,T2]] => process_CT2ext__complete(ds.map(_.asCT2ext())).asInstanceOf[DataSet[COUT]]
-    }
+
+  def process_CT2def(ds: DataSet[CT2def[T1,T2]]) : DataSet[COUT] = classTag[COUT] match {
+    case t if t == classTag[CT2red[T1,T2]] => ???
+    case t if t == classTag[CT2def[T1,T2]] => process_CT2def_complete(ds).asInstanceOf[DataSet[COUT]]
+    case t if t == classTag[CT2ext[T1,T2]] => process_CT2ext__complete(ds.map(_.asCT2ext())).asInstanceOf[DataSet[COUT]]
   }
+
 
   def process_CT2def_complete(ds: DataSet[CT2def[T1,T2]]) : DataSet[CT2def[T1,T2]] = {
 
@@ -86,7 +84,7 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
       .where("b").equalTo("b"){(l, r) => { l.ndot1 = r.ndot1; l }}
 
     joined = joined
-      .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct}}.withForwardedFieldsFirst("*").withForwardedFieldsSecond("n->n; on->on")
+      .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct}}.withForwardedFieldsFirst("n11; n1dot; ndot1").withForwardedFieldsSecond("n")
 
     joined
 
@@ -117,7 +115,7 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
       .where("b").equalTo("b"){(l, r) => { l.ndot1 = r.ndot1; l.odot1 = r.odot1; l }}
 
     joined = joined
-      .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct.on = n.on; ct}}.withForwardedFieldsFirst("*").withForwardedFieldsSecond("n->n; on->on")
+      .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct.on = n.on; ct}}.withForwardedFieldsFirst("n11; n1dot; ndot1; o1dot; odot1").withForwardedFieldsSecond("n; on")
 
     joined
 

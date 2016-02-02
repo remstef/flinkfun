@@ -159,6 +159,10 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
       require(o12 >= 0, "Check 'o12 >= 0' failed \n" + prettyprint)
       require(o21 >= 0, "Check 'o21 >= 0' failed \n" + prettyprint)
       require(o22 >= 0, "Check 'o22 >= 0' failed \n" + prettyprint)
+      require(o11 <= n11, "Check 'o11 <= n11' failed \n" + prettyprint)
+      require(o1dot <= n1dot, "Check 'o1. <= n1.' failed \n" + prettyprint)
+      require(odot1 <= ndot1, "Check 'o.1 <= n.1' failed \n" + prettyprint)
+      require(on <= n, "Check 'on <= n' failed \n" + prettyprint)
     }catch{
       case e : Throwable if fail_quietly => return false
       case e : Throwable => throw e
