@@ -15,6 +15,7 @@ object DSTask {
       override def fromLines(lineDS: DataSet[String]): DataSet[I] = lineDS.map(stringfun(_))
       override def process(ds: DataSet[I]): DataSet[O] = processfun(ds)
     }
+
 }
 
 @SerialVersionUID(42L)

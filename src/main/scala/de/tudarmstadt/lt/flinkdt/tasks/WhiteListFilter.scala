@@ -17,7 +17,8 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
 import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
-import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2red}
+import de.tudarmstadt.lt.flinkdt.types.{CT2, CT2def, CT2red}
+import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 
@@ -28,12 +29,9 @@ import scala.reflect.ClassTag
   */
 object WhiteListFilter {
 
-  def CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment, extended_resolution:Boolean = true) = new WhiteListFilter__CT2[T1,T2](whitelist, env, extended_resolution)
-
-  def CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment, extended_resolution:Boolean = true) = new WhiteListFilter__CT2Min[T1,T2](whitelist, env, extended_resolution)
+  def apply[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, extended_resolution:Boolean = true) = new WhiteListFilter[C,T1,T2](whitelist, extended_resolution)
 
 }
-
 
 /**
   * Get all contexts and 1-hop transitive words of whitelisted terms.
@@ -41,19 +39,17 @@ object WhiteListFilter {
   * (Might be needed for correct computation of significance scores / association measures)
   *
   * @param whitelist
-  * @param env
   * @param extended_resolution
-  * @tparam T1
-  * @tparam T2
   */
-class WhiteListFilter__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment, extended_resolution:Boolean = true) extends DSTask[CT2def[T1, T2],CT2def[T1, T2]] {
+class WhiteListFilter[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, extended_resolution:Boolean = true) extends DSTask[C,C] {
+  override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C, T1, T2](_))
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2def[T1,T2]] = lineDS.map(CtFromString[CT2def[T1,T2], T1, T2](_))
-
-  override def process(ds: DataSet[CT2def[T1,T2]]): DataSet[CT2def[T1,T2]] = {
+  override def process(ds: DataSet[C]): DataSet[C] = {
 
     if(whitelist == null)
       return ds
+
+    val env = ds.getExecutionEnvironment
 
     val whiteterms = ( if (whitelist.contains('\n')) env.fromCollection(whitelist.split('\n')) else env.readTextFile(whitelist) )
       .filter(s => s.trim.length > 0)
@@ -83,20 +79,5 @@ class WhiteListFilter__CT2[T1 : ClassTag : TypeInformation, T2 : ClassTag : Type
     }
 
   }
-
-}
-
-class WhiteListFilter__CT2Min[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, env:ExecutionEnvironment, extended_resolution:Boolean = true) extends DSTask[CT2red[T1, T2],CT2red[T1, T2]] {
-
-  @transient
-  val whitelistFilterWrapped = new WhiteListFilter__CT2[T1,T2](whitelist, env, extended_resolution)
-
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT2red[T1,T2]] = lineDS.map(CtFromString[CT2red[T1,T2], T1, T2](_))
-
-  override def process(ds: DataSet[CT2red[T1,T2]]): DataSet[CT2red[T1,T2]] = {
-    val ds_ct2:DataSet[CT2def[T1, T2]] = ds.map(_.asCT2def())
-    whitelistFilterWrapped.process(ds_ct2).map(_.asCT2red())
-  }
-
 }
 

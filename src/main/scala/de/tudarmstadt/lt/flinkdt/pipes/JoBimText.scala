@@ -36,7 +36,7 @@ object JoBimText extends App {
     { /* */
       //WhiteListFilter.CT2[String, String](DSTaskConfig.in_whitelist, env) ~|~>
       /* */
-      ComputeSignificanceFiltered.fromCT2withPartialN[String,String](sigfun = _.lmi) ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+      ComputeCT2[CT2red[String,String], CT2def[String,String], String, String](prune = true, sigfun = _.lmi, order = Order.ASCENDING)
       /*  */
       ComputeDTSimplified.byJoin[CT2def[String,String],String,String]()
       /* */
@@ -51,7 +51,7 @@ object JoBimText extends App {
     { /* */
       Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~>
       /*  */
-      N11Sum.toCT2withN[String, String]()
+      N11Sum[CT2red[String,String], String, String]()
       /*  */
     }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}")
 

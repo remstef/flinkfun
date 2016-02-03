@@ -19,6 +19,7 @@ package de.tudarmstadt.lt.flinkdt.examples
 import de.tudarmstadt.lt.flinkdt.tasks._
 import de.tudarmstadt.lt.flinkdt.textutils.TextToCT2
 import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2red}
+import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala._
 
 /**
@@ -38,11 +39,11 @@ object SamplePipeline extends App {
       /*  */
       Extractor(TextToCT2.ngrams(_,3), inputcolumn = DSTaskConfig.in_text_column) ~> DSWriter(DSTaskConfig.out_raw) ~>
       /*  */
-      N11Sum.toCT2withN[String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
+      N11Sum[CT2red[String,String], String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
       /*  */
-      WhiteListFilter.CT2[String, String](DSTaskConfig.in_whitelist, env) ~|~>
+      WhiteListFilter[CT2red[String,String],String, String](DSTaskConfig.in_whitelist) ~|~>
       /*  */
-      ComputeSignificanceFiltered.fromCT2withPartialN[String,String](sigfun = _.lmi) ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+      ComputeCT2[CT2red[String,String], CT2def[String,String], String,String](prune = true, sigfun = _.lmi, order = Order.ASCENDING) ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       /*  */
       ComputeDTSimplified.byJoin[CT2def[String,String],String,String]() ~>
       /*  */
