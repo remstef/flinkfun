@@ -101,13 +101,11 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
 
   def process_CT2def_pruned(ds: DataSet[CT2def[T1,T2]]) : DataSet[CT2def[T1,T2]] = {
 
-    var n11:DataSet[CT2def[T1,T2]] = ds
+    val n11:DataSet[CT2def[T1,T2]] = ds
       .groupBy("a","b")
       .sum("n11")
 
     val n = n11.map(ct => {ct.n = ct.n11; ct}).reduce((l,r) => {l.n += r.n; l}) //.sum("n")
-
-    n11 = n11.filter(_.n11 >= DSTaskConfig.param_min_n11)
 
     val n1dot = n11
       .map(ct => {ct.n1dot = ct.n11; ct})
@@ -122,6 +120,7 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
       .filter(ct => ct.n <= DSTaskConfig.param_max_odot1 && ct.n >= DSTaskConfig.param_min_odot1)
 
     var joined = n11
+      .filter(_.n11 >= DSTaskConfig.param_min_n11)
       .join(n1dot)
       .where("a").equalTo("a"){(l, r) => { l.n1dot = r.n1dot; l }}
       .join(ndot1)
@@ -177,13 +176,11 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
 
   def process_CT2ext__pruned(ds: DataSet[CT2ext[T1,T2]]) : DataSet[CT2ext[T1,T2]] = {
 
-    var n11:DataSet[CT2ext[T1,T2]] = ds
+    val n11:DataSet[CT2ext[T1,T2]] = ds
       .groupBy("a","b")
       .sum("n11")
 
     val n = n11.map(ct => {ct.n = ct.n11; ct}).reduce((l,r) => {l.n += r.n; l}) //.sum("n")
-
-    n11 = n11.filter(_.n11 >= DSTaskConfig.param_min_n11)
 
     val n1dot = n11
       .map(ct => {ct.n1dot = ct.n11; ct.o1dot = 1f; ct})
@@ -198,6 +195,7 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
       .filter(ct => ct.odot1 <= DSTaskConfig.param_max_odot1 && ct.odot1 >= DSTaskConfig.param_min_odot1)
 
     var joined = n11
+      .filter(_.n11 >= DSTaskConfig.param_min_n11)
       .join(n1dot)
       .where("a").equalTo("a"){(l, r) => { l.n1dot = r.n1dot; l.o1dot = r.o1dot; l }}
       .join(ndot1)
