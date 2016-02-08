@@ -37,6 +37,7 @@ object JoBimText extends App {
       //WhiteListFilter.CT2[String, String](DSTaskConfig.in_whitelist, env) ~|~>
       /* */
       ComputeCT2[CT2red[String,String], CT2def[String,String], String, String](prune = true, sigfun = _.lmi, order = Order.ASCENDING)
+      DSWriter[CT2def[String,String]](DSTaskConfig.out_accumulated_CT) ~>
       /*  */
       ComputeDTSimplified.byJoin[CT2def[String,String],String,String]()
       /* */
