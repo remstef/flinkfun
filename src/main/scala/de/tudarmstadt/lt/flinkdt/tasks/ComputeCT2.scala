@@ -116,7 +116,7 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
     val ndot1 = n11
       .map(ct => {ct.ndot1 = ct.n11; ct.n = 1f; ct}) // misuse n as odot1
       .groupBy("b")
-      .reduce((l,r) => {l.ndot1 += r.ndot1; l}) // .sum("ndot1")
+      .reduce((l,r) => {l.ndot1 += r.ndot1; l.n += r.n; l}) // .sum("ndot1")
       .filter(ct => ct.n <= DSTaskConfig.param_max_odot1 && ct.n >= DSTaskConfig.param_min_odot1)
 
     var joined = n11
@@ -127,15 +127,15 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
       .where("b").equalTo("b"){(l, r) => { l.ndot1 = r.ndot1; l }}
 
     joined = joined
+      .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct}}.withForwardedFieldsFirst("n11; n1dot; ndot1").withForwardedFieldsSecond("n")
+
+    joined = joined
       .map(ct => (ct, sigfun(ct.asInstanceOf[COUT])))
       .filter(_._2 >= DSTaskConfig.param_min_sig)
       .groupBy("_1.a")
       .sortGroup("_2", order)
       .first(DSTaskConfig.param_topn_sig)
       .map(_._1)
-
-    joined = joined
-      .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct}}.withForwardedFieldsFirst("n11; n1dot; ndot1").withForwardedFieldsSecond("n")
 
     joined
 
@@ -202,15 +202,15 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
       .where("b").equalTo("b"){(l, r) => { l.ndot1 = r.ndot1; l.odot1 = r.odot1; l }}
 
     joined = joined
+      .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct.on = n.on; ct}}.withForwardedFieldsFirst("n11; n1dot; ndot1; o1dot; odot1").withForwardedFieldsSecond("n; on")
+
+    joined = joined
       .map(ct => (ct, sigfun(ct.asInstanceOf[COUT])))
       .filter(_._2 >= DSTaskConfig.param_min_sig)
       .groupBy("_1.a")
       .sortGroup("_2", order)
       .first(DSTaskConfig.param_topn_sig)
       .map(_._1)
-
-    joined = joined
-      .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct.on = n.on; ct}}.withForwardedFieldsFirst("n11; n1dot; ndot1; o1dot; odot1").withForwardedFieldsSecond("n; on")
 
     joined
 
