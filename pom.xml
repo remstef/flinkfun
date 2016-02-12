@@ -22,11 +22,11 @@ under the License.
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.tudarmstadt</groupId>
-	<artifactId>lt.flinkdt</artifactId>
+	<artifactId>lt.flinkdt_flink1.0</artifactId>
 	<version>0.1</version>
 	<packaging>jar</packaging>
 
-	<name>flinkdt</name>
+	<name>lt.flinkdt_flink1.0</name>
 	<url>https://www.lt.tu-darmstadt.de</url>
 
 	<repositories>
