@@ -16,7 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt
 
-import de.tudarmstadt.lt.flinkdt.tasks.{Prune, ComputeDTSimplified, DSTask, ComputeCT2}
+import de.tudarmstadt.lt.flinkdt.tasks._
 import de.tudarmstadt.lt.flinkdt.textutils.{CtFromString, StringConvert}
 import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2ext, CT2red, CT2}
 import org.apache.flink.api.common.operators.Order
@@ -82,6 +82,18 @@ object Implicits {
 
   implicit def prettyprint_ct2[CT <: CT2 : ClassTag : TypeInformation](x: DataSet[CT]) = new {
     def prettyprint = x.map(_.prettyprint).print
+  }
+
+  implicit def writeAsGraph(x: DataSet[CT2]) = new {
+    def writeAsGraph(out:String):DataSet[CT2] = {
+      GraphWriter[CT2, CT2#typeA, CT2#typeB](out).process(x)
+    }
+  }
+
+  implicit def writeCT(x: DataSet[CT2]) = new {
+    def writeCt(out:String):DataSet[CT2] = {
+      DSWriter[CT2](out).process(x)
+    }
   }
 
 }

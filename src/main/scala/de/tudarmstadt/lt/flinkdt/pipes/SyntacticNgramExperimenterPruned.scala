@@ -45,19 +45,12 @@ object SyntacticNgramExperimenterPruned extends App {
   // get input data
   val in = DSTaskConfig.in_text
 
-  val setup_ct2ext = ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, sigfun = _.lmi_n, Order.ASCENDING)
-
-  val jobimtext_pipeline = {
-    /*  */
-    ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
-    DSWriter(DSTaskConfig.out_dt) ~>
-    /*  */
-    FilterSortDT[CT2red[String,String],String, String](_.n11)
-    /*  */
-  }
-
-
   val ct_location = in.stripSuffix("/") + ".ct2.acc.all.pruned"
+
+  val setup_ct2ext = {
+    ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, sigfun = _.lmi_n, Order.ASCENDING) ~>
+    GraphWriter[CT2ext[String,String], String, String](s"${ct_location}-graph")
+  }
 
   val ct_location_path:Path = new Path(ct_location)
   if(!ct_location_path.getFileSystem.exists(ct_location_path)) {
@@ -65,7 +58,15 @@ object SyntacticNgramExperimenterPruned extends App {
     env.execute(DSTaskConfig.jobname + "-prepare")
   }
 
-  jobimtext_pipeline.process(env = env, input = ct_location, output = DSTaskConfig.out_dt_sorted)
+  val jobimtext_pipeline = {
+    /*  */
+    ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
+    GraphWriter[CT2red[String,String],String, String](s"${DSTaskConfig.out_dt}-graph") ~>
+    /*  */
+    FilterSortDT[CT2red[String,String],String, String](_.n11) ~>
+    /*  */
+    GraphWriter[CT2red[String,String],String, String](s"${DSTaskConfig.out_dt_sorted}-graph")
+  }.process(env = env, input = ct_location, output = null)
 
   env.execute(DSTaskConfig.jobname)
 

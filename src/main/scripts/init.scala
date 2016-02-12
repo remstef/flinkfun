@@ -28,6 +28,8 @@ def help = {
   println("defined ct2ext.computeDT(prune=false)")
   println("defined ct2ext.prettyprint")
   println("defined ct.topN(n, valfun=_.n11, order=Order.DESCENDING)")
+  println("defined ct.writeCT(out)")
+  println("defined ct.writeAsGraph(out)")
 }
 
 ///
