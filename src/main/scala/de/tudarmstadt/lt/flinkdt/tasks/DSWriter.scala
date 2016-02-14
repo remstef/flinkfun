@@ -28,11 +28,11 @@ import scala.reflect.ClassTag
   */
 object DSWriter {
 
-  def apply[T : ClassTag : TypeInformation](out:String) = new DSWriter[T](out)
+  def apply[T : ClassTag : TypeInformation](out:String, jobname:String = null) = new DSWriter[T](out,jobname)
 
 }
 
-class DSWriter[T : ClassTag : TypeInformation](out:String) extends DSTask[T,T] {
+class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String) extends DSTask[T,T] {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[T] = ???
 
@@ -43,6 +43,8 @@ class DSWriter[T : ClassTag : TypeInformation](out:String) extends DSTask[T,T] {
       ds.print() // calls x.toString()
     else
       ds.writeAsText(out, writeMode = FileSystem.WriteMode.OVERWRITE) // calls x.toString()
+    // execute plan
+    ds.getExecutionEnvironment.execute(if(jobname == null) DSTaskConfig.jobname else jobname)
     ds
   }
 

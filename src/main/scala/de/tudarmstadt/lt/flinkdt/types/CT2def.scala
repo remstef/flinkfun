@@ -67,6 +67,11 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
   def log_pmi():Float = (log(n11) + log(n) - log(n1dot) - log(ndot1)).toFloat
   def log2_pmi():Float = (log_pmi / log(2)).toFloat
 
+  // correlation coefficient
+  // ((n11*n22)-(n12*n21)) / Math.sqrt(n1dot*n2dot*ndot1*ndot2) toFloat;
+  def corrCoeff():Float = (log(n11) + log(n12)) - (log(n12) + log(n21)) / Math.sqrt(log(n1dot) + log(n2dot) + log(ndot1) + log(ndot2)) toFloat
+
+
   /**
     * @return
     */

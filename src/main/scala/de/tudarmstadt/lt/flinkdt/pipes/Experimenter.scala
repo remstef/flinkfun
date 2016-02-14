@@ -37,11 +37,10 @@ object Experimenter extends App {
       //WhiteListFilter.CT2Min[String, String](DSTaskConfig.in_whitelist, env) ~|~>
       /* */
       //      ComputeDTSimplified.CT2MinJoin[String,String]() ~> DSWriter(DSTaskConfig.out_dt)
-      ComputeDTSimplified.byGraph[CT2red[String,String],String,String]() ~> DSWriter(DSTaskConfig.out_dt)
+      ComputeDTSimplified.byGraph[CT2red[String,String],String,String]() ~> DSWriter(DSTaskConfig.out_dt, s"${DSTaskConfig.jobname}-process")
       /* */
     }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}")
 
-    env.execute(s"${DSTaskConfig.jobname}-process")
 
   }
 
@@ -52,23 +51,16 @@ object Experimenter extends App {
       /*  */
       N11Sum[CT2red[String,String], String, String]
       /*  */
-    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}")
-
-    env.execute(s"${DSTaskConfig.jobname}-preprocess")
-    env.startNewSession()
+    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}", jobname = s"${DSTaskConfig.jobname}-preprocess")
 
   }
 
   def postprocess() = {
 
-    env.startNewSession()
-
     { /* */
       FilterSortDT[CT2red[String,String], String, String](_.n11)
       /* */
-    }.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
-
-    env.execute(s"${DSTaskConfig.jobname}-postprocess")
+    }.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted, jobname = s"${DSTaskConfig.jobname}-postprocess")
 
   }
 

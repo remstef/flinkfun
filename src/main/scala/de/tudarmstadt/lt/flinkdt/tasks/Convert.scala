@@ -77,7 +77,7 @@ class Convert__Hash[CIN <: CT2 : ClassTag : TypeInformation, T1: ClassTag : Type
       .map(t => s"${t._1}\t${t._2}")
 
     // write mapping
-    DSWriter[String](keymap_outputlocation).process(string2id)
+    DSWriter[String](keymap_outputlocation, s"${DSTaskConfig.jobname}-keymap").process(string2id)
 
     // TODO: whats the best strategy to deal with collisions? Currently we ignore this issue!
     // should we sum the values again? just to be sure they are unique?

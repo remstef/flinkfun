@@ -51,6 +51,5 @@ object SamplePipeline extends App {
       /*  */
   }.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
 
-  env.execute(DSTaskConfig.jobname)
 
 }

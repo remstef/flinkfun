@@ -39,11 +39,10 @@ object FullDT extends App {
      ) ~>
      //      ComputeDTSimplified.CT2MinGraph[T,T]()
      ComputeDTSimplified.byJoin[CT2ext[T,T],T,T]() ~>
-     DSWriter(DSTaskConfig.out_dt)
+     DSWriter(DSTaskConfig.out_dt, s"${DSTaskConfig.jobname}-process")
      /* */
     }.process(env, input = s"${DSTaskConfig.out_accumulated_CT}")
 
-    env.execute(s"${DSTaskConfig.jobname}-process")
 
   }
 
@@ -62,15 +61,11 @@ object FullDT extends App {
       else
         string_preprocessing_chain
 
-    preprocessing_chain.process(env, input = in, output = DSTaskConfig.out_accumulated_CT)
-
-    env.execute(s"${DSTaskConfig.jobname}-preprocess")
-    env.startNewSession()
+    preprocessing_chain.process(env, input = in, output = DSTaskConfig.out_accumulated_CT, jobname = s"${DSTaskConfig.jobname}-preprocess")
 
   }
 
   def postprocess(hash:Boolean = false) = {
-    env.startNewSession()
 
     val string_post_processing = FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
 
@@ -78,9 +73,7 @@ object FullDT extends App {
       if(hash){ Convert.Hash.Reverse[CT2red[Array[Byte], Array[Byte]], CT2red[String,String], String, String](DSTaskConfig.out_keymap) ~> string_post_processing }
       else string_post_processing
 
-    postprocessing_chain.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
-
-    env.execute(s"${DSTaskConfig.jobname}-postprocess")
+    postprocessing_chain.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted, jobname = s"${DSTaskConfig.jobname}-postprocess")
 
   }
 

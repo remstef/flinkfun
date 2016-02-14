@@ -54,8 +54,7 @@ object SyntacticNgramExperimenterPruned extends App {
 
   val ct_location_path:Path = new Path(ct_location)
   if(!ct_location_path.getFileSystem.exists(ct_location_path)) {
-    setup_ct2ext.process(env, input = in, output = ct_location)
-    env.execute(DSTaskConfig.jobname + "-prepare")
+    setup_ct2ext.process(env, input = in, output = ct_location, jobname = DSTaskConfig.jobname + "-prepare")
   }
 
   val jobimtext_pipeline = {
@@ -66,9 +65,8 @@ object SyntacticNgramExperimenterPruned extends App {
     FilterSortDT[CT2red[String,String],String, String](_.n11) ~>
     /*  */
     GraphWriter[CT2red[String,String],String, String](s"${DSTaskConfig.out_dt_sorted}-graph")
-  }.process(env = env, input = ct_location, output = null)
+  }.process(env = env, input = ct_location)
 
-  env.execute(DSTaskConfig.jobname)
 
   val end = System.currentTimeMillis()
   val dur = Duration.ofMillis(end-start)

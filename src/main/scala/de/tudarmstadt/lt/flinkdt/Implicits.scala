@@ -86,13 +86,13 @@ object Implicits {
 
   implicit def writeAsGraph(x: DataSet[CT2]) = new {
     def writeAsGraph(out:String):DataSet[CT2] = {
-      GraphWriter[CT2, CT2#typeA, CT2#typeB](out).process(x)
+      GraphWriter[CT2, String, String](out).process(x)
     }
   }
 
   implicit def writeCT(x: DataSet[CT2]) = new {
     def writeCt(out:String):DataSet[CT2] = {
-      DSWriter[CT2](out).process(x)
+      DSWriter[CT2](out, "shell-job").process(x)
     }
   }
 

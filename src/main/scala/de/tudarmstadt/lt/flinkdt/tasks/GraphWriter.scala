@@ -45,6 +45,7 @@ class GraphWriter[CT <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeIn
     ds.flatMap(ct => ct.toStringArray().slice(0,2))
       .distinct()
       .writeAsText(s"${out}-nodes", writeMode = FileSystem.WriteMode.OVERWRITE) // calls x.toString()
+    ds.getExecutionEnvironment.execute(DSTaskConfig.jobname)
     ds
   }
 

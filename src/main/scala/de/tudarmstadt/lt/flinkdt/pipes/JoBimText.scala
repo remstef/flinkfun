@@ -37,13 +37,11 @@ object JoBimText extends App {
       //WhiteListFilter.CT2[String, String](DSTaskConfig.in_whitelist, env) ~|~>
       /* */
       ComputeCT2[CT2red[String,String], CT2def[String,String], String, String](prune = true, sigfun = _.lmi, order = Order.ASCENDING) ~>
-      DSWriter[CT2def[String,String]](DSTaskConfig.out_accumulated_CT) ~>
+      DSWriter[CT2def[String,String]](DSTaskConfig.out_accumulated_CT, s"${DSTaskConfig.jobname}-process") ~>
       /*  */
       ComputeDTSimplified.byJoin[CT2def[String,String],String,String]()
       /* */
-    }.process(env, input = DSTaskConfig.out_accumulated_AB, output =  DSTaskConfig.out_dt)
-
-    env.execute(s"${DSTaskConfig.jobname}-process")
+    }.process(env, input = DSTaskConfig.out_accumulated_AB, output =  DSTaskConfig.out_dt, jobname = s"${DSTaskConfig.jobname}-process")
 
   }
 
@@ -54,23 +52,16 @@ object JoBimText extends App {
       /*  */
       N11Sum[CT2red[String,String], String, String]()
       /*  */
-    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}")
-
-    env.execute(s"${DSTaskConfig.jobname}-preprocess")
-    env.startNewSession()
+    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}", jobname = s"${DSTaskConfig.jobname}-preprocess")
 
   }
 
   def postprocess() = {
 
-    env.startNewSession()
-
     { /* */
       FilterSortDT[CT2red[String, String],String, String](_.n11)
       /* */
     }.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
-
-    env.execute(s"${DSTaskConfig.jobname}-postprocess")
 
   }
 

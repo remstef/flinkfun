@@ -25,7 +25,7 @@ import scala.reflect.ClassTag
 /**
   * Created by Steffen Remus
   */
-class DSTaskWriterChain[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation, X : ClassTag : TypeInformation](_f:DSTask[I,X], _g:DSTask[X,O], out:String = null) extends DSTaskChain[I,O,X](_f,_g) {
+class DSTaskWriterChain[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation, X : ClassTag : TypeInformation](_f:DSTask[I,X], _g:DSTask[X,O], out:String = null, jobname:String) extends DSTaskChain[I,O,X](_f,_g) {
 
   override def fromLines(lineDS: DataSet[String]): DataSet[I] = f.fromLines(lineDS)
 
@@ -42,7 +42,7 @@ class DSTaskWriterChain[I : ClassTag : TypeInformation, O : ClassTag : TypeInfor
     }
 
     val ds_intermediate = f.process(ds)
-    val w = new DSWriter[String](out_)
+    val w = new DSWriter[String](out_, jobname)
     w.process(f.toLines(ds_intermediate))
     g(ds_intermediate)
 
