@@ -19,6 +19,7 @@
 package de.tudarmstadt.lt.flinkdt.types
 
 import de.tudarmstadt.lt.flinkdt.Implicits._
+import de.tudarmstadt.lt.flinkdt.tasks.DSTaskConfig
 import scala.math._
 
 /**
@@ -42,8 +43,7 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
                           var n1dot:Float = 1f,
                           var ndot1:Float = 1f,
                           var n:Float     = 1f,
-                          val srcid:Option[Any] = None,
-                          val isflipped:Boolean = false) extends CT2 {
+                          val srcid:Option[Any] = None) extends CT2 {
 
   override type typeA = T1
   override type typeB = T2
@@ -136,7 +136,7 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
     val filler  = " "*maxwidth
     val filler_ = "-"*2*maxwidth
     val source = if(srcid.isDefined) s"source = ${srcid.get}" else ""
-    s"""+++ ${getClass.getSimpleName}    ${source.asString}   +++
+    s"""+++ ${getClass.getSimpleName}    ${source.asString} ${if(DSTaskConfig.flipct) "[FLIPPED]"} +++
   A = ${a.asString}     B = ${b.asString}
                 |  B ${filler}        !B  ${filler}      | SUM
              ---------------------------------${filler_}
@@ -158,11 +158,11 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
   }
 
   def toStringTuple():(String, String, String, String, String, String) = (
-    s"${a.asString}",
-    s"${b.asString}",
+    s"${if (DSTaskConfig.flipct) b.asString else a.asString}",
+    s"${if (DSTaskConfig.flipct) a.asString else b.asString}",
     s"${n11.asString}",
-    s"${n1dot.asString}",
-    s"${ndot1.asString}",
+    s"${(if (DSTaskConfig.flipct) ndot1 else n1dot).asString}",
+    s"${(if (DSTaskConfig.flipct) n1dot else ndot1).asString}",
     s"${n.asString}")
 
   def toStringArray():Array[String] = {
@@ -174,17 +174,6 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
 
   def asCT2ext(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11, o1dot:Float=1f, odot1:Float=1f, on:Float=1f):CT2ext[T1,T2] = CT2ext(a,b,n11,n1dot,ndot1,n,o1dot,odot1,on)
 
-  def flipped():CT2def[T2,T1] = {
-    copy(
-      this.b,
-      this.a,
-      this.n11,
-      this.ndot1,
-      this.n1dot,
-      this.n,
-      this.srcid,
-      true
-    )
-  }
+  override def flipped() : CT2 = copy(a = b, b = a, n1dot = ndot1, ndot1 = n1dot)
 
 }

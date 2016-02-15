@@ -20,6 +20,8 @@ import de.tudarmstadt.lt.flinkdt.Implicits._
 
 import java.io.{ObjectInputStream, ByteArrayInputStream, ObjectOutputStream, ByteArrayOutputStream}
 
+import de.tudarmstadt.lt.flinkdt.tasks.DSTaskConfig
+
 /**
   * Created by Steffen Remus.
   */
@@ -121,7 +123,7 @@ abstract class CT2(implicit val ordering:Ordering[CT2]) extends Serializable wit
     val vf = v.map(x => ("%-"+maxwidth+"s").format(x)).toIndexedSeq
     val filler  = " "*maxwidth
     val filler_ = "-"*2*maxwidth
-    s"""+++ ${getClass.getSimpleName} +++
+    s"""+++ ${getClass.getSimpleName} ${if(DSTaskConfig.flipct) "[FLIPPED]"} +++
   A = ${a.asString}     B = ${b.asString}
                 |  B ${filler}        !B  ${filler}      | SUM
              ---------------------------------${filler_}
@@ -162,7 +164,9 @@ abstract class CT2(implicit val ordering:Ordering[CT2]) extends Serializable wit
       ) + (if(null == b) 0 else  b.hashCode)
   }
 
-  def toStringArray():Array[String]
+  def toStringArray() : Array[String]
+
+  def flipped() : CT2
 
   override def toString():String = toStringArray().mkString("\t")
 

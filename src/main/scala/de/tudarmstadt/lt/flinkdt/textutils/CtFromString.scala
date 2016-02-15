@@ -17,6 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.textutils
 
 import de.tudarmstadt.lt.flinkdt.Implicits._
+import de.tudarmstadt.lt.flinkdt.tasks.DSTaskConfig
 import de.tudarmstadt.lt.flinkdt.types.{CT2, CT2def, CT2ext, CT2red}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
@@ -58,22 +59,26 @@ object CtFromString {
 
   def _CT2def[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray:Array[String]):CT2def[T1,T2] = {
     ct2AsStringArray match {
-      case  Array(_A,_B,n11,n1dot,ndot1,n,_*) => CT2def[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
+      case  Array(_A,_B,n11,n1dot,ndot1,n,_*) if !DSTaskConfig.flipct => CT2def[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
+      case  Array(_B,_A,n11,ndot1,n1dot,n,_*) if  DSTaskConfig.flipct => CT2def[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat)
       case _ => EMPTY_CT2_DEFAULT
     }
   }
 
   def _CT2red[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray: Array[String]): CT2red[T1, T2] = {
     ct2AsStringArray match {
-      case Array(_A, _B, n11, _*) => CT2red[T1, T2](_A.toT[T1], _B.toT[T2], n11.toFloat)
-      case Array(_A, _B) => CT2red(_A.toT[T1], _B.toT[T2], 1f)
+      case Array(_A, _B, n11, _*) if !DSTaskConfig.flipct => CT2red[T1, T2](_A.toT[T1], _B.toT[T2], n11.toFloat)
+      case Array(_B, _A, n11, _*) if  DSTaskConfig.flipct => CT2red[T1, T2](_A.toT[T1], _B.toT[T2], n11.toFloat)
+      case Array(_A, _B)          if !DSTaskConfig.flipct => CT2red(_A.toT[T1], _B.toT[T2], 1f)
+      case Array(_B, _A)          if  DSTaskConfig.flipct => CT2red(_A.toT[T1], _B.toT[T2], 1f)
       case _ => EMPTY_CT2_REDUCED
     }
   }
 
   def _CT2ext[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](ct2AsStringArray:Array[String]):CT2ext[T1,T2] = {
     ct2AsStringArray match {
-      case  Array(_A,_B,n11,n1dot,ndot1,n,o1dot,odot1,on,_*) => CT2ext[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat,o1dot.toFloat,odot1.toFloat,on.toFloat)
+      case  Array(_A,_B,n11,n1dot,ndot1,n,o1dot,odot1,on,_*) if !DSTaskConfig.flipct => CT2ext[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat,o1dot.toFloat,odot1.toFloat,on.toFloat)
+      case  Array(_B,_A,n11,ndot1,n1dot,n,odot1,o1dot,on,_*) if  DSTaskConfig.flipct => CT2ext[T1,T2](_A.toT[T1],_B.toT[T2],n11.toFloat,n1dot.toFloat,ndot1.toFloat,n.toFloat,o1dot.toFloat,odot1.toFloat,on.toFloat)
       case _ => EMPTY_CT2_EXTENDED
     }
   }

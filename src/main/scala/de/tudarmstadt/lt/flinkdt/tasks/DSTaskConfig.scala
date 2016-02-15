@@ -16,8 +16,6 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import java.net.URI
-
 import org.apache.flink.api.java.utils.ParameterTool
 import com.typesafe.config.{ConfigRenderOptions, ConfigFactory, Config}
 import java.io.File
@@ -50,6 +48,8 @@ object DSTaskConfig extends Serializable{
 
   def appendPath(url:String,path:String) = url + (if (url.endsWith("/")) "" else "/") + path
 
+  def getFullPath(url:String,path:String) = appendPath(url, jobname + "/" + (if (flipct) "flipped-" else "" ) + path)
+
   @transient
   var config:Config                         = ConfigFactory.load()
 
@@ -66,7 +66,9 @@ object DSTaskConfig extends Serializable{
   var param_min_sim_distinct:Int            = 2
   var param_topn_sim:Int                    = 200
 
-  var jobname:String                        = "flinkjob"
+  var jobname:String                        = null
+
+  var flipct:Boolean                        = false
 
   var in_text:String                        = "!!NO INPUT DEFINED!!"
   var in_text_column:Int                    = -1
@@ -81,7 +83,7 @@ object DSTaskConfig extends Serializable{
   var out_accumulated_CT:String             = null
   var out_dt:String                         = null
   var out_dt_sorted:String                  = null
-  var out_keymap:String                     = appendPath(out_basedir, "keymap.tsv")
+  var out_keymap:String                     = null
 
   def resolveConfig(args:Array[String] = null): Config = {
     if (args == null || args.length <= 0)
@@ -95,36 +97,33 @@ object DSTaskConfig extends Serializable{
     }
   }
 
-
   def load(config:Config) = {
     this.config = config
     val config_dt = config.getConfig("dt")
     if(config_dt.hasPath("jobname"))
       jobname = config_dt.getString("jobname")
     else
-      jobname = s"${TimeUtils.getSimple17}_${jobname}"
+      jobname = s"flinkdt-job-${TimeUtils.getSimple17}"
 
     val outputconfig = config_dt.getConfig("output.ct")
 
-    out_basedir =
-      if(config_dt.hasPath("output.basedir"))
-        config_dt.getString("output.basedir")
-      else
-        appendPath("./", s"out-${this.jobname}")
+    out_basedir = config_dt.getString("output.basedir")
+
+    flipct                         = config_dt.getBoolean("flipct")
 
     // get input data and output data
     in_text                        = config_dt.getString("input.text")
     in_text_column                 = config_dt.getString("input.text-column").toInt
     in_whitelist                   = if(config_dt.hasPath("input.whitelist"))    config_dt.getString("input.whitelist") else null
-    out_raw                        = if(outputconfig.hasPath("raw"))             appendPath(out_basedir, outputconfig.getString("raw")) else null
-    out_accumulated_AB             = if(outputconfig.hasPath("accAB"))           appendPath(out_basedir, outputconfig.getString("accAB")) else null
-    out_accumulated_AB_whitelisted = if(outputconfig.hasPath("accABwhite"))      appendPath(out_basedir, outputconfig.getString("accABwhite")) else null
-    out_accumulated_A              = if(outputconfig.hasPath("accA"))            appendPath(out_basedir, outputconfig.getString("accA")) else null
-    out_accumulated_B              = if(outputconfig.hasPath("accB"))            appendPath(out_basedir, outputconfig.getString("accB")) else null
-    out_accumulated_CT             = if(outputconfig.hasPath("accall"))          appendPath(out_basedir, outputconfig.getString("accall")) else null
-    out_dt                         = if(outputconfig.hasPath("dt"))              appendPath(out_basedir, outputconfig.getString("dt")) else null
-    out_dt_sorted                  = if(outputconfig.hasPath("dtsort"))          appendPath(out_basedir, outputconfig.getString("dtsort")) else null
-    out_keymap                     = if(outputconfig.hasPath("keymap"))          appendPath(out_basedir, outputconfig.getString("keymap")) else appendPath(out_basedir, "keymap.tsv")
+    out_raw                        = if(outputconfig.hasPath("raw"))             getFullPath(out_basedir, outputconfig.getString("raw")) else null
+    out_accumulated_AB             = if(outputconfig.hasPath("accAB"))           getFullPath(out_basedir, outputconfig.getString("accAB")) else null
+    out_accumulated_AB_whitelisted = if(outputconfig.hasPath("accABwhite"))      getFullPath(out_basedir, outputconfig.getString("accABwhite")) else null
+    out_accumulated_A              = if(outputconfig.hasPath("accA"))            getFullPath(out_basedir, outputconfig.getString("accA")) else null
+    out_accumulated_B              = if(outputconfig.hasPath("accB"))            getFullPath(out_basedir, outputconfig.getString("accB")) else null
+    out_accumulated_CT             = if(outputconfig.hasPath("accall"))          getFullPath(out_basedir, outputconfig.getString("accall")) else null
+    out_dt                         = if(outputconfig.hasPath("dt"))              getFullPath(out_basedir, outputconfig.getString("dt")) else null
+    out_dt_sorted                  = if(outputconfig.hasPath("dtsort"))          getFullPath(out_basedir, outputconfig.getString("dtsort")) else null
+    out_keymap                     = if(outputconfig.hasPath("keymap"))          getFullPath(out_basedir, outputconfig.getString("keymap")) else null
 
     // get filter config
     val config_filter = config_dt.getConfig("filter")

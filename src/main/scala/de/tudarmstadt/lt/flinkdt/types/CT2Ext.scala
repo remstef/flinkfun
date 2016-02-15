@@ -17,6 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.types
 
 import de.tudarmstadt.lt.flinkdt.Implicits._
+import de.tudarmstadt.lt.flinkdt.tasks.DSTaskConfig
 
 import scala.math._
 
@@ -52,8 +53,7 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
                           var o1dot:Float = 1f,
                           var odot1:Float = 1f,
                           var on:Float    = 1f,
-                          val srcid:Option[Any] = None,
-                          val isflipped:Boolean = false) extends CT2 {
+                          val srcid:Option[Any] = None) extends CT2 {
 
   override type typeA = T1
   override type typeB = T2
@@ -199,7 +199,7 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
     val filler  = " "*maxwidth
     val filler_ = "-"*2*maxwidth
     val source = if(srcid.isDefined) s"source = ${srcid.get}" else ""
-    s"""+++ ${getClass.getSimpleName}    ${source.asString}   +++
+    s"""+++ ${getClass.getSimpleName}    ${source.asString}   ${if(DSTaskConfig.flipct) "[FLIPPED]"} +++
   A = ${a.asString}     B = ${b.asString}
                 |  B ${filler}        !B  ${filler}      | SUM
              ---------------------------------${filler_}
@@ -238,14 +238,14 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
   }
 
   def toStringTuple():(String, String, String, String, String, String, String, String, String) = (
-    s"${a.asString}",
-    s"${b.asString}",
+    s"${if (DSTaskConfig.flipct) b.asString else a.asString}",
+    s"${if (DSTaskConfig.flipct) a.asString else b.asString}",
     s"${n11.asString}",
-    s"${n1dot.asString}",
-    s"${ndot1.asString}",
+    s"${(if (DSTaskConfig.flipct) ndot1 else n1dot).asString}",
+    s"${(if (DSTaskConfig.flipct) n1dot else ndot1).asString}",
     s"${n.asString}",
-    s"${o1dot.asString}",
-    s"${odot1.asString}",
+    s"${(if (DSTaskConfig.flipct) odot1 else o1dot).asString}",
+    s"${(if (DSTaskConfig.flipct) o1dot else odot1).asString}",
     s"${on.asString}"
     )
 
@@ -255,22 +255,8 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
   }
 
   def toCT2Min() = CT2red[T1,T2](a,b,n11)
-  def toCT2Full() = CT2def[T1,T2](a,b,n11,n1dot,ndot1,n,srcid,isflipped)
+  def toCT2Full() = CT2def[T1,T2](a,b,n11,n1dot,ndot1,n,srcid)
 
-  def flipped():CT2ext[T2,T1] = {
-    copy(
-      a = this.b,
-      b = this.a,
-      n11 = this.n11,
-      n1dot = this.ndot1,
-      ndot1 = this.n1dot,
-      n = this.n,
-      o1dot = this.odot1,
-      odot1 = this.o1dot,
-      on = this.on,
-      srcid = this.srcid,
-      isflipped = true
-    )
-  }
+  override def flipped() : CT2 = copy(a = b, b = a, n1dot = ndot1, ndot1 = n1dot, o1dot = odot1, odot1 = o1dot)
 
 }

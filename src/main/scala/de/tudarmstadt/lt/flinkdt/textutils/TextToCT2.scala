@@ -16,6 +16,7 @@
 
 package de.tudarmstadt.lt.flinkdt.textutils
 
+import de.tudarmstadt.lt.flinkdt.tasks.DSTaskConfig
 import de.tudarmstadt.lt.flinkdt.types.CT2red
 import de.tudarmstadt.lt.scalautils.PatGen
 
@@ -28,7 +29,7 @@ object TextToCT2 {
 
   def coocurrence(text:String): TraversableOnce[CT2red[String,String]] = {
     val seq = text.split("\\s+").toSeq
-    for(w1 <- seq; w2 <- seq if w1 != w2) yield CT2red(w1, w2)
+    (for(w1 <- seq; w2 <- seq if w1 != w2) yield CT2red(w1, w2)).map(ct => if (DSTaskConfig.flipct) ct.flipped().asInstanceOf[CT2red[String,String]] else ct)
   }
 
   def ngrams(text:String, n:Int=5): TraversableOnce[CT2red[String,String]] = {
@@ -36,12 +37,18 @@ object TextToCT2 {
     val seq = ("^ "*(nh) + text + " $"*(nh)).split("\\s+")
     seq.sliding(n)
       .map(x => CT2red(x(nh), x.slice(0,nh).mkString(" ") + " @ "  + x.slice(n-nh,n).mkString(" ")))
+      .map(ct => if (DSTaskConfig.flipct) ct.flipped().asInstanceOf[CT2red[String,String]] else ct)
   }
 
   def ngram_patterns(text:String, n:Int=5, num_wildcards:Int=2): TraversableOnce[CT2red[String,String]] = {
     val f = Array(n/2) // 5/2 = 2 => 0 1 @ 3 4
     val ngram_jbs = ngrams(text, n)
-    val jb = ngram_jbs.flatMap(ct => PatGen(ct.b.split(" ")).patterns(num_wildcards, f).map(pat => pat.mergedPattern).map(p => CT2red(a=ct.a, b=p.mkString(" "), ct.n11)))
+    val jb = ngram_jbs.
+      flatMap(ct => PatGen(ct.b.split(" "))
+        .patterns(num_wildcards, f)
+        .map(pat => pat.mergedPattern)
+        .map(p => CT2red(a=ct.a, b=p.mkString(" "), ct.n11)))
+      .map(ct => if (DSTaskConfig.flipct) ct.flipped().asInstanceOf[CT2red[String,String]] else ct)
     jb
   }
 
@@ -51,6 +58,7 @@ object TextToCT2 {
     PatGen(seq).kWildcardNgramPatterns(n=n+k,k=k)
       .map(_.skipGram)
       .map(x => CT2red(x(nh), x.slice(0,nh-1).mkString(" ") + " @ "  + x.slice(n-nh,n).mkString(" ")))
+      .map(ct => if (DSTaskConfig.flipct) ct.flipped().asInstanceOf[CT2red[String,String]] else ct)
   }
 
   def kWildcardNgramPatterns(text:String, n:Int=3, k:Int=2): TraversableOnce[CT2red[String,String]] = {
@@ -62,6 +70,7 @@ object TextToCT2 {
       .filter(_.b != "$")
       .filter(_.b != "^ ^")
       .filter(_.b != "$ $")
+      .map(ct => if (DSTaskConfig.flipct) ct.flipped().asInstanceOf[CT2red[String,String]] else ct)
   }
 
   def kWildcardNgramPatterns_kplus(text:String, n:Int=3, k_max:Int=2): TraversableOnce[CT2red[String,String]] = {
@@ -76,6 +85,7 @@ object TextToCT2 {
 //      .map(ct => {ct.b = ct.b.replaceAllLiterally("^","").replaceAllLiterally(" $",""); ct})
 //      .map(ct => {ct.a = ct.a.replaceAllLiterally("^ ","").replaceAllLiterally(" $","").replaceAllLiterally("@ @", "@"); ct})
     // TODO: make replacement rules generic!
+      .map(ct => if (DSTaskConfig.flipct) ct.flipped().asInstanceOf[CT2red[String,String]] else ct)
   }
 
   def kWildcardNgramPatterns_nplus_kplus(text:String, n_max:Int=3, k_max:Int=2): TraversableOnce[CT2red[String,String]] = {
@@ -83,6 +93,7 @@ object TextToCT2 {
     val seq = text.replaceAllLiterally("@","(at)").split("\\s+")
     PatGen(seq)("@").kWildcardNgramPatterns_nplus_kplus(n_max,k_max)
       .map(p => CT2red(p.reversed().mergedPattern.mkString(" "), p.mergedPattern.mkString(" "), 1f))
+      .map(ct => if (DSTaskConfig.flipct) ct.flipped().asInstanceOf[CT2red[String,String]] else ct)
   }
 
   def ngramPatternWordPairs(text:String, nmax:Int=5): TraversableOnce[CT2red[String,String]] = {
@@ -92,6 +103,7 @@ object TextToCT2 {
     PatGen(seq)("@")
       .kWildcardNgramPatterns_nplus(nmax, k=2)
       .map(p => CT2red(p.pattern.mkString(" "), p.filler.mkString(" "), 1f))
+      .map(ct => if (DSTaskConfig.flipct) ct.flipped().asInstanceOf[CT2red[String,String]] else ct)
   }
 
 }

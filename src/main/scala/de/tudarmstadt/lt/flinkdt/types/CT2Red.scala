@@ -1,6 +1,7 @@
 package de.tudarmstadt.lt.flinkdt.types
 
 import de.tudarmstadt.lt.flinkdt.Implicits._
+import de.tudarmstadt.lt.flinkdt.tasks.DSTaskConfig
 
 /**
   * REDUCED CT2
@@ -60,8 +61,8 @@ case class CT2red[T1, T2](var a:T1,
   def asCT2ext(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11, o1dot:Float=1f, odot1:Float=1f, on:Float=1f):CT2ext[T1,T2] = CT2ext(a,b,n11,n1dot,ndot1,n,o1dot,odot1,on)
 
   def toStringTuple():(String, String, String) = (
-    s"${a.asString}",
-    s"${b.asString}",
+    s"${if (DSTaskConfig.flipct) b.asString else a.asString}",
+    s"${if (DSTaskConfig.flipct) a.asString else b.asString}",
     s"${n11.asString}")
 
   override def toStringArray():Array[String] = {
@@ -82,6 +83,8 @@ case class CT2red[T1, T2](var a:T1,
       41 + (if(null == a) 0 else  a.hashCode)
       ) + (if(null == b) 0 else  b.hashCode)
   }
+
+  override def flipped() : CT2 = copy(a = b, b = a)
 
 
 }
