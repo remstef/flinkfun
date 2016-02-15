@@ -48,7 +48,7 @@ object CtDT extends App {
         o.print()
       }
       else{
-        o.writeAsCsv(new File(outputbasedir, outputconfig.getString(conf_path)).getAbsolutePath, "\n", "\t", writeMode = FileSystem.WriteMode.OVERWRITE)
+        o.writeAsCsv(new File(outputbasedir, outputconfig.getString(conf_path)).getAbsolutePath, "\n", "\t")
         if(pipe(pipe.size-1) == conf_path) {
           env.execute(jobname)
           return

@@ -41,10 +41,10 @@ class GraphWriter[CT <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeIn
   override def process(ds: DataSet[CT]): DataSet[CT] = {
     if (out == null)
       return ds
-    ds.writeAsText(s"${out}-edges", writeMode = FileSystem.WriteMode.OVERWRITE) // calls x.toString()
+    ds.writeAsText(s"${out}-edges") // calls x.toString()
     ds.flatMap(ct => ct.toStringArray().slice(0,2))
       .distinct()
-      .writeAsText(s"${out}-nodes", writeMode = FileSystem.WriteMode.OVERWRITE) // calls x.toString()
+      .writeAsText(s"${out}-nodes") // calls x.toString()
     ds.getExecutionEnvironment.execute(DSTaskConfig.jobname)
     ds
   }

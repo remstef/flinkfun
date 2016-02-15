@@ -42,7 +42,7 @@ class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String) exten
     if(out == "stdout")
       ds.print() // calls x.toString()
     else
-      ds.writeAsText(out, writeMode = FileSystem.WriteMode.OVERWRITE) // calls x.toString()
+      ds.writeAsText(out) // calls x.toString()
     // execute plan
     ds.getExecutionEnvironment.execute(if(jobname == null) DSTaskConfig.jobname else jobname)
     ds
