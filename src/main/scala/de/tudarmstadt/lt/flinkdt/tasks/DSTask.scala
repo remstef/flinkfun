@@ -30,23 +30,22 @@ abstract class DSTask[I : ClassTag : TypeInformation, O : ClassTag : TypeInforma
 
   def process(ds:DataSet[I]):DataSet[O]
 
-  def process(ds:DataSet[I], output:String, jobname:String):DataSet[O] = {
-    if(output != null && !output.isEmpty) {
-      val ds_out = process(ds)
-      val writer: DSWriter[String] = new DSWriter[String](output, jobname)
-      writer.process(toLines(ds_out))
-      ds_out
-    }
-    else
-      process(ds)
-  }
+
+//  def process(ds:DataSet[I], output:String, jobname:String):DataSet[O] = {
+//    if(output != null && !output.isEmpty) {
+//      val ds_out = process(ds)
+//      val writer: DSWriter[String] = new DSWriter[String](output, jobname)
+//      writer.process(toLines(ds_out))
+//      ds_out
+//    }
+//    else
+//      process(ds)
+//  }
 
   def process(input:String, output:String = null, jobname:String = null):DataSet[O] = {
     val ds_out = process(fromInputLines(DSReader(input).process(null)))
-    if(output != null && !output.isEmpty) {
-      val writer: DSWriter[String] = new DSWriter[String](output, jobname)
-      writer.process(toLines(ds_out))
-    }
+    if(output != null && !output.isEmpty)
+      DSWriter[String](output, jobname).process(toLines(ds_out))
     ds_out
   }
 

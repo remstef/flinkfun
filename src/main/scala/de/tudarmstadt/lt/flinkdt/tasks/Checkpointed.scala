@@ -25,7 +25,23 @@ import scala.reflect.ClassTag
 /**
   * Created by Steffen Remus.
   */
-class Checkpoint[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation](f:DSTask[I,O], out:String = null, jobname:String) extends DSTask[I,O] {
+object Checkpointed {
+
+  /**
+    *
+    * @param f
+    * @param out
+    * @param jobname
+    * @param reReadFromCheckpoint if true, the written data is read and provided for upcoming task (this might improve performance on big datasets), otherwise the intermediate results are re-used
+    * @tparam I
+    * @tparam O
+    * @return
+    */
+  def apply[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation](f:DSTask[I,O], out:String, jobname:String = null, reReadFromCheckpoint:Boolean=false) = new Checkpointed[I,O](f, out, jobname, reReadFromCheckpoint)
+
+}
+
+class Checkpointed[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation](f:DSTask[I,O], out:String, jobname:String = null, reReadFromCheckpoint:Boolean = false) extends DSTask[I,O] {
 
   val output_path:Path = new Path(out)
 
@@ -36,7 +52,14 @@ class Checkpoint[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation]
   override def process(ds: DataSet[I]): DataSet[O] = {
     if(output_path.getFileSystem.exists(output_path))
       return fromCheckpointLines(DSReader(out).process())
-    return f(ds)
+    val ds_out = f(ds)
+    if(out != null) {
+      DSWriter[O](out, jobname).process(ds_out)
+      if(reReadFromCheckpoint) // throw away intermediate results and continue to work with the re-read data
+        return fromCheckpointLines(DSReader(out).process())
+      // else just re-use the processed data
+    }
+    return ds_out
   }
 
 }

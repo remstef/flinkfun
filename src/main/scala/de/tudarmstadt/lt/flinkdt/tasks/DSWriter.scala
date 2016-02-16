@@ -18,7 +18,7 @@ package de.tudarmstadt.lt.flinkdt.tasks
 
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
-import org.apache.flink.core.fs.FileSystem
+import org.apache.flink.core.fs.{Path, FileSystem}
 
 import scala.reflect.ClassTag
 
@@ -45,8 +45,27 @@ class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String) exten
       ds.print() // calls x.toString()
     else
       ds.writeAsText(out) // calls x.toString()
+
     // execute plan
-    ds.getExecutionEnvironment.execute(if(jobname == null) DSTaskConfig.jobname else jobname)
+    try {
+      ds.getExecutionEnvironment.execute(if (jobname == null) DSTaskConfig.jobname else jobname)
+    } catch {
+      case t:Throwable => {
+        // job failed -> clean up data if necessary
+        if (out != "stdout") {
+          val output_path:Path = new Path(out)
+          val fs:FileSystem = output_path.getFileSystem
+          if (fs.exists(output_path)) { // if the folder doesn't exist don't do anything
+            // rename directory, replace if it existed before
+            val failed_output_path:Path = new Path(s"${out}-failed")
+            fs.rename(output_path, failed_output_path)
+            // fs.delete(output_path, true)
+          }
+        }
+        // finally re-throw the exception
+        throw(t)
+      }
+    }
     ds
   }
 
