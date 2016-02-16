@@ -45,27 +45,30 @@ object SyntacticNgramExperimenter extends App {
   val setup_ct2ext = ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]()
 
   val default_jobimtext_pipeline = {
-    Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~>
-    /*  */
-    ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
-    DSWriter(DSTaskConfig.out_dt) ~>
-    /*  */
-    FilterSortDT[CT2red[String,String],String, String](_.n11)
-    /*  */
+    Checkpointed(
+      Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~>
+        /*  */
+        ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
+      DSTaskConfig.out_dt
+    ) ~>
+      /*  */
+      FilterSortDT[CT2red[String,String],String, String](_.n11)
   }
 
   val full_dt_pipeline = {
-    /* minimal pruning */
-    DSTask[CT2ext[String, String], CT2ext[String, String]](
-      CtFromString[CT2ext[String,String],String,String](_),
-      ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) },
-      CtFromString[CT2ext[String,String],String,String](_)
+    Checkpointed(
+      /* minimal pruning */
+      DSTask[CT2ext[String, String], CT2ext[String, String]](
+        CtFromString[CT2ext[String,String],String,String](_),
+        ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) },
+        CtFromString[CT2ext[String,String],String,String](_)
+      ) ~>
+        /* */
+        ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
+      DSTaskConfig.out_dt
     ) ~>
-    /* */
-    ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
-    DSWriter(DSTaskConfig.out_dt) ~>
-    /* */
-    FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
+      /* */
+      FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
   }
 
   val ct_location = in.stripSuffix("/") + ".ct2.acc.all"
