@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.scala.DataSet
+import org.apache.flink.api.scala.{ExecutionEnvironment, DataSet}
 import org.apache.flink.core.fs.Path
 
 import scala.reflect.ClassTag
@@ -37,11 +37,11 @@ object Checkpointed {
     * @tparam O
     * @return
     */
-  def apply[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation](f:DSTask[I,O], out:String, jobname:String = null, reReadFromCheckpoint:Boolean=false) = new Checkpointed[I,O](f, out, jobname, reReadFromCheckpoint)
+  def apply[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation](f:DSTask[I,O], out:String, jobname:String = null, reReadFromCheckpoint:Boolean=false, env:ExecutionEnvironment = null) = new Checkpointed[I,O](f, out, jobname, reReadFromCheckpoint, env)
 
 }
 
-class Checkpointed[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation](f:DSTask[I,O], out:String, jobname:String = null, reReadFromCheckpoint:Boolean = false) extends DSTask[I,O] {
+class Checkpointed[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation](f:DSTask[I,O], out:String, jobname:String = null, reReadFromCheckpoint:Boolean = false, env:ExecutionEnvironment = null) extends DSTask[I,O] {
 
   val output_path:Path = new Path(out)
 
@@ -51,12 +51,12 @@ class Checkpointed[I : ClassTag : TypeInformation, O : ClassTag : TypeInformatio
 
   override def process(ds: DataSet[I]): DataSet[O] = {
     if(output_path.getFileSystem.exists(output_path))
-      return fromCheckpointLines(DSReader(out).process())
+      return fromCheckpointLines(DSReader(out, env).process())
     val ds_out = f(ds)
     if(out != null) {
       DSWriter[O](out, jobname).process(ds_out)
       if(reReadFromCheckpoint) // throw away intermediate results and continue to work with the re-read data
-        return fromCheckpointLines(DSReader(out).process())
+        return fromCheckpointLines(DSReader(out, env).process())
       // else just re-use the processed data
     }
     return ds_out

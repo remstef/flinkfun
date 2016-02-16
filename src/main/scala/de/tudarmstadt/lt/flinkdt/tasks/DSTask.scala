@@ -42,8 +42,8 @@ abstract class DSTask[I : ClassTag : TypeInformation, O : ClassTag : TypeInforma
 //      process(ds)
 //  }
 
-  def process(input:String, output:String = null, jobname:String = null):DataSet[O] = {
-    val ds_out = process(fromInputLines(DSReader(input).process(null)))
+  def process(input:String, output:String = null, jobname:String = null, env: ExecutionEnvironment = null):DataSet[O] = {
+    val ds_out = process(fromInputLines(DSReader(input, null).process(null)))
     if(output != null && !output.isEmpty)
       DSWriter[String](output, jobname).process(toLines(ds_out))
     ds_out

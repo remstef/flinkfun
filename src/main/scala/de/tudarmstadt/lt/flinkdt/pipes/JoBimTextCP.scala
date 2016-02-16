@@ -65,6 +65,7 @@ object JoBimTextCP extends App {
   // get input data
   val in = DSTaskConfig.in_text
 
-  pipeline.process(input = DSTaskConfig.in_text)
+  val ds = pipeline.process(input = DSTaskConfig.in_text)
+  ds.first(10).print
 
 }
