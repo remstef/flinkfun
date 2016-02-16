@@ -21,7 +21,9 @@ object FilterSortDT {
 
 class FilterSortDT[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(C => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[C, C] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
+  override def fromInputLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
+
+  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
 
   // TODO: this can surely be optimized
   override def process(ds: DataSet[C]): DataSet[C] = {

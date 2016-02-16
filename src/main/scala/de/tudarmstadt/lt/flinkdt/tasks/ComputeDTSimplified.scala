@@ -21,7 +21,9 @@ object ComputeDTSimplified {
 
 class ComputeDTSimplified__byJoin[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[C, CT2red[T1,T1]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C, T1, T2](_))
+  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[CT2red[T1, T1]] = lineDS.map(CtFromString[CT2red[T1,T1], T1, T1](_))
+
+  override def fromInputLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C, T1, T2](_))
 
   override def process(ds: DataSet[C]): DataSet[CT2red[T1,T1]] = {
 
@@ -42,7 +44,9 @@ class ComputeDTSimplified__byJoin[C <: CT2 : ClassTag : TypeInformation, T1 : Cl
 
 class ComputeDTSimplified__byGraph[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[C, CT2red[T1,T1]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C, T1, T2](_))
+  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[CT2red[T1, T1]] = lineDS.map(CtFromString[CT2red[T1,T1], T1, T1](_))
+
+  override def fromInputLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C, T1, T2](_))
 
   override def process(ds: DataSet[C]): DataSet[CT2red[T1,T1]] = {
 

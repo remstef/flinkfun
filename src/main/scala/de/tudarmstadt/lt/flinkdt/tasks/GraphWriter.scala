@@ -36,7 +36,9 @@ object GraphWriter {
 
 class GraphWriter[CT <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](out:String) extends DSTask[CT,CT] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[CT] = lineDS.map(CtFromString[CT, T1, T2](_))
+  override def fromInputLines(lineDS: DataSet[String]): DataSet[CT] = lineDS.map(CtFromString[CT, T1, T2](_))
+
+  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[CT] = ???
 
   override def process(ds: DataSet[CT]): DataSet[CT] = {
     if (out == null)

@@ -49,7 +49,7 @@ object SamplePipeline extends App {
       /*  */
       FilterSortDT[CT2red[String,String],String, String](_.n11)
       /*  */
-  }.process(env = env, input = in, output = DSTaskConfig.out_dt_sorted)
+  }.process(input = in, output = DSTaskConfig.out_dt_sorted)
 
 
 }

@@ -10,9 +10,10 @@ import scala.reflect.ClassTag
   */
 object DSTask {
 
-  def apply[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation](stringfun:String => I, processfun:DataSet[I] => DataSet[O]) =
+  def apply[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation](stringfun:String => I, processfun:DataSet[I] => DataSet[O], cpfun:String => O) =
     new DSTask[I, O] {
-      override def fromLines(lineDS: DataSet[String]): DataSet[I] = lineDS.map(stringfun(_))
+      override def fromInputLines(lineDS: DataSet[String]): DataSet[I] = lineDS.map(stringfun(_))
+      override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[O] = lineDS.map(cpfun(_))
       override def process(ds: DataSet[I]): DataSet[O] = processfun(ds)
     }
 
@@ -21,7 +22,9 @@ object DSTask {
 @SerialVersionUID(42L)
 abstract class DSTask[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation] extends (DataSet[I] => DataSet[O]) with Serializable  {
 
-  def fromLines(lineDS:DataSet[String]):DataSet[I]
+  def fromInputLines(lineDS:DataSet[String]):DataSet[I]
+
+  def fromCheckpointLines(lineDS:DataSet[String]):DataSet[O]
 
   def toLines(ds:DataSet[O]):DataSet[String] = ds.map(_.toString())
 
@@ -38,8 +41,8 @@ abstract class DSTask[I : ClassTag : TypeInformation, O : ClassTag : TypeInforma
       process(ds)
   }
 
-  def process(env:ExecutionEnvironment, input:String, output:String = null, jobname:String = null):DataSet[O] = {
-    val ds_out = process(fromLines(DSReader(input, env).process(null)))
+  def process(input:String, output:String = null, jobname:String = null):DataSet[O] = {
+    val ds_out = process(fromInputLines(DSReader(input).process(null)))
     if(output != null && !output.isEmpty) {
       val writer: DSWriter[String] = new DSWriter[String](output, jobname)
       writer.process(toLines(ds_out))
@@ -52,6 +55,7 @@ abstract class DSTask[I : ClassTag : TypeInformation, O : ClassTag : TypeInforma
   def ~>[X : ClassTag : TypeInformation](g:DSTask[O,X]) = new DSTaskChain[I,X,O](this, g)
 
   def ~|~>[X : ClassTag : TypeInformation](g:DSTask[O,X]) = new DSTaskWriterChain[I,X,O](this, g, out = null, jobname = null)
+
 
 }
 

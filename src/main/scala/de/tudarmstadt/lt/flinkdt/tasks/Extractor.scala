@@ -1,5 +1,6 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
+import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.CT2red
 import org.apache.flink.api.scala._
 
@@ -14,7 +15,9 @@ object Extractor {
 
 class Extractor(extractorfun:String => TraversableOnce[CT2red[String, String]], textcol:Int) extends DSTask[String, CT2red[String,String]] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[String] = lineDS
+  override def fromInputLines(lineDS: DataSet[String]): DataSet[String] = lineDS
+
+  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[CT2red[String, String]] = lineDS.map(CtFromString[CT2red[String,String], String,String](_))
 
   override def process(ds: DataSet[String]): DataSet[CT2red[String,String]] = {
 

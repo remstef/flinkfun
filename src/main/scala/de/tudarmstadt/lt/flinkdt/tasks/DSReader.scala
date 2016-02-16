@@ -7,13 +7,15 @@ import org.apache.flink.api.scala._
   */
 object DSReader {
 
-  def apply(in:String, env:ExecutionEnvironment) = new DSReader(in,env)
+  def apply(in:String) = new DSReader(in)
 
 }
 
-class DSReader(in: String, env: ExecutionEnvironment) extends DSTask[String, String]{
+class DSReader(in: String) extends DSTask[String, String]{
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[String] = lineDS
+  override def fromInputLines(lineDS: DataSet[String]): DataSet[String] = lineDS
+
+  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[String] = lineDS
 
   override def process(ds: DataSet[String]): DataSet[String] = {
     if(ds != null)
@@ -22,6 +24,7 @@ class DSReader(in: String, env: ExecutionEnvironment) extends DSTask[String, Str
   }
 
   def process(): DataSet[String] = {
+    val env = ExecutionEnvironment.getExecutionEnvironment
     val ds = if(in.contains('\n'))
       env.fromCollection(in.split('\n'))
     else

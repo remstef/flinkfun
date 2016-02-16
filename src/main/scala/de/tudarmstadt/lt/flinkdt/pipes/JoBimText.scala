@@ -41,7 +41,7 @@ object JoBimText extends App {
       /*  */
       ComputeDTSimplified.byJoin[CT2def[String,String],String,String]()
       /* */
-    }.process(env, input = DSTaskConfig.out_accumulated_AB, output =  DSTaskConfig.out_dt, jobname = s"${DSTaskConfig.jobname}-process")
+    }.process(input = DSTaskConfig.out_accumulated_AB, output =  DSTaskConfig.out_dt, jobname = s"${DSTaskConfig.jobname}-process")
 
   }
 
@@ -52,7 +52,7 @@ object JoBimText extends App {
       /*  */
       N11Sum[CT2red[String,String], String, String]()
       /*  */
-    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}", jobname = s"${DSTaskConfig.jobname}-preprocess")
+    }.process(input = in, output = s"${DSTaskConfig.out_accumulated_AB}", jobname = s"${DSTaskConfig.jobname}-preprocess")
 
   }
 
@@ -61,7 +61,7 @@ object JoBimText extends App {
     { /* */
       FilterSortDT[CT2red[String, String],String, String](_.n11)
       /* */
-    }.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
+    }.process(input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
 
   }
 
@@ -71,9 +71,6 @@ object JoBimText extends App {
   DSTaskConfig.load(config)
 
   def extractorfun:String => TraversableOnce[CT2red[String,String]] = Util.getExtractorfunFromJobname()
-
-  // set up the execution environment
-  val env = ExecutionEnvironment.getExecutionEnvironment
 
   // get input data
   val in = DSTaskConfig.in_text

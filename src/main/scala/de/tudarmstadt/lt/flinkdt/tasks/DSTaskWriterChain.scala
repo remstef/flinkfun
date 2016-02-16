@@ -27,7 +27,7 @@ import scala.reflect.ClassTag
   */
 class DSTaskWriterChain[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation, X : ClassTag : TypeInformation](_f:DSTask[I,X], _g:DSTask[X,O], out:String = null, jobname:String) extends DSTaskChain[I,O,X](_f,_g) {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[I] = f.fromLines(lineDS)
+  override def fromInputLines(lineDS: DataSet[String]): DataSet[I] = f.fromInputLines(lineDS)
 
   override def process(ds: DataSet[I]): DataSet[O] = {
 

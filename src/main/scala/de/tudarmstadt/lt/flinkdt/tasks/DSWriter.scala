@@ -34,7 +34,9 @@ object DSWriter {
 
 class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String) extends DSTask[T,T] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[T] = ???
+  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[T] = ???
+
+  override def fromInputLines(lineDS: DataSet[String]): DataSet[T] = ???
 
   override def process(ds: DataSet[T]): DataSet[T] = {
     if (out == null)

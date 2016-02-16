@@ -18,7 +18,9 @@ object N11Sum {
 
 class N11Sum[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation] extends DSTask[C, C] {
 
-  override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
+  override def fromInputLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
+
+  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
 
   override def process(ds: DataSet[C]): DataSet[C] = {
     ds.groupBy("a","b")

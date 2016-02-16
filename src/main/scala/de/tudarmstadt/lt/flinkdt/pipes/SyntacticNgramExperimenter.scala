@@ -39,9 +39,6 @@ object SyntacticNgramExperimenter extends App {
 
   DSTaskConfig.load(DSTaskConfig.resolveConfig(args))
 
-  // set up the execution environment
-  val env = ExecutionEnvironment.getExecutionEnvironment
-
   // get input data
   val in = DSTaskConfig.in_text
 
@@ -61,7 +58,8 @@ object SyntacticNgramExperimenter extends App {
     /* minimal pruning */
     DSTask[CT2ext[String, String], CT2ext[String, String]](
       CtFromString[CT2ext[String,String],String,String](_),
-      ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) }
+      ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) },
+      CtFromString[CT2ext[String,String],String,String](_)
     ) ~>
     /* */
     ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
@@ -74,13 +72,13 @@ object SyntacticNgramExperimenter extends App {
 
   val ct_location_path:Path = new Path(ct_location)
   if(!ct_location_path.getFileSystem.exists(ct_location_path)) {
-    setup_ct2ext.process(env, input = in, output = ct_location, jobname = DSTaskConfig.jobname + "-prepare")
+    setup_ct2ext.process(input = in, output = ct_location, jobname = DSTaskConfig.jobname + "-prepare")
   }
 
   if(DSTaskConfig.jobname.contains("full"))
-    full_dt_pipeline.process(env = env, input = ct_location, output = DSTaskConfig.out_dt_sorted)
+    full_dt_pipeline.process(input = ct_location, output = DSTaskConfig.out_dt_sorted)
   else
-    default_jobimtext_pipeline.process(env = env, input = ct_location, output = DSTaskConfig.out_dt_sorted)
+    default_jobimtext_pipeline.process(input = ct_location, output = DSTaskConfig.out_dt_sorted)
 
   val end = System.currentTimeMillis()
   val dur = Duration.ofMillis(end-start)

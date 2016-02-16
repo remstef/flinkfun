@@ -31,9 +31,6 @@ object RerankDT extends App {
     config = DSTaskConfig.resolveConfig(args ++ Array("-dt.jobname", getClass.getSimpleName.replaceAllLiterally("$","")))
   DSTaskConfig.load(config)
 
-  // set up the execution environment
-  val env = ExecutionEnvironment.getExecutionEnvironment
-
   // input data is output of dt computation
   val in = DSTaskConfig.out_dt
   val hash = DSTaskConfig.jobname.toLowerCase.contains("hash")
@@ -57,6 +54,6 @@ object RerankDT extends App {
 
   val rerank_chain = ct_computation_chain ~> FilterSortDT[CT2def[String, String],String, String](_.lmi)
 
-  rerank_chain.process(env, input = DSTaskConfig.out_dt, output = s"${DSTaskConfig.out_dt_sorted}-rerank")
+  rerank_chain.process(input = DSTaskConfig.out_dt, output = s"${DSTaskConfig.out_dt_sorted}-rerank")
 
 }

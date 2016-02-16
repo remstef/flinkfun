@@ -42,7 +42,10 @@ object WhiteListFilter {
   * @param extended_resolution
   */
 class WhiteListFilter[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](whitelist:String, extended_resolution:Boolean = true) extends DSTask[C,C] {
-  override def fromLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C, T1, T2](_))
+
+  override def fromInputLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C, T1, T2](_))
+
+  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C, T1, T2](_))
 
   override def process(ds: DataSet[C]): DataSet[C] = {
 

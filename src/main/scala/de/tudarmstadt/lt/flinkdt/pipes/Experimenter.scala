@@ -39,7 +39,7 @@ object Experimenter extends App {
       //      ComputeDTSimplified.CT2MinJoin[String,String]() ~> DSWriter(DSTaskConfig.out_dt)
       ComputeDTSimplified.byGraph[CT2red[String,String],String,String]() ~> DSWriter(DSTaskConfig.out_dt, s"${DSTaskConfig.jobname}-process")
       /* */
-    }.process(env, input = s"${DSTaskConfig.out_accumulated_AB}")
+    }.process(input = s"${DSTaskConfig.out_accumulated_AB}")
 
 
   }
@@ -51,7 +51,7 @@ object Experimenter extends App {
       /*  */
       N11Sum[CT2red[String,String], String, String]
       /*  */
-    }.process(env, input = in, output = s"${DSTaskConfig.out_accumulated_AB}", jobname = s"${DSTaskConfig.jobname}-preprocess")
+    }.process(input = in, output = s"${DSTaskConfig.out_accumulated_AB}", jobname = s"${DSTaskConfig.jobname}-preprocess")
 
   }
 
@@ -60,7 +60,7 @@ object Experimenter extends App {
     { /* */
       FilterSortDT[CT2red[String,String], String, String](_.n11)
       /* */
-    }.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted, jobname = s"${DSTaskConfig.jobname}-postprocess")
+    }.process(input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted, jobname = s"${DSTaskConfig.jobname}-postprocess")
 
   }
 

@@ -35,13 +35,14 @@ object FullDT extends App {
     {/* */
      DSTask[CT2ext[T,T], CT2ext[T,T]](
         CtFromString[CT2ext[T,T],T,T](_),
-        ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) }
+        ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) },
+        CtFromString[CT2ext[T,T],T,T](_)
      ) ~>
      //      ComputeDTSimplified.CT2MinGraph[T,T]()
      ComputeDTSimplified.byJoin[CT2ext[T,T],T,T]() ~>
      DSWriter(DSTaskConfig.out_dt, s"${DSTaskConfig.jobname}-process")
      /* */
-    }.process(env, input = s"${DSTaskConfig.out_accumulated_CT}")
+    }.process(input = s"${DSTaskConfig.out_accumulated_CT}")
 
 
   }
@@ -61,7 +62,7 @@ object FullDT extends App {
       else
         string_preprocessing_chain
 
-    preprocessing_chain.process(env, input = in, output = DSTaskConfig.out_accumulated_CT, jobname = s"${DSTaskConfig.jobname}-preprocess")
+    preprocessing_chain.process(input = in, output = DSTaskConfig.out_accumulated_CT, jobname = s"${DSTaskConfig.jobname}-preprocess")
 
   }
 
@@ -73,7 +74,7 @@ object FullDT extends App {
       if(hash){ Convert.Hash.Reverse[CT2red[Array[Byte], Array[Byte]], CT2red[String,String], String, String](DSTaskConfig.out_keymap) ~> string_post_processing }
       else string_post_processing
 
-    postprocessing_chain.process(env, input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted, jobname = s"${DSTaskConfig.jobname}-postprocess")
+    postprocessing_chain.process(input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted, jobname = s"${DSTaskConfig.jobname}-postprocess")
 
   }
 
@@ -83,9 +84,6 @@ object FullDT extends App {
   DSTaskConfig.load(config)
 
   def extractorfun:String => TraversableOnce[CT2red[String,String]] = Util.getExtractorfunFromJobname()
-
-  // set up the execution environment
-  val env = ExecutionEnvironment.getExecutionEnvironment
 
   // get input data
   val in = DSTaskConfig.in_text

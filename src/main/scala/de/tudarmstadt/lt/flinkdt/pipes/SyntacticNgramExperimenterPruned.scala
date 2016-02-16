@@ -39,9 +39,6 @@ object SyntacticNgramExperimenterPruned extends App {
 
   DSTaskConfig.load(DSTaskConfig.resolveConfig(args))
 
-  // set up the execution environment
-  val env = ExecutionEnvironment.getExecutionEnvironment
-
   // get input data
   val in = DSTaskConfig.in_text
 
@@ -54,7 +51,7 @@ object SyntacticNgramExperimenterPruned extends App {
 
   val ct_location_path:Path = new Path(ct_location)
   if(!ct_location_path.getFileSystem.exists(ct_location_path)) {
-    setup_ct2ext.process(env, input = in, output = ct_location, jobname = DSTaskConfig.jobname + "-prepare")
+    setup_ct2ext.process(input = in, output = ct_location, jobname = DSTaskConfig.jobname + "-prepare")
   }
 
   val jobimtext_pipeline = {
@@ -65,7 +62,7 @@ object SyntacticNgramExperimenterPruned extends App {
     FilterSortDT[CT2red[String,String],String, String](_.n11) ~>
     /*  */
     GraphWriter[CT2red[String,String],String, String](s"${DSTaskConfig.out_dt_sorted}-graph")
-  }.process(env = env, input = ct_location)
+  }.process(input = ct_location)
 
 
   val end = System.currentTimeMillis()
