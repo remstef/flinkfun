@@ -44,31 +44,78 @@ object SyntacticNgramExperimenter extends App {
 
   val setup_ct2ext = ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]()
 
+  def fliptask = DSTask[CT2ext[String, String], CT2ext[String, String]](
+    CtFromString[CT2ext[String,String],String,String](_),
+    ds => { ds.map(_.flipped().asInstanceOf[CT2ext[String,String]]) },
+    CtFromString[CT2ext[String,String],String,String](_)
+  )
+
   val default_jobimtext_pipeline = {
     Checkpointed(
-      Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~>
+      Checkpointed(
+        Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~>
+          /*  */
+          ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
+        DSTaskConfig.out_dt
+      ) ~>
         /*  */
-        ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
-      DSTaskConfig.out_dt
-    ) ~>
-      /*  */
-      FilterSortDT[CT2red[String,String],String, String](_.n11)
+        FilterSortDT[CT2red[String,String],String, String](_.n11),
+      DSTaskConfig.out_dt_sorted
+    )
+  }
+
+  val default_jobimtext_pipeline_flipped = {
+    Checkpointed(
+      Checkpointed(
+        fliptask ~>
+        Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~>
+          /*  */
+          ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
+        s"${DSTaskConfig.out_dt}-flipped"
+      ) ~>
+        /*  */
+        FilterSortDT[CT2red[String,String],String, String](_.n11),
+      s"${DSTaskConfig.out_dt_sorted}-flipped"
+    )
   }
 
   val full_dt_pipeline = {
     Checkpointed(
-      /* minimal pruning */
-      DSTask[CT2ext[String, String], CT2ext[String, String]](
-        CtFromString[CT2ext[String,String],String,String](_),
-        ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) },
-        CtFromString[CT2ext[String,String],String,String](_)
+      Checkpointed(
+        /* minimal pruning */
+        DSTask[CT2ext[String, String], CT2ext[String, String]](
+          CtFromString[CT2ext[String,String],String,String](_),
+          ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) },
+          CtFromString[CT2ext[String,String],String,String](_)
+        ) ~>
+          /* */
+          ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
+        DSTaskConfig.out_dt
       ) ~>
         /* */
-        ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
-      DSTaskConfig.out_dt
-    ) ~>
-      /* */
-      FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
+        FilterSortDT.apply[CT2red[String, String], String, String](_.n11),
+      DSTaskConfig.out_dt_sorted
+    )
+  }
+
+  val full_dt_pipeline_flipped = {
+    Checkpointed(
+      Checkpointed(
+        fliptask ~>
+        /* minimal pruning */
+        DSTask[CT2ext[String, String], CT2ext[String, String]](
+          CtFromString[CT2ext[String,String],String,String](_),
+          ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) },
+          CtFromString[CT2ext[String,String],String,String](_)
+        ) ~>
+          /* */
+          ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
+        s"${DSTaskConfig.out_dt}-flipped"
+      ) ~>
+        /* */
+        FilterSortDT.apply[CT2red[String, String], String, String](_.n11),
+      s"${DSTaskConfig.out_dt_sorted}-flipped"
+    )
   }
 
   val ct_location = in.stripSuffix("/") + ".ct2.acc.all"
@@ -78,10 +125,14 @@ object SyntacticNgramExperimenter extends App {
     setup_ct2ext.process(input = in, output = ct_location, jobname = DSTaskConfig.jobname + "-prepare")
   }
 
-  if(DSTaskConfig.jobname.contains("full"))
-    full_dt_pipeline.process(input = ct_location, output = DSTaskConfig.out_dt_sorted)
-  else
-    default_jobimtext_pipeline.process(input = ct_location, output = DSTaskConfig.out_dt_sorted)
+  if(DSTaskConfig.jobname.contains("full")) {
+    full_dt_pipeline.process(input = ct_location)
+    full_dt_pipeline_flipped.process(input = ct_location)
+  }
+  else {
+    default_jobimtext_pipeline.process(input = ct_location)
+    default_jobimtext_pipeline_flipped.process(input = ct_location)
+  }
 
   val end = System.currentTimeMillis()
   val dur = Duration.ofMillis(end-start)
