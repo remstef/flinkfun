@@ -109,7 +109,7 @@ object DSTaskConfig extends Serializable{
 
     out_basedir = config_dt.getString("output.basedir")
 
-    flipct                         = config_dt.getBoolean("flipct")
+    //flipct                         = config_dt.getBoolean("flipct")
 
     // get input data and output data
     in_text                        = config_dt.getString("input.text")
