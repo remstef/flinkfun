@@ -58,6 +58,8 @@ class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String) exten
           if (fs.exists(output_path)) { // if the folder doesn't exist don't do anything
             // rename directory, replace if it existed before
             val failed_output_path:Path = new Path(s"${out}-failed")
+            if(fs.exists(failed_output_path))
+              fs.delete(failed_output_path, true)
             fs.rename(output_path, failed_output_path)
             // fs.delete(output_path, true)
           }
