@@ -25,7 +25,6 @@ import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2red}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala._
-import org.apache.flink.core.fs.Path
 
 /**
   * Created by Steffen Remus
@@ -42,33 +41,54 @@ object SyntacticNgramExperimenterPruned extends App {
   // get input data
   val in = DSTaskConfig.in_text
 
-  val ct_location = in.stripSuffix("/") + ".ct2.acc.all.pruned"
-
-  val setup_ct2ext = {
-    ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, sigfun = _.lmi_n, Order.ASCENDING) ~>
-    GraphWriter[CT2ext[String,String], String, String](s"${ct_location}-graph")
-  }
-
-  val ct_location_path:Path = new Path(ct_location)
-  if(!ct_location_path.getFileSystem.exists(ct_location_path)) {
-    setup_ct2ext.process(input = in, output = ct_location, jobname = DSTaskConfig.jobname + "-prepare")
-  }
+  def fliptask = DSTask[CT2red[String, String], CT2red[String, String]](
+    CtFromString[CT2red[String,String],String,String](_),
+    ds => { ds.map(_.flipped().asInstanceOf[CT2red[String,String]]) },
+    CtFromString[CT2red[String,String],String,String](_)
+  )
 
   val jobimtext_pipeline = {
-    /*  */
-    ComputeDTSimplified.byJoin[CT2ext[String,String],String,String]() ~>
-    GraphWriter[CT2red[String,String],String, String](s"${DSTaskConfig.out_dt}-graph") ~>
-    /*  */
-    FilterSortDT[CT2red[String,String],String, String](_.n11) ~>
-    /*  */
-    GraphWriter[CT2red[String,String],String, String](s"${DSTaskConfig.out_dt_sorted}-graph")
-  }.process(input = ct_location)
+    Checkpointed(
+      Checkpointed(
+        Checkpointed(
+          ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, _.lmi_n, Order.ASCENDING),
+          DSTaskConfig.out_accumulated_CT
+        ) ~>
+          /* */
+          ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
+        DSTaskConfig.out_dt
+      ) ~>
+        /*  */
+        FilterSortDT[CT2red[String,String],String, String](_.n11),
+      DSTaskConfig.out_dt_sorted
+    )
+  }
 
+  val jobimtext_pipeline_flipped = {
+    Checkpointed(
+      Checkpointed(
+        fliptask ~>
+          Checkpointed(
+            ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, _.lmi_n, Order.ASCENDING),
+            s"${DSTaskConfig.out_accumulated_CT}-flipped"
+          ) ~>
+          /*  */
+          ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
+        s"${DSTaskConfig.out_dt}-flipped"
+      ) ~>
+        /*  */
+        FilterSortDT[CT2red[String,String],String, String](_.n11),
+      s"${DSTaskConfig.out_dt_sorted}-flipped"
+    )
+  }
+
+  jobimtext_pipeline.process(input = in)
+  jobimtext_pipeline_flipped.process(input = in)
 
   val end = System.currentTimeMillis()
   val dur = Duration.ofMillis(end-start)
   val tf = new SimpleDateFormat("yyyy-MM-dd\'T\'HH:mm:ssz")
-  val info = s"start: ${tf.format(new Date(start))} \nend: ${tf.format(new Date(end))} \nduration: ${dur.toHours} h ${dur.minusHours(dur.toHours).toMinutes} m ${dur.minusMinutes(dur.toMinutes).toMillis} ms"
+  val info = s"main: ${getClass.getName}\nstart: ${tf.format(new Date(start))} \nend: ${tf.format(new Date(end))} \nduration: ${dur.toHours} h ${dur.minusHours(dur.toHours).toMinutes} m ${dur.minusMinutes(dur.toMinutes).toMillis} ms"
   DSTaskConfig.writeConfig(additional_comments = info)
 
 }

@@ -61,7 +61,6 @@ class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String) exten
             if(fs.exists(failed_output_path))
               fs.delete(failed_output_path, true)
             fs.rename(output_path, failed_output_path)
-            // fs.delete(output_path, true)
           }
         }
         // finally re-throw the exception
