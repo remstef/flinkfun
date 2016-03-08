@@ -35,9 +35,13 @@ import org.apache.flink.core.fs.Path
   */
 object SyntacticNgramExperimenter extends App {
 
+  val tf = new SimpleDateFormat("yyyy-MM-dd\'T\'HH:mm:ssz")
   val start = System.currentTimeMillis()
 
   DSTaskConfig.load(DSTaskConfig.resolveConfig(args))
+
+  var info = s"main: ${getClass.getName}\nstart: ${tf.format(new Date(start))} \nend: -- \nduration: -- "
+  DSTaskConfig.writeConfig(additional_comments = info)
 
   // get input data
   val in = DSTaskConfig.in_text
@@ -136,8 +140,7 @@ object SyntacticNgramExperimenter extends App {
 
   val end = System.currentTimeMillis()
   val dur = Duration.ofMillis(end-start)
-  val tf = new SimpleDateFormat("yyyy-MM-dd\'T\'HH:mm:ssz")
-  val info = s"main: ${getClass.getName}\nstart: ${tf.format(new Date(start))} \nend: ${tf.format(new Date(end))} \nduration: ${dur.toHours} h ${dur.minusHours(dur.toHours).toMinutes} m ${dur.minusMinutes(dur.toMinutes).toMillis} ms"
+  info = s"main: ${getClass.getName}\nstart: ${tf.format(new Date(start))} \nend: ${tf.format(new Date(end))} \nduration: ${dur.toHours} h ${dur.minusHours(dur.toHours).toMinutes} m ${dur.minusMinutes(dur.toMinutes).toMillis} ms"
   DSTaskConfig.writeConfig(additional_comments = info)
 
 }

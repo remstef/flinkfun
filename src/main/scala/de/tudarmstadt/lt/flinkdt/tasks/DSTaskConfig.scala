@@ -145,10 +145,10 @@ object DSTaskConfig extends Serializable{
 
   def toString(verbose:Boolean = false) = { if(verbose) config else config.getConfig("dt").atKey("dt") }.root().render(ConfigRenderOptions.concise.setFormatted(true).setComments(true).setJson(false))
 
-  def writeConfig(dest:String=null, additional_comments:String = null, verbose:Boolean = false): Unit = {
+  def writeConfig(dest:String=null, additional_comments:String = null, verbose:Boolean = false, overwrite:Boolean = false): Unit = {
     val dest_ = if(dest == null || dest.isEmpty) appendPath(out_basedir, s"${jobname}.conf") else dest
     val path:Path = new Path(dest_)
-    val w = path.getFileSystem.create(path,true)
+    val w = path.getFileSystem.create(path, overwrite)
     if(additional_comments != null && !additional_comments.isEmpty) {
       w.write("# # # \n# \n# additional comments: \n# \n".getBytes)
       for (line <- additional_comments.split('\n'))
