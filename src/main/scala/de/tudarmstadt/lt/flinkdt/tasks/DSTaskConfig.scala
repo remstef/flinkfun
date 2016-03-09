@@ -160,4 +160,6 @@ object DSTaskConfig extends Serializable{
     w.close()
   }
 
+  def jobname(suffix:String): String = s"$jobname-$suffix"
+
 }

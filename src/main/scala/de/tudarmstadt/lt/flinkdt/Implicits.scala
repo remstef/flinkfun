@@ -21,6 +21,7 @@ import de.tudarmstadt.lt.flinkdt.textutils.{CtFromString, StringConvert}
 import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2ext, CT2red, CT2}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.core.fs.Path
 
 import scala.reflect.ClassTag
 
@@ -94,6 +95,26 @@ object Implicits {
     def writeCt(out:String):DataSet[CT2] = {
       DSWriter[CT2](out, "shell-job").process(x)
     }
+  }
+
+  implicit def checkpointed[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
+    def checkpointed(location:String, fromStringFun:String => T, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment):DataSet[T] = {
+      val output_path:Path = new Path(location)
+      if(output_path.getFileSystem.exists(output_path))
+        return DSReader(location, env).process().map(fromStringFun)
+
+      if(location != null) {
+        DSWriter[T](location, jobname).process(ds)
+        if(reReadFromCheckpoint) // throw away intermediate results and continue to work with the re-read data
+          return DSReader(location, env).process().map(fromStringFun)
+        // else just re-use the processed data
+      }
+      return ds
+    }
+  }
+
+  implicit def applyTask[I : ClassTag : TypeInformation](ds: DataSet[I]) = new {
+    def applyTask[O : ClassTag : TypeInformation](dsTask: DSTask[I, O]): DataSet[O] = dsTask(ds)
   }
 
 }
