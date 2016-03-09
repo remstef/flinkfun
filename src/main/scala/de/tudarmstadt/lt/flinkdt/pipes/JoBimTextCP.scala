@@ -33,6 +33,12 @@ object JoBimTextCP extends App {
 
   def pipeline = {
     Checkpointed(
+      N11Sum[CT2red[String, String], String, String](),
+      out = DSTaskConfig.out_accumulated_AB,
+      jobname = DSTaskConfig.jobname + "-0",
+      reReadFromCheckpoint = true
+    ) ~>
+    Checkpointed(
       ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, sigfun = _.lmi_n, order = Order.ASCENDING),
       out = DSTaskConfig.out_accumulated_CT,
       jobname = DSTaskConfig.jobname + "-1",
@@ -58,7 +64,8 @@ object JoBimTextCP extends App {
       DSTask[CT2red[String, String], CT2red[String, String]](
         CtFromString[CT2red[String,String],String,String](_),
         ds => { ds.map(_.flipped().asInstanceOf[CT2red[String,String]]) },
-        CtFromString[CT2red[String,String],String,String](_)) ~>
+        CtFromString[CT2red[String,String],String,String](_)
+      ) ~>
       // End: fliptask
       ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, sigfun = _.lmi_n, order = Order.ASCENDING),
       out = s"${DSTaskConfig.out_accumulated_CT}-flipped",
@@ -90,7 +97,7 @@ object JoBimTextCP extends App {
   var ds = pipeline.process(input = DSTaskConfig.in_text)
   ds.first(10).print
 
-  val dsf = flipped_pipeline.process(input = DSTaskConfig.in_text)
+  val dsf = flipped_pipeline.process(input = DSTaskConfig.out_accumulated_AB)
   dsf.first(10).print
 
   val end = System.currentTimeMillis()
