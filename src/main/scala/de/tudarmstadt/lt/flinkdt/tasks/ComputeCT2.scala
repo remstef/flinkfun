@@ -182,7 +182,7 @@ class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag
       .groupBy("a","b")
       .sum("n11")
 
-    val n = n11.map(ct => {ct.n = ct.n11; ct}).reduce((l,r) => {l.n += r.n; l}) //.sum("n")
+    val n = n11.map(ct => {ct.n = ct.n11; ct.on = 1f; ct}).reduce((l,r) => {l.n += r.n; l.on += r.on; l})
 
     val n1dot = n11
       .map(ct => {ct.n1dot = ct.n11; ct.o1dot = 1f; ct})

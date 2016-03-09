@@ -77,6 +77,7 @@ object DSTaskConfig extends Serializable{
   var out_basedir:String                    = s"file://./${jobname}"
   var out_raw:String                        = null
   var out_accumulated_AB:String             = null
+  var out_accumulated_N:String              = null
   var out_accumulated_AB_whitelisted:String = null
   var out_accumulated_A:String              = null
   var out_accumulated_B:String              = null
@@ -117,6 +118,7 @@ object DSTaskConfig extends Serializable{
     in_whitelist                   = if(config_dt.hasPath("input.whitelist"))    config_dt.getString("input.whitelist") else null
     out_raw                        = if(outputconfig.hasPath("raw"))             getFullPath(out_basedir, outputconfig.getString("raw")) else null
     out_accumulated_AB             = if(outputconfig.hasPath("accAB"))           getFullPath(out_basedir, outputconfig.getString("accAB")) else null
+    out_accumulated_N              = if(outputconfig.hasPath("accN"))            getFullPath(out_basedir, outputconfig.getString("accN")) else null
     out_accumulated_AB_whitelisted = if(outputconfig.hasPath("accABwhite"))      getFullPath(out_basedir, outputconfig.getString("accABwhite")) else null
     out_accumulated_A              = if(outputconfig.hasPath("accA"))            getFullPath(out_basedir, outputconfig.getString("accA")) else null
     out_accumulated_B              = if(outputconfig.hasPath("accB"))            getFullPath(out_basedir, outputconfig.getString("accB")) else null
