@@ -43,14 +43,14 @@ object ImplictJBT extends App {
     val n11 = ct_raw
       .groupBy("a","b")
       .sum("n11")
-      .checkpointed(DSTaskConfig.out_accumulated_AB, CtFromString[CT2red[String,String], String,String], DSTaskConfig.jobname("1"), true)
+      .checkpointed(DSTaskConfig.out_accumulated_AB, CtFromString[CT2red[String,String], String,String], DSTaskConfig.jobname("(1) N11Sum"), true)
       .map(ctr => if(flip) ctr.flipped().asInstanceOf[CT2red[String,String]].asCT2ext() else ctr.asCT2ext())
 
     val n = n11
       .map(ct => {ct.n = ct.n11; ct.on = 1f; ct})
       .reduce((l,r) => {l.n += r.n; l.on += r.on; l})
       .map(ct => {ct.a = "*"; ct.b = "*"; ct.n11 = 1; ct.n1dot = 1; ct.ndot1 = 1; ct.o1dot = 1; ct.odot1 = 1; ct})
-      .checkpointed(DSTaskConfig.out_accumulated_N, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("2"), true)
+      .checkpointed(DSTaskConfig.out_accumulated_N, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(2) NSum"), true)
 
     val n1dot = n11
       .map(ct => {ct.n1dot = ct.n11; ct.o1dot = 1f; ct})
@@ -58,7 +58,7 @@ object ImplictJBT extends App {
       .reduce((l,r) => {l.n1dot += r.n1dot; l.o1dot += r.o1dot; l})
       .filter(_.n1dot >= DSTaskConfig.param_min_n1dot)
       .map(ct => {ct.b = "*"; ct.n11 = 1; ct.ndot1 = 1; ct.odot1 = 1; ct.n = ct.n1dot; ct.on = ct.o1dot; ct})
-      .checkpointed(DSTaskConfig.out_accumulated_A + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("3" + suffix), true)
+      .checkpointed(DSTaskConfig.out_accumulated_A + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(3) [N1dotSum]" + suffix), true)
 
     val ndot1 = n11
       .map(ct => {ct.ndot1 = ct.n11; ct.odot1 = 1f; ct})
@@ -66,7 +66,7 @@ object ImplictJBT extends App {
       .reduce((l,r) => {l.ndot1 += r.ndot1; l.odot1 += r.odot1; l}) // .sum("ndot1, odot1")
       .filter(ct => ct.odot1 <= DSTaskConfig.param_max_odot1 && ct.odot1 >= DSTaskConfig.param_min_odot1)
       .map(ct => {ct.a = "*"; ct.n11 = 1; ct.n1dot = 1; ct.o1dot = 1; ct.n = ct.ndot1; ct.on = ct.odot1; ct})
-      .checkpointed(DSTaskConfig.out_accumulated_B + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("4" + suffix), true)
+      .checkpointed(DSTaskConfig.out_accumulated_B + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(4) [Ndot1Sum]" + suffix), true)
 
     val joined = n11
       .filter(_.n11 >= DSTaskConfig.param_min_n11)
@@ -74,7 +74,7 @@ object ImplictJBT extends App {
       .where("a").equalTo("a"){(l, r) => { l.n1dot = r.n1dot; l.o1dot = r.o1dot; l }}
       .join(ndot1)
       .where("b").equalTo("b"){(l, r) => { l.ndot1 = r.ndot1; l.odot1 = r.odot1; l }}
-      .checkpointed(DSTaskConfig.out_accumulated_CT + "_wo-N" + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("5" + suffix), true)
+      .checkpointed(DSTaskConfig.out_accumulated_CT + "_wo-N" + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(5) [Join N1dot, Ndot1]" + suffix), true)
 
     val ct2_complete = joined
       .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct.on = n.on; ct}}.withForwardedFieldsFirst("n11; n1dot; ndot1; o1dot; odot1").withForwardedFieldsSecond("n; on")
@@ -84,16 +84,16 @@ object ImplictJBT extends App {
       .sortGroup("_2", Order.ASCENDING)
       .first(DSTaskConfig.param_topn_sig)
       .map(_._1)
-      .checkpointed(DSTaskConfig.out_accumulated_CT + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("6" + suffix), true)
+      .checkpointed(DSTaskConfig.out_accumulated_CT + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(6) [Join N, Prune by LMI]" + suffix), true)
 
     // BEGIN: compute DT
     val ct_dt = ct2_complete
       .applyTask(ComputeDTSimplified.byJoin[CT2ext[String, String], String, String]())
-      .checkpointed(DSTaskConfig.out_dt + suffix, CtFromString[CT2red[String,String], String,String], DSTaskConfig.jobname("7" + suffix), true)
+      .checkpointed(DSTaskConfig.out_dt + suffix, CtFromString[CT2red[String,String], String,String], DSTaskConfig.jobname("(7) [DT]" + suffix), true)
 
     val ct_dt_fsort = ct_dt
       .applyTask(FilterSortDT[CT2red[String, String], String, String](_.n11))
-      .checkpointed(DSTaskConfig.out_dt_sorted + suffix, CtFromString[CT2red[String,String], String,String], DSTaskConfig.jobname("8" + suffix), true)
+      .checkpointed(DSTaskConfig.out_dt_sorted + suffix, CtFromString[CT2red[String,String], String,String], DSTaskConfig.jobname("8 [Filter and Sort DT]" + suffix), true)
     // END: dt
 
     ct_dt_fsort
