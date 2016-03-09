@@ -68,13 +68,16 @@ object ImplictJBT extends App {
       .map(ct => {ct.a = "*"; ct.n11 = 1; ct.n1dot = 1; ct.o1dot = 1; ct.n = ct.ndot1; ct.on = ct.odot1; ct})
       .checkpointed(DSTaskConfig.out_accumulated_B + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(4) [Ndot1Sum]" + suffix), true)
 
-    val joined = n11
+    val joined_n1dot = n11
       .filter(_.n11 >= DSTaskConfig.param_min_n11)
       .join(n1dot)
-      .where("a").equalTo("a"){(l, r) => { l.n1dot = r.n1dot; l.o1dot = r.o1dot; l }}
+      .where("a").equalTo("a"){(l, r) => { l.n1dot = r.n1dot; l.o1dot = r.o1dot; l }}.withForwardedFieldsFirst("n11; ndot1; odot1; n; on").withForwardedFieldsSecond("n1dot; o1dot")
+      .checkpointed(DSTaskConfig.out_accumulated_CT + "_join_n1dot" + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(5.1) [Join N1dot]" + suffix), true)
+
+    val joined = joined_n1dot
       .join(ndot1)
-      .where("b").equalTo("b"){(l, r) => { l.ndot1 = r.ndot1; l.odot1 = r.odot1; l }}
-      .checkpointed(DSTaskConfig.out_accumulated_CT + "_wo-N" + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(5) [Join N1dot, Ndot1]" + suffix), true)
+      .where("b").equalTo("b"){(l, r) => { l.ndot1 = r.ndot1; l.odot1 = r.odot1; l }}.withForwardedFieldsFirst("n11; n1dot; o1dot; n; on").withForwardedFieldsSecond("ndot1; odot1")
+      .checkpointed(DSTaskConfig.out_accumulated_CT + "_join_n1dot_ndot1" + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(5.2) [Join N1dot, Ndot1]" + suffix), true)
 
     val ct2_complete = joined
       .crossWithTiny(n){(ct,n) => {ct.n = n.n; ct.on = n.on; ct}}.withForwardedFieldsFirst("n11; n1dot; ndot1; o1dot; odot1").withForwardedFieldsSecond("n; on")
