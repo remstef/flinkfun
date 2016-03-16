@@ -2,6 +2,7 @@ package de.tudarmstadt.lt.flinkdt.tasks
 
 import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.{CT2, CT2def, CT2red}
+import org.apache.flink.api.common.operators.base.JoinOperatorBase.JoinHint
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.util.Collector
@@ -28,7 +29,7 @@ class ComputeDTSimplified__byJoin[C <: CT2 : ClassTag : TypeInformation, T1 : Cl
   override def process(ds: DataSet[C]): DataSet[CT2red[T1,T1]] = {
 
     val joined: DataSet[CT2red[T1, T1]] = ds
-      .join(ds)
+      .join(ds, JoinHint.REPARTITION_SORT_MERGE)
       .where("b")
       .equalTo("b") { (l, r) => CT2red[T1, T1](a = l.a.asInstanceOf[T1], b = r.a.asInstanceOf[T1], 1f) }.withForwardedFieldsFirst("a->a").withForwardedFieldsSecond("a->b")
 

@@ -25,6 +25,7 @@ import de.tudarmstadt.lt.flinkdt.Implicits._
 import de.tudarmstadt.lt.flinkdt.textutils.{CtFromString}
 import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2red}
 import org.apache.flink.api.common.operators.Order
+import org.apache.flink.api.common.operators.base.JoinOperatorBase.JoinHint
 import org.apache.flink.api.scala.{ExecutionEnvironment}
 import org.apache.flink.api.scala._
 
@@ -56,26 +57,26 @@ object ImplictJBT extends App {
       .map(ct => {ct.n1dot = ct.n11; ct.o1dot = 1f; ct})
       .groupBy("a")
       .reduce((l,r) => {l.n1dot += r.n1dot; l.o1dot += r.o1dot; l})
-      .filter(_.n1dot >= DSTaskConfig.param_min_n1dot)
       .map(ct => {ct.b = "*"; ct.n11 = 1; ct.ndot1 = 1; ct.odot1 = 1; ct.n = ct.n1dot; ct.on = ct.o1dot; ct})
       .checkpointed(DSTaskConfig.out_accumulated_A + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(3) [N1dotSum]" + suffix), true)
+      .filter(_.n1dot >= DSTaskConfig.param_min_n1dot)
 
     val ndot1 = n11
       .map(ct => {ct.ndot1 = ct.n11; ct.odot1 = 1f; ct})
       .groupBy("b")
       .reduce((l,r) => {l.ndot1 += r.ndot1; l.odot1 += r.odot1; l}) // .sum("ndot1, odot1")
-      .filter(ct => ct.odot1 <= DSTaskConfig.param_max_odot1 && ct.odot1 >= DSTaskConfig.param_min_odot1)
       .map(ct => {ct.a = "*"; ct.n11 = 1; ct.n1dot = 1; ct.o1dot = 1; ct.n = ct.ndot1; ct.on = ct.odot1; ct})
       .checkpointed(DSTaskConfig.out_accumulated_B + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(4) [Ndot1Sum]" + suffix), true)
+      .filter(ct => ct.odot1 <= DSTaskConfig.param_max_odot1 && ct.odot1 >= DSTaskConfig.param_min_odot1)
 
     val joined_n1dot = n11
       .filter(_.n11 >= DSTaskConfig.param_min_n11)
-      .join(n1dot)
+      .join(n1dot, JoinHint.REPARTITION_SORT_MERGE)
       .where("a").equalTo("a"){(l, r) => { l.n1dot = r.n1dot; l.o1dot = r.o1dot; l }}.withForwardedFieldsFirst("n11; ndot1; odot1; n; on").withForwardedFieldsSecond("n1dot; o1dot")
       .checkpointed(DSTaskConfig.out_accumulated_CT + "_join_n1dot" + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(5.1) [Join N1dot]" + suffix), true)
 
     val joined = joined_n1dot
-      .join(ndot1)
+      .join(ndot1, JoinHint.REPARTITION_SORT_MERGE)
       .where("b").equalTo("b"){(l, r) => { l.ndot1 = r.ndot1; l.odot1 = r.odot1; l }}.withForwardedFieldsFirst("n11; n1dot; o1dot; n; on").withForwardedFieldsSecond("ndot1; odot1")
       .checkpointed(DSTaskConfig.out_accumulated_CT + "_join_n1dot_ndot1" + suffix, CtFromString[CT2ext[String,String], String,String], DSTaskConfig.jobname("(5.2) [Join N1dot, Ndot1]" + suffix), true)
 

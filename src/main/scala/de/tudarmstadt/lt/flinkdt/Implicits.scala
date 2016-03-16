@@ -105,8 +105,11 @@ object Implicits {
 
       if(location != null) {
         DSWriter[T](location, jobname).process(ds)
-        if(reReadFromCheckpoint) // throw away intermediate results and continue to work with the re-read data
+        if(reReadFromCheckpoint) {
+          // throw away intermediate results and continue to work with the re-read data
+          ds.getExecutionEnvironment.startNewSession()
           return DSReader(location, env).process().map(fromStringFun)
+        }
         // else just re-use the processed data
       }
       return ds
