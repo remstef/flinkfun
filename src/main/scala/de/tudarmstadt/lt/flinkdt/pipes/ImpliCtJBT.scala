@@ -32,7 +32,7 @@ import org.apache.flink.api.scala._
 /**
   * Created by Steffen Remus.
   */
-object ImplicCtJBT extends App {
+object ImpliCtJBT extends App {
 
   def exec_pipeline(flip:Boolean): DataSet[CT2red[String,String]] = {
 
