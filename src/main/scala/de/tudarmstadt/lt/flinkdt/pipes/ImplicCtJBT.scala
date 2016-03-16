@@ -32,7 +32,7 @@ import org.apache.flink.api.scala._
 /**
   * Created by Steffen Remus.
   */
-object ImplictJBT extends App {
+object ImplicCtJBT extends App {
 
   def exec_pipeline(flip:Boolean): DataSet[CT2red[String,String]] = {
 
@@ -92,12 +92,17 @@ object ImplictJBT extends App {
 
     // BEGIN: compute DT
     val ct_dt = ct2_complete
-      .applyTask(ComputeDTSimplified.byJoin[CT2ext[String, String], String, String]())
-      .checkpointed(DSTaskConfig.out_dt + suffix, CtFromString[CT2red[String,String], String,String], DSTaskConfig.jobname("(7) [DT]" + suffix), true)
+      .join(ct2_complete, JoinHint.REPARTITION_SORT_MERGE)
+      .where("b")
+      .equalTo("b"){(l, r) => CT2red(a = l.a, b = r.a, 1f)}.withForwardedFieldsFirst("a->a").withForwardedFieldsSecond("a->b")
+      .checkpointed(DSTaskConfig.out_dt + suffix + "__rawtemp", CtFromString[CT2red[String,String], String,String], DSTaskConfig.jobname("(8) [DT: Join]" + suffix), true)
+      .groupBy("a", "b")
+      .sum("n11")
+      .checkpointed(DSTaskConfig.out_dt + suffix, CtFromString[CT2red[String,String], String,String], DSTaskConfig.jobname("(9) [DT: Sum]" + suffix), true)
 
     val ct_dt_fsort = ct_dt
       .applyTask(FilterSortDT[CT2red[String, String], String, String](_.n11))
-      .checkpointed(DSTaskConfig.out_dt_sorted + suffix, CtFromString[CT2red[String,String], String,String], DSTaskConfig.jobname("8 [Filter and Sort DT]" + suffix), true)
+      .checkpointed(DSTaskConfig.out_dt_sorted + suffix, CtFromString[CT2red[String,String], String,String], DSTaskConfig.jobname("10 [DT: Filter, Sort]" + suffix), true)
     // END: dt
 
     ct_dt_fsort
