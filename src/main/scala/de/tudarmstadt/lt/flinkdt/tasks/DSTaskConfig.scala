@@ -29,7 +29,7 @@ import org.apache.flink.core.fs.Path
   *
   * min_ndot1    == -f       (2)
   * min_n1dot    == -w       (2)
-  * min_n11      == -wf      (2) [classic 0]
+  * min_n11      == -wf      (2)
   * max_odot1    == -wpfmax  (1000)
   * min_odot1    == -wpfmin  (2)
   *
@@ -41,6 +41,8 @@ import org.apache.flink.core.fs.Path
   * exclusively for flinkdt:
   * min_sim_distinct    (2) // number of distinct similar entries including the Jo itself
   * [min_docs           (1)] // TODO:
+  *
+  * TODO: add option for JoinHints (expected size of dataset)
   *
   */
 @SerialVersionUID(42l)
@@ -86,6 +88,8 @@ object DSTaskConfig extends Serializable{
   var out_dt_sorted:String                  = null
   var out_keymap:String                     = null
 
+  var reread_checkpointed_data:Boolean     = true
+
   def resolveConfig(args:Array[String] = null): Config = {
     if (args == null || args.length <= 0)
       ConfigFactory.load()
@@ -111,6 +115,7 @@ object DSTaskConfig extends Serializable{
     out_basedir = config_dt.getString("output.basedir")
 
     //flipct                         = config_dt.getBoolean("flipct")
+    reread_checkpointed_data         = config_dt.getBoolean("re-read-checkpoint-data")
 
     // get input data and output data
     in_text                        = config_dt.getString("input.text")
