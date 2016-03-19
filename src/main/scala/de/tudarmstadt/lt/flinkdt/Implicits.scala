@@ -99,13 +99,13 @@ object Implicits {
   }
 
   implicit def checkpointed[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
-    def checkpointed(location:String, fromStringFun:String => T, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment):DataSet[T] = {
+    def checkpointed(location:String, toStringFun:T => String, fromStringFun:String => T, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment):DataSet[T] = {
       val output_path:Path = new Path(location)
       if(output_path.getFileSystem.exists(output_path))
         return DSReader(location, env).process().map(fromStringFun)
 
       if(location != null) {
-        DSWriter[T](location, jobname).process(ds)
+        DSWriter[String](location, jobname).process(ds.map(toStringFun(_)))
         if(reReadFromCheckpoint) {
           // throw away intermediate results and continue to work with the re-read data
           ds.getExecutionEnvironment.startNewSession()
@@ -117,24 +117,24 @@ object Implicits {
     }
   }
   
-  implicit def checkpointed_with_InputOutputFormat[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
-    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment, fof:FileOutputFormat[T], fif:FileInputFormat[T]):DataSet[T] = {
-      val output_path:Path = new Path(location)
-      if(output_path.getFileSystem.exists(output_path))
-        return DSReader[T](location, fif, env).process()
-
-      if(location != null) {
-        DSWriter[T](location, jobname, fof).process(ds)
-        if(reReadFromCheckpoint) {
-          // throw away intermediate results and continue to work with the re-read data
-          ds.getExecutionEnvironment.startNewSession()
-          return DSReader[T](location, fif, env).process()
-        }
-        // else just re-use the processed data
-      }
-      return ds
-    }
-  }
+//  implicit def checkpointed_with_InputOutputFormat[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
+//    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment, fof:FileOutputFormat[T], fif:FileInputFormat[T]):DataSet[T] = {
+//      val output_path:Path = new Path(location)
+//      if(output_path.getFileSystem.exists(output_path))
+//        return DSReader[T](location, fif, env).process()
+//
+//      if(location != null) {
+//        DSWriter[T](location, jobname, fof).process(ds)
+//        if(reReadFromCheckpoint) {
+//          // throw away intermediate results and continue to work with the re-read data
+//          ds.getExecutionEnvironment.startNewSession()
+//          return DSReader[T](location, fif, env).process()
+//        }
+//        // else just re-use the processed data
+//      }
+//      return ds
+//    }
+//  }
 
   implicit def applyTask[I : ClassTag : TypeInformation](ds: DataSet[I]) = new {
     def applyTask[O : ClassTag : TypeInformation](dsTask: DSTask[I, O]): DataSet[O] = dsTask(ds)
