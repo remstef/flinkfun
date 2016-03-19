@@ -22,10 +22,11 @@ import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2ext, CT2red, CT2}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.core.fs.Path
-
 import scala.reflect.ClassTag
-
 import org.apache.flink.api.scala._
+import org.apache.flink.api.common.io.OutputFormat
+import org.apache.flink.api.common.io.FileOutputFormat
+import org.apache.flink.api.common.io.FileInputFormat
 
 /**
   * Created by Steffen Remus.
@@ -109,6 +110,25 @@ object Implicits {
           // throw away intermediate results and continue to work with the re-read data
           ds.getExecutionEnvironment.startNewSession()
           return DSReader(location, env).process().map(fromStringFun)
+        }
+        // else just re-use the processed data
+      }
+      return ds
+    }
+  }
+  
+  implicit def checkpointed_with_InputOutputFormat[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
+    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment, fof:FileOutputFormat[T], fif:FileInputFormat[T]):DataSet[T] = {
+      val output_path:Path = new Path(location)
+      if(output_path.getFileSystem.exists(output_path))
+        return DSReader[T](location, fif, env).process()
+
+      if(location != null) {
+        DSWriter[T](location, jobname, fof).process(ds)
+        if(reReadFromCheckpoint) {
+          // throw away intermediate results and continue to work with the re-read data
+          ds.getExecutionEnvironment.startNewSession()
+          return DSReader[T](location, fif, env).process()
         }
         // else just re-use the processed data
       }

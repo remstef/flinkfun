@@ -42,7 +42,7 @@ class DSTaskWriterChain[I : ClassTag : TypeInformation, O : ClassTag : TypeInfor
     }
 
     val ds_intermediate = f.process(ds)
-    val w = new DSWriter[String](out_, jobname)
+    val w = DSWriter[String](out_, jobname)
     w.process(f.toLines(ds_intermediate))
     g(ds_intermediate)
 

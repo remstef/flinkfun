@@ -19,20 +19,24 @@ package de.tudarmstadt.lt.flinkdt.tasks
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala._
 import org.apache.flink.core.fs.{Path, FileSystem}
-
 import scala.reflect.ClassTag
+import org.apache.flink.api.java.io.TextOutputFormat
+import org.apache.flink.core.fs.FileSystem.WriteMode
+import org.apache.flink.api.scala._
+import org.apache.flink.api.common.io.OutputFormat
+import org.apache.flink.api.common.io.FileOutputFormat
 
 
 /**
   * Created by Steffen Remus
   */
 object DSWriter {
-
-  def apply[T : ClassTag : TypeInformation](out:String, jobname:String = null) = new DSWriter[T](out,jobname)
+  
+  def apply[T : ClassTag : TypeInformation](out:String, jobname:String = null,  fof:FileOutputFormat[T] = new TextOutputFormat[T](new Path())) = new DSWriter[T](out,jobname, fof)
 
 }
 
-class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String) extends DSTask[T,T] {
+class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String, fof:FileOutputFormat[T]) extends DSTask[T,T] {
 
   override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[T] = ???
 
@@ -44,7 +48,7 @@ class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String) exten
     if(out == "stdout")
       ds.print() // calls x.toString()
     else
-      ds.writeAsText(out) // calls x.toString()
+      ds.write(fof, out, WriteMode.NO_OVERWRITE); // calls x.toString()
 
     // execute plan
     try {
