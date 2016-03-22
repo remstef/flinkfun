@@ -102,7 +102,7 @@ object Implicits {
     def checkpointed(location:String, toStringFun:T => String, fromStringFun:String => T, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment):DataSet[T] = {
       val output_path:Path = new Path(location)
       if(output_path.getFileSystem.exists(output_path))
-        if(fromStringFun != null && fromStringFun != ???)
+        if(fromStringFun != null)
           return DSReader(location, env).process().map(fromStringFun)
         else
           return null
