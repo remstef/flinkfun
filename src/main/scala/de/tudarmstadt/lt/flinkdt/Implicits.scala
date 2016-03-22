@@ -98,7 +98,8 @@ object Implicits {
     }
   }
 
-  implicit def checkpointed[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
+  implicit def generalfun[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
+    
     def checkpointed(location:String, toStringFun:T => String, fromStringFun:String => T, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment):DataSet[T] = {
       val output_path:Path = new Path(location)
       if(output_path.getFileSystem.exists(output_path))
@@ -118,9 +119,16 @@ object Implicits {
       }
       return ds
     }
-  }
-  
-//  implicit def checkpointed_with_InputOutputFormat[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
+    
+    
+    def save(location:String, toStringFun:T => String, jobname:String = null)(implicit env:ExecutionEnvironment):Unit = {
+      val output_path:Path = new Path(location)
+      if(output_path.getFileSystem.exists(output_path))
+          return
+      if(location != null)
+        DSWriter[String](location, jobname).process(ds.map(toStringFun(_)))
+    }
+    
 //    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment, fof:FileOutputFormat[T], fif:FileInputFormat[T]):DataSet[T] = {
 //      val output_path:Path = new Path(location)
 //      if(output_path.getFileSystem.exists(output_path))
@@ -137,10 +145,12 @@ object Implicits {
 //      }
 //      return ds
 //    }
-//  }
-
-  implicit def applyTask[I : ClassTag : TypeInformation](ds: DataSet[I]) = new {
-    def applyTask[O : ClassTag : TypeInformation](dsTask: DSTask[I, O]): DataSet[O] = dsTask(ds)
+    
+    def applyTask[O : ClassTag : TypeInformation](dsTask: DSTask[T, O]): DataSet[O] = dsTask(ds)
+    
   }
+  
+
+  
 
 }
