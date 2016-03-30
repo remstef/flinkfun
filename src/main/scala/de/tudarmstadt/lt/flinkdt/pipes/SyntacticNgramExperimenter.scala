@@ -57,7 +57,7 @@ object SyntacticNgramExperimenter extends App {
   val default_jobimtext_pipeline = {
     Checkpointed(
       Checkpointed(
-        Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~>
+        Prune[String, String](sigfun = _.lmi_n, Order.DESCENDING) ~>
           /*  */
           ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
         DSTaskConfig.out_dt
@@ -72,7 +72,7 @@ object SyntacticNgramExperimenter extends App {
     Checkpointed(
       Checkpointed(
         fliptask ~>
-        Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~>
+        Prune[String, String](sigfun = _.lmi_n, Order.DESCENDING) ~>
           /*  */
           ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
         s"${DSTaskConfig.out_dt}-flipped"

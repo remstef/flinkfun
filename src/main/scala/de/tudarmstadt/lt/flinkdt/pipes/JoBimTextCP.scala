@@ -39,7 +39,7 @@ object JoBimTextCP extends App {
       reReadFromCheckpoint = true
     ) ~>
     Checkpointed(
-      ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, sigfun = _.lmi_n, order = Order.ASCENDING),
+      ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, sigfun = _.lmi_n, order = Order.DESCENDING),
       out = DSTaskConfig.out_accumulated_CT,
       jobname = DSTaskConfig.jobname + "-1",
       reReadFromCheckpoint = true
@@ -67,7 +67,7 @@ object JoBimTextCP extends App {
         CtFromString[CT2red[String,String],String,String](_)
       ) ~>
       // End: fliptask
-      ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, sigfun = _.lmi_n, order = Order.ASCENDING),
+      ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, sigfun = _.lmi_n, order = Order.DESCENDING),
       out = s"${DSTaskConfig.out_accumulated_CT}-flipped",
       jobname = DSTaskConfig.jobname + "-1f",
       reReadFromCheckpoint = true

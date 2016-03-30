@@ -39,7 +39,7 @@ object RerankDT extends App {
     if(hash) {
       {
         /* */
-        ComputeCT2[CT2red[Array[Byte],Array[Byte]], CT2def[Array[Byte],Array[Byte]], Array[Byte],Array[Byte]](prune = true, sigfun = _.lmi, order = Order.ASCENDING) ~> DSWriter(DSTaskConfig.out_accumulated_CT,s"${DSTaskConfig.out_dt_sorted}-rerank") ~>
+        ComputeCT2[CT2red[Array[Byte],Array[Byte]], CT2def[Array[Byte],Array[Byte]], Array[Byte],Array[Byte]](prune = true, sigfun = _.lmi, order = Order.DESCENDING) ~> DSWriter(DSTaskConfig.out_accumulated_CT,s"${DSTaskConfig.out_dt_sorted}-rerank") ~>
         /* */
         Convert.Hash.Reverse[CT2def[Array[Byte], Array[Byte]], CT2def[String, String], String, String](DSTaskConfig.out_keymap)
         /* */
@@ -47,7 +47,7 @@ object RerankDT extends App {
     } else {
       {
         /* */
-        ComputeCT2[CT2def[String,String], CT2def[String,String], String,String](prune = true, sigfun = _.lmi, order = Order.ASCENDING) ~> DSWriter(DSTaskConfig.out_accumulated_CT,s"${DSTaskConfig.out_dt_sorted}-rerank")
+        ComputeCT2[CT2def[String,String], CT2def[String,String], String,String](prune = true, sigfun = _.lmi, order = Order.DESCENDING) ~> DSWriter(DSTaskConfig.out_accumulated_CT,s"${DSTaskConfig.out_dt_sorted}-rerank")
         /* */
       }
     }

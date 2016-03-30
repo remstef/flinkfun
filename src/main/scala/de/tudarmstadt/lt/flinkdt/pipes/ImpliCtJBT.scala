@@ -84,7 +84,7 @@ object ImpliCtJBT extends App {
       .map { ct => (ct, ct.lmi_n) } // sigfun
       .filter { _._2 >= DSTaskConfig.param_min_sig }
       .groupBy("_1.a")
-      .sortGroup("_2", Order.ASCENDING)
+      .sortGroup("_2", Order.DESCENDING)
       .first(DSTaskConfig.param_topn_sig)
       .map { _._1 }
       .checkpointed(DSTaskConfig.out_accumulated_CT + suffix, _.toString, CtFromString[CT2ext[T1, T2], T1, T2](_), DSTaskConfig.jobname("(6) [Join N, Prune by LMI]" + suffix), reread_checkpointed_data)

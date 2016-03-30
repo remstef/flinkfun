@@ -64,7 +64,7 @@ object Implicits {
     def computeDT(prune: Boolean = false):DataSet[CT2red[String,String]] = {
       val p:DSTask[CT2ext[String,String], CT2red[String,String]] = ComputeDTSimplified.byJoin[CT2ext[String, String], String, String]()
       if(prune)
-        { Prune[String, String](sigfun = _.lmi_n, Order.ASCENDING) ~> p }.process(x)
+        { Prune[String, String](sigfun = _.lmi_n, Order.DESCENDING) ~> p }.process(x)
       else
         p.process(x)
     }

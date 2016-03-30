@@ -43,7 +43,7 @@ object SamplePipeline extends App {
       /*  */
       WhiteListFilter[CT2red[String,String],String, String](DSTaskConfig.in_whitelist) ~|~>
       /*  */
-      ComputeCT2[CT2red[String,String], CT2def[String,String], String,String](prune = true, sigfun = _.lmi, order = Order.ASCENDING) ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+      ComputeCT2[CT2red[String,String], CT2def[String,String], String,String](prune = true, sigfun = _.lmi, order = Order.DESCENDING) ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
       /*  */
       ComputeDTSimplified.byJoin[CT2def[String,String],String,String]() ~>
       /*  */

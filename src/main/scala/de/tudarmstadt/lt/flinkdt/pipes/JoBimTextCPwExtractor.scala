@@ -36,7 +36,7 @@ object JoBimTextCPwExtractor extends App {
       reReadFromCheckpoint = true
     ) ~>
     Checkpointed(
-      ComputeCT2[CT2red[String, String], CT2def[String, String], String, String](prune = true, sigfun = _.lmi, order = Order.ASCENDING),
+      ComputeCT2[CT2red[String, String], CT2def[String, String], String, String](prune = true, sigfun = _.lmi, order = Order.DESCENDING),
       out = DSTaskConfig.out_accumulated_CT,
       jobname = DSTaskConfig.jobname + "-2",
       reReadFromCheckpoint = true

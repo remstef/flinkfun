@@ -55,7 +55,7 @@ object SyntacticNgramExperimenterPruned extends App {
     Checkpointed(
       Checkpointed(
         Checkpointed(
-          ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, _.lmi_n, Order.ASCENDING),
+          ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, _.lmi_n, Order.DESCENDING),
           DSTaskConfig.out_accumulated_CT
         ) ~>
           /* */
@@ -73,7 +73,7 @@ object SyntacticNgramExperimenterPruned extends App {
       Checkpointed(
         fliptask ~>
           Checkpointed(
-            ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, _.lmi_n, Order.ASCENDING),
+            ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, _.lmi_n, Order.DESCENDING),
             s"${DSTaskConfig.out_accumulated_CT}-flipped"
           ) ~>
           /*  */
