@@ -100,7 +100,7 @@ object Implicits {
 
   implicit def generalfun[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
     
-    def checkpointed(location:String, toStringFun:T => String, fromStringFun:String => T, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment):DataSet[T] = {
+    def checkpointed(location:String, toStringFun:T => String, fromStringFun:String => T, jobname:String, reReadFromCheckpoint:Boolean, env:ExecutionEnvironment):DataSet[T] = {
       val output_path:Path = new Path(location)
       if(output_path.getFileSystem.exists(output_path))
         if(fromStringFun != null)
@@ -121,7 +121,7 @@ object Implicits {
     }
     
     
-    def save(location:String, toStringFun:T => String, jobname:String = null)(implicit env:ExecutionEnvironment):Unit = {
+    def save(location:String, toStringFun:T => String, jobname:String = null):Unit = {
       val output_path:Path = new Path(location)
       if(output_path.getFileSystem.exists(output_path))
           return

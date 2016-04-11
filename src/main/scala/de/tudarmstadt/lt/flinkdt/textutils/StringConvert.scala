@@ -30,10 +30,17 @@ object StringConvert {
     case t if t == classTag[String] => x.asInstanceOf[T]
     case t if t == classTag[Array[Byte]] => HashUtils.decodeHexString(x).asInstanceOf[T]
     case t if t == classTag[Int] => x.toInt.asInstanceOf[T]
+    case t if t == classTag[Long] => x.toLong.asInstanceOf[T]
+    case t if t == classTag[Double] => x.toDouble.asInstanceOf[T]
+    case t if t == classTag[Float] => x.toFloat.asInstanceOf[T]
+    case t if t == classTag[Short] => x.toShort.asInstanceOf[T]
+    case t if t == classTag[Byte] => x.toByte.asInstanceOf[T]
   }
 
   def convert_toString(x:Any) =  x match {
-    case t:Number => FormatUtils.format(x.asInstanceOf[Number])
+    case t:Double => FormatUtils.format(x.asInstanceOf[Number])
+    case t:Float => FormatUtils.format(x.asInstanceOf[Number])
+    case t:Number => t.toString()
     case t:Array[Byte] => HashUtils.encodeHexString(x.asInstanceOf[Array[Byte]])
     case _ => x.toString()
   }
