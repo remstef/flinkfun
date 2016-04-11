@@ -46,7 +46,7 @@ import org.apache.flink.core.fs.Path
   *
   */
 @SerialVersionUID(42l)
-object DSTaskConfig extends Serializable{
+object DSTaskConfig extends Serializable {
 
   def appendPath(url:String,path:String) = url + (if (url.endsWith("/")) "" else "/") + path
 

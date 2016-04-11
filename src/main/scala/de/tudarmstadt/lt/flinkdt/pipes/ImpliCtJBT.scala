@@ -65,8 +65,10 @@ object ImpliCtJBT extends App {
       .groupBy("b")
       .reduce { (l,r) => l.ndot1 += r.ndot1; l.odot1 += r.odot1; l } // .sum("ndot1, odot1")
       .map { ct => ct.a = all_mark_t1; ct.n11 = 1; ct.n1dot = 1; ct.o1dot = 1; ct.n = ct.ndot1; ct.on = ct.odot1; ct }
-      .checkpointed(DSTaskConfig.out_accumulated_B + suffix, _.toString, CtFromString[CT2ext[T1, T2], T1, T2](_), DSTaskConfig.jobname("(4) [Ndot1Sum]" + suffix), reread_checkpointed_data)
-      .filter { ct => ct.odot1 <= DSTaskConfig.param_max_odot1 && ct.odot1 >= DSTaskConfig.param_min_odot1 }
+      .checkpointed(DSTaskConfig.out_accumulated_B + suffix, _.toString, s => CtFromString[CT2ext[T1, T2], T1, T2](s), DSTaskConfig.jobname("(4) [Ndot1Sum]" + suffix), reread_checkpointed_data)
+      .filter { ct => ct.ndot1 >= DSTaskConfig.param_min_ndot1 }
+      .filter { ct => ct.odot1 >= DSTaskConfig.param_min_odot1 }
+      .filter { ct => ct.odot1 <= DSTaskConfig.param_max_odot1 }
 
     val joined_n1dot = n11
       .filter(_.n11 >= DSTaskConfig.param_min_n11)
