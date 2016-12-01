@@ -120,6 +120,11 @@ object ImpliCtJBT {
     DSTaskConfig.writeConfig(additional_comments = info)
   
     val env: ExecutionEnvironment = ExecutionEnvironment.getExecutionEnvironment
+    if(DSTaskConfig.config.hasPath("parallelism")){
+      val cores = DSTaskConfig.config.getInt("parallelism")
+      println(s"Setting parallelism to $cores.")
+      env.setParallelism(cores)
+    }
   
     exec_pipeline(false, DSTaskConfig.reread_checkpointed_data, env.readCT2r(DSTaskConfig.in_text), "*", "*", env).first(3).print
     

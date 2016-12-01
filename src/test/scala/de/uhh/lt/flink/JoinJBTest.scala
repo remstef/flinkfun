@@ -1,0 +1,22 @@
+package de.uhh.lt.flink
+
+import org.junit.Test
+import de.uhh.lt.flink.BeforeTests._
+
+@Test
+class JoinJBTest {
+  
+  @Test
+  def joinJBTest() = {
+    
+    val in = ClassLoader.getSystemClassLoader().getResource("ct-raw").getPath()
+    val out = s"${_temp_folder}/jb-joined-flink"
+    JoinJBC.main(Array(
+      "-parallelism", "2",
+      "-in", in,
+      "-out", out
+      ))
+    println(s"saved data in '${out}'.")
+  }
+  
+}
