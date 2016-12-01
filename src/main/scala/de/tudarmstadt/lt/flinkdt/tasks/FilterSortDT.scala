@@ -13,12 +13,12 @@ import scala.reflect.ClassTag
   */
 object FilterSortDT {
 
-  def apply[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:C => Float, order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT[C, T1, T2](valfun, order, sort_B_desc_by_string)
+  def apply[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:C => Double, order:Order = Order.DESCENDING, sort_B_desc_by_string:Boolean = false) = new FilterSortDT[C, T1, T2](valfun, order, sort_B_desc_by_string)
 
 }
 
 
-class FilterSortDT[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(C => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[C, C] {
+class FilterSortDT[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(C => Double), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[C, C] {
 
   // TODO: this can surely be optimized
   override def process(ds: DataSet[C]): DataSet[C] = {
@@ -40,7 +40,7 @@ class FilterSortDT[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeIn
     val dt_sort_val =
       if(sort_B_desc_by_string) {
         dt_val_grouped_a
-          .reduceGroup((iter, out: Collector[(C, Float)]) => {
+          .reduceGroup((iter, out: Collector[(C, Double)]) => {
             val l = iter.toSeq
             l.sortBy(t => (if(order == Order.DESCENDING) -t._2 else t._2, t._1.b.toString)) // sort by value and ascending by B.toString
               .take(DSTaskConfig.param_topn_sim)

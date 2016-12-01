@@ -71,7 +71,7 @@ object Implicits {
   }
 
   implicit def ct2_get_top[CT <: CT2 : ClassTag : TypeInformation](x: DataSet[CT]) = new {
-    def topN(n:Int, valfun:CT => Float = _.n11, order:Order = Order.DESCENDING):DataSet[CT] = {
+    def topN(n:Int, valfun:CT => Double = _.n11, order:Order = Order.DESCENDING):DataSet[CT] = {
       val ds_first_n = x
         .map(ct => (ct, valfun(ct))) // apply valfun
         .groupBy("_1.a")

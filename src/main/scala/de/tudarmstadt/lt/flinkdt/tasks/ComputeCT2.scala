@@ -27,11 +27,11 @@ import scala.reflect._
   */
 object ComputeCT2 {
 
-  def apply[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](prune:Boolean = false,sigfun:COUT => Float = null, order:Order = Order.DESCENDING) = new ComputeCT2[CIN, COUT,T1,T2](prune,sigfun,order)
+  def apply[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](prune:Boolean = false,sigfun:COUT => Double = null, order:Order = Order.DESCENDING) = new ComputeCT2[CIN, COUT,T1,T2](prune,sigfun,order)
 
 }
 
-class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](prune:Boolean = false, sigfun:COUT => Float = null, order:Order = Order.DESCENDING) extends DSTask[CIN,COUT] {
+class ComputeCT2[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](prune:Boolean = false, sigfun:COUT => Double = null, order:Order = Order.DESCENDING) extends DSTask[CIN,COUT] {
 
   override def process(ds: DataSet[CIN]): DataSet[COUT] = classTag[CIN] match {
     case t if t == classTag[CT2red[T1,T2]] => process_CT2red(ds.asInstanceOf[DataSet[CT2red[T1,T2]]])

@@ -58,16 +58,16 @@ abstract class CT2(implicit val ordering:Ordering[CT2]) extends Serializable wit
   def a:typeA
   def b:typeB
 
-  def n11:Float
-  def n1dot:Float
-  def ndot1:Float
-  def n:Float
+  def n11:Double
+  def n1dot:Double
+  def ndot1:Double
+  def n:Double
 
-  def n12:Float
-  def n21:Float
-  def n2dot:Float
-  def ndot2:Float
-  def n22:Float
+  def n12:Double
+  def n21:Double
+  def n2dot:Double
+  def ndot2:Double
+  def n22:Double
 
   /**
     * Check consistency:

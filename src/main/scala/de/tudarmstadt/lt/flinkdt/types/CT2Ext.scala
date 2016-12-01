@@ -46,13 +46,13 @@ import scala.math._
   */
 @SerialVersionUID(42L)
 case class CT2ext[T1, T2](var a:T1, var b:T2,
-                          var n11:Float   = 1f,
-                          var n1dot:Float = 1f,
-                          var ndot1:Float = 1f,
-                          var n:Float     = 1f,
-                          var o1dot:Float = 1f,
-                          var odot1:Float = 1f,
-                          var on:Float    = 1f) extends CT2 {
+                          var n11:Double   = 1f,
+                          var n1dot:Double = 1f,
+                          var ndot1:Double = 1f,
+                          var n:Double     = 1f,
+                          var o1dot:Double = 1f,
+                          var odot1:Double = 1f,
+                          var on:Double    = 1f) extends CT2 {
 
   override type typeA = T1
   override type typeB = T2
@@ -72,29 +72,29 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
   def o2dot = on    - o1dot
   def odot2 = on    - odot1
 
-  def log_pA_n():Float = (log(n1dot) - log(n)).toFloat
-  def log_pB_n():Float = (log(ndot1) - log(n)).toFloat
-  def log_pAB_n():Float = (log(n11) - log(n)).toFloat
-  def log_pAgivenB_n():Float = (log(n11) - log(n1dot)).toFloat
-  def log_pBgivenA_n():Float = (log(n11) - log(ndot1)).toFloat
+  def log_pA_n():Double = (log(n1dot) - log(n))
+  def log_pB_n():Double = (log(ndot1) - log(n))
+  def log_pAB_n():Double = (log(n11) - log(n))
+  def log_pAgivenB_n():Double = (log(n11) - log(n1dot))
+  def log_pBgivenA_n():Double = (log(n11) - log(ndot1))
 
   /**
     * @return log( p(a,b) / p(a)p(b) )
     */
-  def log_pmi_n():Float = (log(n11) + log(n) - log(n1dot) - log(ndot1)).toFloat
-  def log2_pmi_n():Float = (log_pmi_n / log(2)).toFloat
-  def lmi_n():Float = n11 * log2_pmi_n
+  def log_pmi_n():Double = (log(n11) + log(n) - log(n1dot) - log(ndot1))
+  def log2_pmi_n():Double = (log_pmi_n / log(2))
+  def lmi_n():Double = n11 * log2_pmi_n
 
-  def log_pA_o():Float = (log(n1dot) - log(on)).toFloat
-  def log_pB_o():Float = (log(ndot1) - log(on)).toFloat
-  def log_pAB_o():Float = -log(n).toFloat
-  def log_pAgivenB_o():Float = -log(o1dot).toFloat
-  def log_pBgivenA_o():Float = -log(odot1).toFloat
+  def log_pA_o():Double = (log(n1dot) - log(on))
+  def log_pB_o():Double = (log(ndot1) - log(on))
+  def log_pAB_o():Double = -log(n)
+  def log_pAgivenB_o():Double = -log(o1dot)
+  def log_pBgivenA_o():Double = -log(odot1)
 
   // log( (1/n) / p(a)p(b) )
-  def log_pmi_o():Float = (log(n) - log(n1dot) - log(ndot1)).toFloat
-  def log2_pmi_o():Float = (log_pmi_o / log(2)).toFloat
-  def lmi_o():Float = log2_pmi_o // 1 * pmi
+  def log_pmi_o():Double = (log(n) - log(n1dot) - log(ndot1))
+  def log2_pmi_o():Double = (log_pmi_o / log(2))
+  def lmi_o():Double = log2_pmi_o // 1 * pmi
 
 
   def +(other:CT2ext[T1, T2]):this.type = {

@@ -39,10 +39,10 @@ import scala.math._
   */
 @SerialVersionUID(42L)
 case class CT2def[T1, T2](var a:T1, var b:T2,
-                          var n11:Float   = 1f,
-                          var n1dot:Float = 1f,
-                          var ndot1:Float = 1f,
-                          var n:Float     = 1f) extends CT2 {
+                          var n11:Double   = 1f,
+                          var n1dot:Double = 1f,
+                          var ndot1:Double = 1f,
+                          var n:Double     = 1f) extends CT2 {
 
   override type typeA = T1
   override type typeB = T2
@@ -54,27 +54,27 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
   override def n2dot = n     - n1dot
   override def ndot2 = n     - ndot1
 
-  def log_pA():Float = (log(n1dot) - log(n)).toFloat
-  def log_pB():Float = (log(ndot1) - log(n)).toFloat
-  def log_pAB():Float = (log(n11) - log(n)).toFloat
-  def log_pAgivenB():Float = (log(n11) - log(n1dot)).toFloat
-  def log_pBgivenA():Float = (log(n11) - log(ndot1)).toFloat
+  def log_pA():Double = (log(n1dot) - log(n))
+  def log_pB():Double = (log(ndot1) - log(n))
+  def log_pAB():Double = (log(n11) - log(n))
+  def log_pAgivenB():Double = (log(n11) - log(n1dot))
+  def log_pBgivenA():Double = (log(n11) - log(ndot1))
 
   /**
     * @return log( p(a,b) / p(a)p(b) )
     */
-  def log_pmi():Float = (log(n11) + log(n) - log(n1dot) - log(ndot1)).toFloat
-  def log2_pmi():Float = (log_pmi / log(2)).toFloat
+  def log_pmi():Double = (log(n11) + log(n) - log(n1dot) - log(ndot1))
+  def log2_pmi():Double = (log_pmi / log(2))
 
   // correlation coefficient
-  // ((n11*n22)-(n12*n21)) / Math.sqrt(n1dot*n2dot*ndot1*ndot2) toFloat;
-  def corrCoeff():Float = (log(n11) + log(n12)) - (log(n12) + log(n21)) / Math.sqrt(log(n1dot) + log(n2dot) + log(ndot1) + log(ndot2)) toFloat
+  // ((n11*n22)-(n12*n21)) / Math.sqrt(n1dot*n2dot*ndot1*ndot2) toDouble;
+  def corrCoeff():Double = (log(n11) + log(n12)) - (log(n12) + log(n21)) / Math.sqrt(log(n1dot) + log(n2dot) + log(ndot1) + log(ndot2)) toDouble
 
 
   /**
     * @return
     */
-  def lmi():Float = n11 * log2_pmi
+  def lmi():Double = n11 * log2_pmi
 
   def +(other:CT2def[T1, T2]):this.type = {
     val newct:this.type = copy().asInstanceOf[this.type]
@@ -170,7 +170,7 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
 
   def asCT2red() = CT2red[T1,T2](a,b,n11)
 
-  def asCT2ext(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11, o1dot:Float=1f, odot1:Float=1f, on:Float=1f):CT2ext[T1,T2] = CT2ext(a,b,n11,n1dot,ndot1,n,o1dot,odot1,on)
+  def asCT2ext(n1dot:Double=n11, ndot1:Double=n11, n:Double=n11, o1dot:Double=1, odot1:Double=1, on:Double=1):CT2ext[T1,T2] = CT2ext(a,b,n11,n1dot,ndot1,n,o1dot,odot1,on)
 
   override def flipped() : CT2def[T2, T1] = copy(a = b, b = a, n1dot = ndot1, ndot1 = n1dot)
 

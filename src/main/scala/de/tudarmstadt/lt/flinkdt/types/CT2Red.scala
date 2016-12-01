@@ -20,21 +20,21 @@ import de.tudarmstadt.lt.flinkdt.tasks.DSTaskConfig
 @SerialVersionUID(42L)
 case class CT2red[T1, T2](var a:T1,
                           var b:T2,
-                          var n11:Float = 1f) extends CT2 {
+                          var n11:Double = 1f) extends CT2 {
 
   override type typeA = T1
   override type typeB = T2
 
-  override def n1dot: Float = n11
-  override def ndot1: Float = n11
-  override def n: Float = n11
+  override def n1dot: Double = n11
+  override def ndot1: Double = n11
+  override def n: Double = n11
 
-  override def n12: Float = 0f
-  override def n21: Float = 0f
-  override def n22: Float = 0f
+  override def n12: Double = 0f
+  override def n21: Double = 0f
+  override def n22: Double = 0f
 
-  override def n2dot: Float = 0f
-  override def ndot2: Float = 0f
+  override def n2dot: Double = 0f
+  override def ndot2: Double = 0f
 
 
   def +(other:CT2red[T1, T2]):this.type = {
@@ -56,9 +56,9 @@ case class CT2red[T1, T2](var a:T1,
     return this
   }
 
-  def asCT2def(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11):CT2def[T1,T2] = CT2def(a,b,n11,n1dot,ndot1,n)
+  def asCT2def(n1dot:Double=n11, ndot1:Double=n11, n:Double=n11):CT2def[T1,T2] = CT2def(a,b,n11,n1dot,ndot1,n)
 
-  def asCT2ext(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11, o1dot:Float=1f, odot1:Float=1f, on:Float=1f):CT2ext[T1,T2] = CT2ext(a,b,n11,n1dot,ndot1,n,o1dot,odot1,on)
+  def asCT2ext(n1dot:Double=n11, ndot1:Double=n11, n:Double=n11, o1dot:Double=1, odot1:Double=1, on:Double=1):CT2ext[T1,T2] = CT2ext(a,b,n11,n1dot,ndot1,n,o1dot,odot1,on)
 
   def toStringTuple():(String, String, String) = (
     s"${if (DSTaskConfig.flipct) b.asString else a.asString}",

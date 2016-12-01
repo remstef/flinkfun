@@ -28,12 +28,12 @@ import scala.reflect.ClassTag
   */
 object Prune {
 
-  def apply[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:CT2ext[T1,T2] => Float, order:Order = Order.DESCENDING) = new Prune[T1, T2](sigfun, order)
+  def apply[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:CT2ext[T1,T2] => Double, order:Order = Order.DESCENDING) = new Prune[T1, T2](sigfun, order)
 
 }
 
 
-class Prune[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:(CT2ext[T1,T2] => Float), order:Order) extends DSTask[CT2ext[T1,T2], CT2ext[T1,T2]] {
+class Prune[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:(CT2ext[T1,T2] => Double), order:Order) extends DSTask[CT2ext[T1,T2], CT2ext[T1,T2]] {
 
   override def process(ds: DataSet[CT2ext[T1,T2]]): DataSet[CT2ext[T1,T2]] = {
 
