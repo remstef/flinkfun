@@ -20,6 +20,10 @@ queue=shortrunning
 # run in new session
 $FLINK_HOME/bin/flink run -m yarn-cluster -yjm $memjobmanager -yn $numtaskmanager -ys 1 -ytm $memtaskmanager -yqu $queue -c $class $jar $appargs
 
+# run local
+jar=$HOME/git/flinkfun/target
+appargs="-in file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-count-min2 -out hdfs:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-joinedF-min2"
+
 ##
 # # flink session
 # $FLINK_HOME/bin/flink-session -n 10  -qu $queue -tm 2048
