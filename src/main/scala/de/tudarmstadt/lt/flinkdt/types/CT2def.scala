@@ -172,6 +172,6 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
 
   def asCT2ext(n1dot:Float=n11, ndot1:Float=n11, n:Float=n11, o1dot:Float=1f, odot1:Float=1f, on:Float=1f):CT2ext[T1,T2] = CT2ext(a,b,n11,n1dot,ndot1,n,o1dot,odot1,on)
 
-  override def flipped() : CT2 = copy(a = b, b = a, n1dot = ndot1, ndot1 = n1dot)
+  override def flipped() : CT2def[T2, T1] = copy(a = b, b = a, n1dot = ndot1, ndot1 = n1dot)
 
 }

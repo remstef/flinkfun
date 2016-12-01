@@ -9,7 +9,7 @@ export HADOOP_CONF_DIR=/etc/hadoop/conf
 export YARN_CONF_DIR=$HADOOP_CONF_DIR
 export HADOOP_HOME=/opt/cloudera/parcels/CDH-5.4.11-1.cdh5.4.11.p0.5 
 
-jar=$HOME/lt.flinkdt_1.1.3_2.11-0.4-jar-with-local-dependencies.jar
+jar=$HOME/lt.flinkdt_*-jar-with-local-dependencies.jar
 class=de.uhh.lt.flink.JoinJBC
 appargs="-in hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jb-count-min2 -out hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jb-joinedFT-min2"
 memjobmanager=1024
@@ -21,9 +21,9 @@ queue=shortrunning
 $FLINK_HOME/bin/flink run -m yarn-cluster -yjm $memjobmanager -yn $numtaskmanager -ys 1 -ytm $memtaskmanager -yqu $queue -c $class $jar $appargs
 
 # run local
-jar=$HOME/git/flinkfun/target/lt.flinkdt_1.1.3_2.11-0.4-jar-with-local-dependencies.jar
-class=de.uhh.lt.flink.JoinJBT
-export JAVA_OPTS="-Xmx6g"
+jar=$HOME/git/flinkfun/target/lt.flinkdt_*-jar-with-local-dependencies.jar
+class=de.uhh.lt.flink.JoinJBD
+export JAVA_OPTS="-Xmx4g"
 appargs="-parallelism 8 -in file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-count-min2 -out file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-joinedF-min2"
 
 $JAVA_HOME/bin/java -cp $jar $JAVA_OPTS $class $appargs

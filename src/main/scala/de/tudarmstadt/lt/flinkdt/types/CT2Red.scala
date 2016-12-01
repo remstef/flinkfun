@@ -84,7 +84,7 @@ case class CT2red[T1, T2](var a:T1,
       ) + (if(null == b) 0 else  b.hashCode)
   }
 
-  override def flipped() : CT2 = copy(a = b, b = a)
+  override def flipped() : CT2red[T2, T1] = copy(a = b, b = a)
 
 
 }

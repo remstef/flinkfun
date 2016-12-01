@@ -255,6 +255,6 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
   def toCT2Min() = CT2red[T1,T2](a,b,n11)
   def toCT2Full() = CT2def[T1,T2](a,b,n11,n1dot,ndot1,n)
 
-  override def flipped() : CT2 = copy(a = b, b = a, n1dot = ndot1, ndot1 = n1dot, o1dot = odot1, odot1 = o1dot)
+  override def flipped() : CT2ext[T2, T1] = copy(a = b, b = a, n1dot = ndot1, ndot1 = n1dot, o1dot = odot1, odot1 = o1dot)
 
 }
