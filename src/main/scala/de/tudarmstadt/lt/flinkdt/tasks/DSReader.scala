@@ -13,17 +13,13 @@ import scala.reflect._
   */
 object DSReader {
 
-  def apply(in:String, env: ExecutionEnvironment = null) = new DSReader[String](in, new TextInputFormat(new Path()), env)
+  def apply(in:String, env: ExecutionEnvironment = null) = new DSReader[String](in, env)
   
-  def apply[T : ClassTag : TypeInformation](in:String, fif:FileInputFormat[T], env: ExecutionEnvironment) = new DSReader[T](in, fif, env)
+  def apply[T : ClassTag : TypeInformation](in:String, env: ExecutionEnvironment) = new DSReader[T](in, env)
 
 }
 
-class DSReader[T : ClassTag : TypeInformation](in: String, fif:FileInputFormat[T], env: ExecutionEnvironment) extends DSTask[String, T]{
-
-  override def fromInputLines(lineDS: DataSet[String]): DataSet[String] = lineDS
-
-  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[T] = ???
+class DSReader[T : ClassTag : TypeInformation](in: String, env: ExecutionEnvironment) extends DSTask[String, T]{
 
   override def process(ds: DataSet[String]): DataSet[T] = {
     if(ds != null)
@@ -41,7 +37,7 @@ class DSReader[T : ClassTag : TypeInformation](in: String, fif:FileInputFormat[T
       env_.fromCollection(in.split('\n')).map(_.asInstanceOf[T])
     }
     else
-      env.readFile(fif, in)
+      env.readCsvFile[T](in, fieldDelimiter="\t")
 
     if(classTag[T] == classTag[String])
       return ds.filter(!_.asInstanceOf[String].isEmpty())

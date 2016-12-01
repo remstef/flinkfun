@@ -45,18 +45,14 @@ class Checkpointed[I : ClassTag : TypeInformation, O : ClassTag : TypeInformatio
 
   val output_path:Path = new Path(out)
 
-  override def fromInputLines(lineDS: DataSet[String]): DataSet[I] = f.fromInputLines(lineDS)
-
-  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[O] = f.fromCheckpointLines(lineDS)
-
   override def process(ds: DataSet[I]): DataSet[O] = {
     if(output_path.getFileSystem.exists(output_path))
-      return fromCheckpointLines(DSReader(out, env).process())
+      return DSReader[O](out, env).process()
     val ds_out = f(ds)
     if(out != null) {
       DSWriter[O](out, jobname).process(ds_out)
       if(reReadFromCheckpoint) // throw away intermediate results and continue to work with the re-read data
-        return fromCheckpointLines(DSReader(out, env).process())
+        return DSReader[O](out, env).process()
       // else just re-use the processed data
     }
     return ds_out

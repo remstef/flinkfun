@@ -57,10 +57,6 @@ object Convert {
 
 class Convert__Hash[CIN <: CT2 : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation](hashfunA: T1 => Array[Byte], hashfunB: T2 => Array[Byte], keymap_outputlocation: String) extends DSTask[CIN, COUT] {
 
-  override def fromInputLines(lineDS: DataSet[String]): DataSet[CIN] = lineDS.map(CtFromString[CIN, T1, T2](_))
-
-  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[COUT] = lineDS.map(CtFromString[COUT, T1, T1](_))
-
   override def process(ds: DataSet[CIN]): DataSet[COUT] = {
 
     val mapStringCtToByteArray = ds.map(ct => {
@@ -101,10 +97,6 @@ class Convert__Hash[CIN <: CT2 : ClassTag : TypeInformation, T1: ClassTag : Type
 
 
 class ReverseConversion[CIN <: CT2 : ClassTag : TypeInformation, COUT <: CT2 : ClassTag : TypeInformation, T1: ClassTag : TypeInformation, T2: ClassTag : TypeInformation](keymap_location: String) extends DSTask[CIN, COUT] {
-
-  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[COUT] = lineDS.map(CtFromString[COUT, T1, T2](_))
-
-  override def fromInputLines(lineDS: DataSet[String]): DataSet[CIN] = lineDS.map(CtFromString[CIN, Array[Byte], Array[Byte]](_))
 
   override def process(ds: DataSet[CIN]): DataSet[COUT] = {
     val id2string = DSReader(keymap_location)

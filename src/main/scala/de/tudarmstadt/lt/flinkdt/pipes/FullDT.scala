@@ -17,7 +17,6 @@
 package de.tudarmstadt.lt.flinkdt.pipes
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2def, CT2red}
 import de.tudarmstadt.lt.flinkdt.{Util}
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -34,9 +33,7 @@ object FullDT extends App {
   def process[T : ClassTag : TypeInformation]() = {
     {/* */
      DSTask[CT2ext[T,T], CT2ext[T,T]](
-        CtFromString[CT2ext[T,T],T,T](_),
-        ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) },
-        CtFromString[CT2ext[T,T],T,T](_)
+        ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) }
      ) ~>
      //      ComputeDTSimplified.CT2MinGraph[T,T]()
      ComputeDTSimplified.byJoin[CT2ext[T,T],T,T]() ~>

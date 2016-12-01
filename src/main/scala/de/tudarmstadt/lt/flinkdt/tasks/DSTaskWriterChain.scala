@@ -27,8 +27,6 @@ import scala.reflect.ClassTag
   */
 class DSTaskWriterChain[I : ClassTag : TypeInformation, O : ClassTag : TypeInformation, X : ClassTag : TypeInformation](_f:DSTask[I,X], _g:DSTask[X,O], out:String = null, jobname:String) extends DSTaskChain[I,O,X](_f,_g) {
 
-  override def fromInputLines(lineDS: DataSet[String]): DataSet[I] = f.fromInputLines(lineDS)
-
   override def process(ds: DataSet[I]): DataSet[O] = {
 
     val out_ = if(out != null && !out.isEmpty){
@@ -42,8 +40,8 @@ class DSTaskWriterChain[I : ClassTag : TypeInformation, O : ClassTag : TypeInfor
     }
 
     val ds_intermediate = f.process(ds)
-    val w = DSWriter[String](out_, jobname)
-    w.process(f.toLines(ds_intermediate))
+    val w = DSWriter[X](out_, jobname)
+    w.process(ds_intermediate)
     g(ds_intermediate)
 
   }

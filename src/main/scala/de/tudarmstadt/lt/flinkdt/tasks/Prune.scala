@@ -16,7 +16,6 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.{CT2ext}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -35,10 +34,6 @@ object Prune {
 
 
 class Prune[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](sigfun:(CT2ext[T1,T2] => Float), order:Order) extends DSTask[CT2ext[T1,T2], CT2ext[T1,T2]] {
-
-  override def fromInputLines(lineDS: DataSet[String]): DataSet[CT2ext[T1,T2]] = lineDS.map(CtFromString[CT2ext[T1,T2],T1,T2](_))
-
-  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[CT2ext[T1, T2]] = lineDS.map(CtFromString[CT2ext[T1,T2],T1,T2](_))
 
   override def process(ds: DataSet[CT2ext[T1,T2]]): DataSet[CT2ext[T1,T2]] = {
 

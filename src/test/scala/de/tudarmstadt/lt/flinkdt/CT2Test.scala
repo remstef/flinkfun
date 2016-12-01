@@ -34,7 +34,7 @@ class CT2Test extends FunSuite {
 
 
     println("--- test pretty print CT2 default ---")
-    println(CT2def("a", "b", n11 = 1, n1dot = 2, ndot1 = 3, n = 10, srcid = Some("mydoc")).prettyprint())
+    println(CT2def("a", "b", n11 = 1, n1dot = 2, ndot1 = 3, n = 10).prettyprint())
     println(CT2def("a", "b", n11 = 1, n1dot = 2, ndot1 = 3, n = 10).prettyprint())
 
     println("--- test pretty print CT2 extended ---")

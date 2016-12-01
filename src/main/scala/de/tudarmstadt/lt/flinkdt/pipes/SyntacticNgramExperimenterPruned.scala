@@ -21,7 +21,6 @@ import java.time.Duration
 import java.util.Date
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2red}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala._
@@ -46,9 +45,7 @@ object SyntacticNgramExperimenterPruned extends App {
   val in = DSTaskConfig.in_text
 
   def fliptask = DSTask[CT2red[String, String], CT2red[String, String]](
-    CtFromString[CT2red[String,String],String,String](_),
-    ds => { ds.map(_.flipped().asInstanceOf[CT2red[String,String]]) },
-    CtFromString[CT2red[String,String],String,String](_)
+    ds => { ds.map(_.flipped().asInstanceOf[CT2red[String,String]]) }
   )
 
   val jobimtext_pipeline = {

@@ -42,8 +42,7 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
                           var n11:Float   = 1f,
                           var n1dot:Float = 1f,
                           var ndot1:Float = 1f,
-                          var n:Float     = 1f,
-                          val srcid:Option[Any] = None) extends CT2 {
+                          var n:Float     = 1f) extends CT2 {
 
   override type typeA = T1
   override type typeB = T2
@@ -135,8 +134,7 @@ case class CT2def[T1, T2](var a:T1, var b:T2,
     val vf = v.map(x => ("%-"+maxwidth+"s").format(x)).toIndexedSeq
     val filler  = " "*maxwidth
     val filler_ = "-"*2*maxwidth
-    val source = if(srcid.isDefined) s"source = ${srcid.get}" else ""
-    s"""+++ ${getClass.getSimpleName}    ${source.asString} ${if(DSTaskConfig.flipct) "[FLIPPED]"} +++
+    s"""+++ ${getClass.getSimpleName}    ${if(DSTaskConfig.flipct) "[FLIPPED]"} +++
   A = ${a.asString}     B = ${b.asString}
                 |  B ${filler}        !B  ${filler}      | SUM
              ---------------------------------${filler_}

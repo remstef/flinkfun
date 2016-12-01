@@ -32,15 +32,11 @@ import org.apache.flink.api.common.io.FileOutputFormat
   */
 object DSWriter {
   
-  def apply[T : ClassTag : TypeInformation](out:String, jobname:String = null,  fof:FileOutputFormat[T] = new TextOutputFormat[T](new Path())) = new DSWriter[T](out,jobname, fof)
+  def apply[T : ClassTag : TypeInformation](out:String, jobname:String = null) = new DSWriter[T](out,jobname)
 
 }
 
-class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String, fof:FileOutputFormat[T]) extends DSTask[T,T] {
-
-  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[T] = ???
-
-  override def fromInputLines(lineDS: DataSet[String]): DataSet[T] = ???
+class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String) extends DSTask[T,T] {
 
   override def process(ds: DataSet[T]): DataSet[T] = {
     if (out == null)
@@ -48,7 +44,7 @@ class DSWriter[T : ClassTag : TypeInformation](out:String, jobname:String, fof:F
     if(out == "stdout")
       ds.print() // calls x.toString()
     else
-      ds.write(fof, out, WriteMode.NO_OVERWRITE); // calls x.toString()
+      ds.writeAsCsv(out, fieldDelimiter = "\t", writeMode = WriteMode.NO_OVERWRITE);
 
     // execute plan
     try {

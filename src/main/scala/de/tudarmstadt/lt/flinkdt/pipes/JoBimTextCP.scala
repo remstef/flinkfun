@@ -21,7 +21,6 @@ import java.time.Duration
 import java.util.Date
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2red}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala._
@@ -62,9 +61,7 @@ object JoBimTextCP extends App {
     Checkpointed(
       // Begin: fliptask
       DSTask[CT2red[String, String], CT2red[String, String]](
-        CtFromString[CT2red[String,String],String,String](_),
-        ds => { ds.map(_.flipped().asInstanceOf[CT2red[String,String]]) },
-        CtFromString[CT2red[String,String],String,String](_)
+        ds => { ds.map(_.flipped().asInstanceOf[CT2red[String,String]]) }
       ) ~>
       // End: fliptask
       ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, sigfun = _.lmi_n, order = Order.DESCENDING),

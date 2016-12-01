@@ -1,6 +1,5 @@
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.CT2
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -20,10 +19,6 @@ object FilterSortDT {
 
 
 class FilterSortDT[C <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](valfun:(C => Float), order:Order, sort_B_desc_by_string:Boolean) extends DSTask[C, C] {
-
-  override def fromInputLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
-
-  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[C] = lineDS.map(CtFromString[C,T1,T2](_))
 
   // TODO: this can surely be optimized
   override def process(ds: DataSet[C]): DataSet[C] = {

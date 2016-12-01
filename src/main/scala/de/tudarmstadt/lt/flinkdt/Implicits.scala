@@ -17,7 +17,7 @@
 package de.tudarmstadt.lt.flinkdt
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.textutils.{CtFromString, StringConvert}
+import de.tudarmstadt.lt.flinkdt.textutils.{StringConvert}
 import de.tudarmstadt.lt.flinkdt.types.{CT2def, CT2ext, CT2red, CT2}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -47,11 +47,11 @@ object Implicits {
 
   implicit def read_ct2(env: ExecutionEnvironment) = new {
     def readCT2r(in: String): DataSet[CT2red[String,String]] =
-      env.readTextFile(in).map(CtFromString[CT2red[String,String], String, String](_))
+      env.readCsvFile[CT2red[String,String]](in, fieldDelimiter="\t")// env.readTextFile(in).map(CtFromString[CT2red[String,String], String, String](_))
     def readCT2d(in: String): DataSet[CT2def[String,String]] =
-      env.readTextFile(in).map(CtFromString[CT2def[String,String], String, String](_))
+      env.readCsvFile[CT2def[String,String]](in, fieldDelimiter="\t")//env.readTextFile(in).map(CtFromString[CT2def[String,String], String, String](_))
     def readCT2e(in: String): DataSet[CT2ext[String,String]] =
-      env.readTextFile(in).map(CtFromString[CT2ext[String,String], String, String](_))
+      env.readCsvFile[CT2ext[String,String]](in, fieldDelimiter="\t")//env.readTextFile(in).map(CtFromString[CT2ext[String,String], String, String](_))
   }
 
 
@@ -100,20 +100,17 @@ object Implicits {
 
   implicit def generalfun[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
     
-    def checkpointed(location:String, toStringFun:T => String, fromStringFun:String => T, jobname:String, reReadFromCheckpoint:Boolean, env:ExecutionEnvironment):DataSet[T] = {
+    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean, env:ExecutionEnvironment):DataSet[T] = {
       val output_path:Path = new Path(location)
       if(output_path.getFileSystem.exists(output_path))
-        if(fromStringFun != null)
-          return DSReader(location, env).process().map(fromStringFun)
-        else
-          return null
+        return DSReader[T](location, env).process()
 
       if(location != null) {
-        DSWriter[String](location, jobname).process(ds.map(toStringFun(_)))
+        DSWriter[T](location, jobname).process(ds)
         if(reReadFromCheckpoint) {
           // throw away intermediate results and continue to work with the re-read data
           ds.getExecutionEnvironment.startNewSession()
-          return DSReader(location, env).process().map(fromStringFun)
+          return DSReader[T](location, env).process()
         }
         // else just re-use the processed data
       }
@@ -121,12 +118,12 @@ object Implicits {
     }
     
     
-    def save(location:String, toStringFun:T => String, jobname:String = null):Unit = {
+    def save(location:String, jobname:String = null):Unit = {
       val output_path:Path = new Path(location)
       if(output_path.getFileSystem.exists(output_path))
           return
       if(location != null)
-        DSWriter[String](location, jobname).process(ds.map(toStringFun(_)))
+        DSWriter[T](location, jobname).process(ds)
     }
     
 //    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment, fof:FileOutputFormat[T], fif:FileInputFormat[T]):DataSet[T] = {

@@ -16,7 +16,6 @@
 
 package de.tudarmstadt.lt.flinkdt.tasks
 
-import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.CT2
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.scala.DataSet
@@ -35,10 +34,6 @@ object GraphWriter {
 }
 
 class GraphWriter[CT <: CT2 : ClassTag : TypeInformation, T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](out:String) extends DSTask[CT,CT] {
-
-  override def fromInputLines(lineDS: DataSet[String]): DataSet[CT] = lineDS.map(CtFromString[CT, T1, T2](_))
-
-  override def fromCheckpointLines(lineDS: DataSet[String]): DataSet[CT] = ???
 
   override def process(ds: DataSet[CT]): DataSet[CT] = {
     if (out == null)

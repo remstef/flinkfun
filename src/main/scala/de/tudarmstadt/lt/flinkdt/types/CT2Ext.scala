@@ -52,8 +52,7 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
                           var n:Float     = 1f,
                           var o1dot:Float = 1f,
                           var odot1:Float = 1f,
-                          var on:Float    = 1f,
-                          val srcid:Option[Any] = None) extends CT2 {
+                          var on:Float    = 1f) extends CT2 {
 
   override type typeA = T1
   override type typeB = T2
@@ -198,8 +197,7 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
     val vf = v.map(x => ("%-"+maxwidth+"s").format(x)).toIndexedSeq
     val filler  = " "*maxwidth
     val filler_ = "-"*2*maxwidth
-    val source = if(srcid.isDefined) s"source = ${srcid.get}" else ""
-    s"""+++ ${getClass.getSimpleName}    ${source.asString}   ${if(DSTaskConfig.flipct) "[FLIPPED]"} +++
+    s"""+++ ${getClass.getSimpleName}    ${if(DSTaskConfig.flipct) "[FLIPPED]"} +++
   A = ${a.asString}     B = ${b.asString}
                 |  B ${filler}        !B  ${filler}      | SUM
              ---------------------------------${filler_}
@@ -255,7 +253,7 @@ case class CT2ext[T1, T2](var a:T1, var b:T2,
   }
 
   def toCT2Min() = CT2red[T1,T2](a,b,n11)
-  def toCT2Full() = CT2def[T1,T2](a,b,n11,n1dot,ndot1,n,srcid)
+  def toCT2Full() = CT2def[T1,T2](a,b,n11,n1dot,ndot1,n)
 
   override def flipped() : CT2 = copy(a = b, b = a, n1dot = ndot1, ndot1 = n1dot, o1dot = odot1, odot1 = o1dot)
 

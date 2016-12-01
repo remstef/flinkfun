@@ -11,7 +11,7 @@ class JoinJBTest {
     
     val in = ClassLoader.getSystemClassLoader().getResource("ct-raw").getPath()
     val out = s"${_temp_folder}/jb-joined-flink"
-    JoinJBC.main(Array(
+    JoinJBD.main(Array(
       "-parallelism", "2",
       "-in", in,
       "-out", out

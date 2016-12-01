@@ -21,7 +21,6 @@ import java.time.Duration
 import java.util.Date
 
 import de.tudarmstadt.lt.flinkdt.tasks._
-import de.tudarmstadt.lt.flinkdt.textutils.CtFromString
 import de.tudarmstadt.lt.flinkdt.types.{CT2ext, CT2def, CT2red}
 import org.apache.flink.api.common.operators.Order
 import org.apache.flink.api.scala._
@@ -49,9 +48,7 @@ object SyntacticNgramExperimenter extends App {
   val setup_ct2ext = ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]()
 
   def fliptask = DSTask[CT2ext[String, String], CT2ext[String, String]](
-    CtFromString[CT2ext[String,String],String,String](_),
-    ds => { ds.map(_.flipped().asInstanceOf[CT2ext[String,String]]) },
-    CtFromString[CT2ext[String,String],String,String](_)
+    ds => { ds.map(_.flipped().asInstanceOf[CT2ext[String,String]]) }
   )
 
   val default_jobimtext_pipeline = {
@@ -88,9 +85,7 @@ object SyntacticNgramExperimenter extends App {
       Checkpointed(
         /* minimal pruning */
         DSTask[CT2ext[String, String], CT2ext[String, String]](
-          CtFromString[CT2ext[String,String],String,String](_),
-          ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) },
-          CtFromString[CT2ext[String,String],String,String](_)
+          ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) }
         ) ~>
           /* */
           ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
@@ -108,9 +103,7 @@ object SyntacticNgramExperimenter extends App {
         fliptask ~>
         /* minimal pruning */
         DSTask[CT2ext[String, String], CT2ext[String, String]](
-          CtFromString[CT2ext[String,String],String,String](_),
-          ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) },
-          CtFromString[CT2ext[String,String],String,String](_)
+          ds => { ds.filter(_.ndot1 > 1).filter(_.odot1 > 1) }
         ) ~>
           /* */
           ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
