@@ -33,23 +33,23 @@ object SamplePipeline extends App {
   val env = ExecutionEnvironment.getExecutionEnvironment
 
   // get input data
-  val in = DSTaskConfig.in_text
+  val in = DSTaskConfig.io_text
 
   val ds = {
       /*  */
-      Extractor(TextToCT2.ngrams(_,3), inputcolumn = DSTaskConfig.in_text_column) ~> DSWriter(DSTaskConfig.out_raw) ~>
+      Extractor(TextToCT2.ngrams(_,3), inputcolumn = DSTaskConfig.io_text_column) ~> DSWriter(DSTaskConfig.io_ctraw) ~>
       /*  */
-      N11Sum[CT2red[String,String], String,String]() ~> DSWriter(DSTaskConfig.out_accumulated_AB) ~>
+      N11Sum[CT2red[String,String], String,String]() ~> DSWriter(DSTaskConfig.io_accumulated_AB) ~>
       /*  */
-      WhiteListFilter[CT2red[String,String],String, String](DSTaskConfig.in_whitelist) ~|~>
+      WhiteListFilter[CT2red[String,String],String, String](DSTaskConfig.io_whitelist) ~|~>
       /*  */
-      ComputeCT2[CT2red[String,String], CT2def[String,String], String,String](prune = true, sigfun = _.lmi, order = Order.DESCENDING) ~> DSWriter(DSTaskConfig.out_accumulated_CT) ~>
+      ComputeCT2[CT2red[String,String], CT2def[String,String], String,String](prune = true, sigfun = _.lmi, order = Order.DESCENDING) ~> DSWriter(DSTaskConfig.io_accumulated_CT) ~>
       /*  */
       ComputeDTSimplified.byJoin[CT2def[String,String],String,String]() ~>
       /*  */
       FilterSortDT[CT2red[String,String],String, String](_.n11)
       /*  */
-  }.process(input = in, output = DSTaskConfig.out_dt_sorted)
+  }.process(input = in, output = DSTaskConfig.io_dt_sorted)
 
 
 }

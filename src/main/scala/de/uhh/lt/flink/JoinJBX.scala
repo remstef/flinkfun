@@ -50,7 +50,7 @@ object JoinJBX {
 			val ds: DataSet[t] = env.readCsvFile(in, fieldDelimiter="\t")
 			val paths = ds.groupBy("_2")
 			  .reduceGroup { it => 
-			    val loc = s"${tmpdir}/1/${Random.nextLong}${Random.nextLong}"
+			    val loc = s"${tmpdir}/1/${Random.nextInt(100000)}/${Random.nextInt(100000)}/${Random.nextInt(100000)}"
 			    val path = new Path(loc)
 			    val of = new ScalaCsvOutputFormat[t](path, "\t")
 			    of.open(0, 100000)
@@ -72,7 +72,7 @@ object JoinJBX {
 			    .rebalance()
 			    .crossWithHuge[(String, String, Double)](ds){ (t1,t2) => (t1._1, t2._1, t1._3) }
 			  
-			  val loc = s"${tmpdir}/2/${Random.nextLong}${Random.nextLong}"
+			  val loc = s"${tmpdir}/2/${Random.nextInt(100000)}/${Random.nextInt(100000)}/${Random.nextInt(100000)}"
 			  
 			  crsd.writeAsCsv(loc, fieldDelimiter="\t")
 			  env.execute(s"${i+1}/${path_as_local_list.size}")

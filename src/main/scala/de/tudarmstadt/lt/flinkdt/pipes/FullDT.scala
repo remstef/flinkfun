@@ -37,9 +37,9 @@ object FullDT extends App {
      ) ~>
      //      ComputeDTSimplified.CT2MinGraph[T,T]()
      ComputeDTSimplified.byJoin[CT2ext[T,T],T,T]() ~>
-     DSWriter(DSTaskConfig.out_dt, s"${DSTaskConfig.jobname}-process")
+     DSWriter(DSTaskConfig.io_dt, s"${DSTaskConfig.jobname}-process")
      /* */
-    }.process(input = s"${DSTaskConfig.out_accumulated_CT}")
+    }.process(input = s"${DSTaskConfig.io_accumulated_CT}")
 
 
   }
@@ -48,18 +48,18 @@ object FullDT extends App {
 
     val string_preprocessing_chain:DSTask[String, CT2ext[String,String]] =
       { /* */
-        Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
+        Extractor(extractorfun, inputcolumn = DSTaskConfig.io_text_column) ~|~>
         /*  */
 //        N11Sum.toCT2Min[String, String]()
         ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]()
       }
 
     val preprocessing_chain =
-      if(hash) { string_preprocessing_chain ~> Convert.Hash.StringSha256[CT2ext[String,String], String, String, CT2ext[Array[Byte], Array[Byte]]](DSTaskConfig.out_keymap) }
+      if(hash) { string_preprocessing_chain ~> Convert.Hash.StringSha256[CT2ext[String,String], String, String, CT2ext[Array[Byte], Array[Byte]]](DSTaskConfig.io_keymap) }
       else
         string_preprocessing_chain
 
-    preprocessing_chain.process(input = in, output = DSTaskConfig.out_accumulated_CT, jobname = s"${DSTaskConfig.jobname}-preprocess")
+    preprocessing_chain.process(input = in, output = DSTaskConfig.io_accumulated_CT, jobname = s"${DSTaskConfig.jobname}-preprocess")
 
   }
 
@@ -68,10 +68,10 @@ object FullDT extends App {
     val string_post_processing = FilterSortDT.apply[CT2red[String, String], String, String](_.n11)
 
     val postprocessing_chain =
-      if(hash){ Convert.Hash.Reverse[CT2red[Array[Byte], Array[Byte]], CT2red[String,String], String, String](DSTaskConfig.out_keymap) ~> string_post_processing }
+      if(hash){ Convert.Hash.Reverse[CT2red[Array[Byte], Array[Byte]], CT2red[String,String], String, String](DSTaskConfig.io_keymap) ~> string_post_processing }
       else string_post_processing
 
-    postprocessing_chain.process(input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted, jobname = s"${DSTaskConfig.jobname}-postprocess")
+    postprocessing_chain.process(input = DSTaskConfig.io_dt, output = DSTaskConfig.io_dt_sorted, jobname = s"${DSTaskConfig.jobname}-postprocess")
 
   }
 
@@ -83,10 +83,10 @@ object FullDT extends App {
   def extractorfun:String => TraversableOnce[CT2red[String,String]] = Util.getExtractorfunFromJobname()
 
   // get input data
-  val in = DSTaskConfig.in_text
+  val in = DSTaskConfig.io_text
   val hash = DSTaskConfig.jobname.toLowerCase.contains("hash")
 
-  val preprocess_output_path:Path = new Path(DSTaskConfig.out_accumulated_CT)
+  val preprocess_output_path:Path = new Path(DSTaskConfig.io_accumulated_CT)
   if(!preprocess_output_path.getFileSystem.exists(preprocess_output_path))
     preprocess(hash)
 

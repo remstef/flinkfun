@@ -29,27 +29,27 @@ object JoBimTextCPwExtractor extends App {
 
   def pipeline = {
     Checkpointed(
-      Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~>
+      Extractor(extractorfun, inputcolumn = DSTaskConfig.io_text_column) ~>
       N11Sum[CT2red[String, String], String, String](),
-      out = DSTaskConfig.out_accumulated_AB,
+      out = DSTaskConfig.io_accumulated_AB,
       jobname = DSTaskConfig.jobname + "-1",
       reReadFromCheckpoint = true
     ) ~>
     Checkpointed(
       ComputeCT2[CT2red[String, String], CT2def[String, String], String, String](prune = true, sigfun = _.lmi, order = Order.DESCENDING),
-      out = DSTaskConfig.out_accumulated_CT,
+      out = DSTaskConfig.io_accumulated_CT,
       jobname = DSTaskConfig.jobname + "-2",
       reReadFromCheckpoint = true
     ) ~>
     Checkpointed(
       ComputeDTSimplified.byJoin[CT2def[String, String], String, String](),
-      out = DSTaskConfig.out_dt,
+      out = DSTaskConfig.io_dt,
       jobname = DSTaskConfig.jobname + "-3",
       reReadFromCheckpoint = true
     ) ~>
     Checkpointed(
       FilterSortDT[CT2red[String, String], String, String](_.n11),
-      out = DSTaskConfig.out_dt_sorted,
+      out = DSTaskConfig.io_dt_sorted,
       jobname = DSTaskConfig.jobname + "-4",
       reReadFromCheckpoint = true
     )
@@ -63,9 +63,9 @@ object JoBimTextCPwExtractor extends App {
   def extractorfun:String => TraversableOnce[CT2red[String,String]] = Util.getExtractorfunFromJobname()
 
   // get input data
-  val in = DSTaskConfig.in_text
+  val in = DSTaskConfig.io_text
 
-  val ds = pipeline.process(input = DSTaskConfig.in_text)
+  val ds = pipeline.process(input = DSTaskConfig.io_text)
   ds.first(10).print
 
 }

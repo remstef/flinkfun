@@ -23,8 +23,8 @@ class TestPipelines {
     val out = _temp_folder
     
     ImpliCtJBT.main(Array(
-        "--dt.input.text", ClassLoader.getSystemClassLoader().getResource(in).getPath(),
-        "--dt.output.basedir", "file://"+out.getAbsolutePath(),
+        "--dt.io.ct.raw", ClassLoader.getSystemClassLoader().getResource(in).getPath(),
+        "--dt.io.dir", "file://"+out.getAbsolutePath(),
         "--dt.jobname", "testImpliCtJBT"
     ))
     

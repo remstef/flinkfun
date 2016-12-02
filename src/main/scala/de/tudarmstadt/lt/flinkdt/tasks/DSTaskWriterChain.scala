@@ -36,7 +36,7 @@ class DSTaskWriterChain[I : ClassTag : TypeInformation, O : ClassTag : TypeInfor
       while (t.isInstanceOf[DSTaskChain[_, _, _]] || t.isInstanceOf[DSTaskWriterChain[_, _, _]])
         t = (t.asInstanceOf[DSTaskChain[_, _, _]]).g
       val name = s"${TimeUtils.getSimple17}_${t.getClass.getSimpleName}"
-      DSTaskConfig.appendPath(DSTaskConfig.out_basedir, name)
+      DSTaskConfig.appendPath(DSTaskConfig.io_basedir, name)
     }
 
     val ds_intermediate = f.process(ds)

@@ -43,7 +43,7 @@ object SyntacticNgramExperimenter extends App {
   DSTaskConfig.writeConfig(additional_comments = info)
 
   // get input data
-  val in = DSTaskConfig.in_text
+  val in = DSTaskConfig.io_text
 
   val setup_ct2ext = ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String]()
 
@@ -57,11 +57,11 @@ object SyntacticNgramExperimenter extends App {
         Prune[String, String](sigfun = _.lmi_n, Order.DESCENDING) ~>
           /*  */
           ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
-        DSTaskConfig.out_dt
+        DSTaskConfig.io_dt
       ) ~>
         /*  */
         FilterSortDT[CT2red[String,String],String, String](_.n11),
-      DSTaskConfig.out_dt_sorted
+      DSTaskConfig.io_dt_sorted
     )
   }
 
@@ -72,11 +72,11 @@ object SyntacticNgramExperimenter extends App {
         Prune[String, String](sigfun = _.lmi_n, Order.DESCENDING) ~>
           /*  */
           ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
-        s"${DSTaskConfig.out_dt}-flipped"
+        s"${DSTaskConfig.io_dt}-flipped"
       ) ~>
         /*  */
         FilterSortDT[CT2red[String,String],String, String](_.n11),
-      s"${DSTaskConfig.out_dt_sorted}-flipped"
+      s"${DSTaskConfig.io_dt_sorted}-flipped"
     )
   }
 
@@ -89,11 +89,11 @@ object SyntacticNgramExperimenter extends App {
         ) ~>
           /* */
           ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
-        DSTaskConfig.out_dt
+        DSTaskConfig.io_dt
       ) ~>
         /* */
         FilterSortDT.apply[CT2red[String, String], String, String](_.n11),
-      DSTaskConfig.out_dt_sorted
+      DSTaskConfig.io_dt_sorted
     )
   }
 
@@ -107,11 +107,11 @@ object SyntacticNgramExperimenter extends App {
         ) ~>
           /* */
           ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
-        s"${DSTaskConfig.out_dt}-flipped"
+        s"${DSTaskConfig.io_dt}-flipped"
       ) ~>
         /* */
         FilterSortDT.apply[CT2red[String, String], String, String](_.n11),
-      s"${DSTaskConfig.out_dt_sorted}-flipped"
+      s"${DSTaskConfig.io_dt_sorted}-flipped"
     )
   }
 

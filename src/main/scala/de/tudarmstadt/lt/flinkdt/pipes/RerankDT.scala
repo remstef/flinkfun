@@ -32,28 +32,28 @@ object RerankDT extends App {
   DSTaskConfig.load(config)
 
   // input data is output of dt computation
-  val in = DSTaskConfig.out_dt
+  val in = DSTaskConfig.io_dt
   val hash = DSTaskConfig.jobname.toLowerCase.contains("hash")
 
   val ct_computation_chain =
     if(hash) {
       {
         /* */
-        ComputeCT2[CT2red[Array[Byte],Array[Byte]], CT2def[Array[Byte],Array[Byte]], Array[Byte],Array[Byte]](prune = true, sigfun = _.lmi, order = Order.DESCENDING) ~> DSWriter(DSTaskConfig.out_accumulated_CT,s"${DSTaskConfig.out_dt_sorted}-rerank") ~>
+        ComputeCT2[CT2red[Array[Byte],Array[Byte]], CT2def[Array[Byte],Array[Byte]], Array[Byte],Array[Byte]](prune = true, sigfun = _.lmi, order = Order.DESCENDING) ~> DSWriter(DSTaskConfig.io_accumulated_CT,s"${DSTaskConfig.io_dt_sorted}-rerank") ~>
         /* */
-        Convert.Hash.Reverse[CT2def[Array[Byte], Array[Byte]], CT2def[String, String], String, String](DSTaskConfig.out_keymap)
+        Convert.Hash.Reverse[CT2def[Array[Byte], Array[Byte]], CT2def[String, String], String, String](DSTaskConfig.io_keymap)
         /* */
       }
     } else {
       {
         /* */
-        ComputeCT2[CT2def[String,String], CT2def[String,String], String,String](prune = true, sigfun = _.lmi, order = Order.DESCENDING) ~> DSWriter(DSTaskConfig.out_accumulated_CT,s"${DSTaskConfig.out_dt_sorted}-rerank")
+        ComputeCT2[CT2def[String,String], CT2def[String,String], String,String](prune = true, sigfun = _.lmi, order = Order.DESCENDING) ~> DSWriter(DSTaskConfig.io_accumulated_CT,s"${DSTaskConfig.io_dt_sorted}-rerank")
         /* */
       }
     }
 
   val rerank_chain = ct_computation_chain ~> FilterSortDT[CT2def[String, String],String, String](_.lmi)
 
-  rerank_chain.process(input = DSTaskConfig.out_dt, output = s"${DSTaskConfig.out_dt_sorted}-rerank")
+  rerank_chain.process(input = DSTaskConfig.io_dt, output = s"${DSTaskConfig.io_dt_sorted}-rerank")
 
 }

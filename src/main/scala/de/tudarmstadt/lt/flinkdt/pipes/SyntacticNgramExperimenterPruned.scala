@@ -42,7 +42,7 @@ object SyntacticNgramExperimenterPruned extends App {
   DSTaskConfig.writeConfig(additional_comments = info)
 
   // get input data
-  val in = DSTaskConfig.in_text
+  val in = DSTaskConfig.io_text
 
   def fliptask = DSTask[CT2red[String, String], CT2red[String, String]](
     ds => { ds.map(_.flipped().asInstanceOf[CT2red[String,String]]) }
@@ -53,15 +53,15 @@ object SyntacticNgramExperimenterPruned extends App {
       Checkpointed(
         Checkpointed(
           ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, _.lmi_n, Order.DESCENDING),
-          DSTaskConfig.out_accumulated_CT
+          DSTaskConfig.io_accumulated_CT
         ) ~>
           /* */
           ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
-        DSTaskConfig.out_dt
+        DSTaskConfig.io_dt
       ) ~>
         /*  */
         FilterSortDT[CT2red[String,String],String, String](_.n11),
-      DSTaskConfig.out_dt_sorted
+      DSTaskConfig.io_dt_sorted
     )
   }
 
@@ -71,15 +71,15 @@ object SyntacticNgramExperimenterPruned extends App {
         fliptask ~>
           Checkpointed(
             ComputeCT2[CT2red[String, String], CT2ext[String, String], String, String](prune = true, _.lmi_n, Order.DESCENDING),
-            s"${DSTaskConfig.out_accumulated_CT}-flipped"
+            s"${DSTaskConfig.io_accumulated_CT}-flipped"
           ) ~>
           /*  */
           ComputeDTSimplified.byJoin[CT2ext[String,String],String,String](),
-        s"${DSTaskConfig.out_dt}-flipped"
+        s"${DSTaskConfig.io_dt}-flipped"
       ) ~>
         /*  */
         FilterSortDT[CT2red[String,String],String, String](_.n11),
-      s"${DSTaskConfig.out_dt_sorted}-flipped"
+      s"${DSTaskConfig.io_dt_sorted}-flipped"
     )
   }
 

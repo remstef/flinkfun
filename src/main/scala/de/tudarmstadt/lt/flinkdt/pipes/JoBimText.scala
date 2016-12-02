@@ -37,22 +37,22 @@ object JoBimText extends App {
       //WhiteListFilter.CT2[String, String](DSTaskConfig.in_whitelist, env) ~|~>
       /* */
       ComputeCT2[CT2red[String,String], CT2def[String,String], String, String](prune = true, sigfun = _.lmi, order = Order.DESCENDING) ~>
-      DSWriter[CT2def[String,String]](DSTaskConfig.out_accumulated_CT, s"${DSTaskConfig.jobname}-process") ~>
+      DSWriter[CT2def[String,String]](DSTaskConfig.io_accumulated_CT, s"${DSTaskConfig.jobname}-process") ~>
       /*  */
       ComputeDTSimplified.byJoin[CT2def[String,String],String,String]()
       /* */
-    }.process(input = DSTaskConfig.out_accumulated_AB, output =  DSTaskConfig.out_dt, jobname = s"${DSTaskConfig.jobname}-process")
+    }.process(input = DSTaskConfig.io_accumulated_AB, output =  DSTaskConfig.io_dt, jobname = s"${DSTaskConfig.jobname}-process")
 
   }
 
   def preprocess() = {
 
     { /* */
-      Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~>
+      Extractor(extractorfun, inputcolumn = DSTaskConfig.io_text_column) ~>
       /*  */
       N11Sum[CT2red[String,String], String, String]()
       /*  */
-    }.process(input = in, output = s"${DSTaskConfig.out_accumulated_AB}", jobname = s"${DSTaskConfig.jobname}-preprocess")
+    }.process(input = in, output = s"${DSTaskConfig.io_accumulated_AB}", jobname = s"${DSTaskConfig.jobname}-preprocess")
 
   }
 
@@ -61,7 +61,7 @@ object JoBimText extends App {
     { /* */
       FilterSortDT[CT2red[String, String],String, String](_.n11)
       /* */
-    }.process(input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted)
+    }.process(input = DSTaskConfig.io_dt, output = DSTaskConfig.io_dt_sorted)
 
   }
 
@@ -73,9 +73,9 @@ object JoBimText extends App {
   def extractorfun:String => TraversableOnce[CT2red[String,String]] = Util.getExtractorfunFromJobname()
 
   // get input data
-  val in = DSTaskConfig.in_text
+  val in = DSTaskConfig.io_text
 
-  val preprocess_output_path:Path = new Path(DSTaskConfig.out_accumulated_AB)
+  val preprocess_output_path:Path = new Path(DSTaskConfig.io_accumulated_AB)
   if(!preprocess_output_path.getFileSystem.exists(preprocess_output_path))
     preprocess()
 

@@ -38,7 +38,7 @@ class ConfTest extends FunSuite {
   test("Test configuration via typesafe:config") {
 
     var conf:Config = null
-    conf = ConfigFactory.parseFile(new File("app.conf")).withFallback(ConfigFactory.load()).resolve()
+    conf = ConfigFactory.parseFile(new File("app.conf")).withFallback(ConfigFactory.parseResources("myapplication.conf")).withFallback(ConfigFactory.load("application")).resolve()
 
     System.setProperty("dt.question","What?")
 

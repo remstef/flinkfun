@@ -50,7 +50,7 @@ object DSTaskConfig extends Serializable {
 
   def appendPath(url:String,path:String) = url + (if (url.endsWith("/")) "" else "/") + path
 
-  def getFullPath(url:String,path:String) = appendPath(url, jobname + "/" + (if (flipct) "flipped-" else "" ) + path)
+//  def getFullPath(url:String,path:String) = appendPath(url, jobname + "/" + (if (flipct) "flipped-" else "" ) + path)
 
   @transient
   var config:Config                         = ConfigFactory.load()
@@ -72,21 +72,21 @@ object DSTaskConfig extends Serializable {
 
   var flipct:Boolean                        = false
 
-  var in_text:String                        = "!!NO INPUT DEFINED!!"
-  var in_text_column:Int                    = -1
-  var in_whitelist:String                   = null
+  var io_text:String                        = "!!NO INPUT DEFINED!!"
+  var io_text_column:Int                    = -1
+  var io_whitelist:String                   = null
 
-  var out_basedir:String                    = s"file://./${jobname}"
-  var out_raw:String                        = null
-  var out_accumulated_AB:String             = null
-  var out_accumulated_N:String              = null
-  var out_accumulated_AB_whitelisted:String = null
-  var out_accumulated_A:String              = null
-  var out_accumulated_B:String              = null
-  var out_accumulated_CT:String             = null
-  var out_dt:String                         = null
-  var out_dt_sorted:String                  = null
-  var out_keymap:String                     = null
+  var io_basedir:String                    = s"file://./${jobname}"
+  var io_ctraw:String                        = null
+  var io_accumulated_AB:String             = null
+  var io_accumulated_N:String              = null
+  var io_accumulated_AB_whitelisted:String = null
+  var io_accumulated_A:String              = null
+  var io_accumulated_B:String              = null
+  var io_accumulated_CT:String             = null
+  var io_dt:String                         = null
+  var io_dt_sorted:String                  = null
+  var io_keymap:String                     = null
 
   var reread_checkpointed_data:Boolean     = true
 
@@ -96,9 +96,9 @@ object DSTaskConfig extends Serializable {
     else {
       val cli_args = ParameterTool.fromArgs(args)
       if (cli_args.has("conf"))
-        ConfigFactory.parseMap(cli_args.toMap).withFallback(ConfigFactory.parseFile(new File(cli_args.get("conf"))).withFallback(ConfigFactory.load()).resolve()).resolve() // load conf with fallback to default application.conf
+        ConfigFactory.parseMap(cli_args.toMap).withFallback(ConfigFactory.parseFile(new File(cli_args.get("conf"))).withFallback(ConfigFactory.parseResources("myapplication.conf")).withFallback(ConfigFactory.load())).resolve() // load conf with fallback to default application.conf
       else
-        ConfigFactory.parseMap(cli_args.toMap).withFallback(ConfigFactory.load()).resolve() // load default application.conf
+        ConfigFactory.parseMap(cli_args.toMap).withFallback(ConfigFactory.parseResources("myapplication.conf")).withFallback(ConfigFactory.load()).resolve() // load default application.conf
     }
   }
 
@@ -110,27 +110,30 @@ object DSTaskConfig extends Serializable {
     else
       jobname = s"flinkdt-job-${TimeUtils.getSimple17}"
 
-    val outputconfig = config_dt.getConfig("output.ct")
+    val ioconfig = config_dt.getConfig("io")
 
-    out_basedir = config_dt.getString("output.basedir")
+    io_basedir = ioconfig.getString("dir")
 
     //flipct                         = config_dt.getBoolean("flipct")
     reread_checkpointed_data         = config_dt.getBoolean("re-read-checkpoint-data")
 
     // get input data and output data
-    in_text                        = config_dt.getString("input.text")
-    in_text_column                 = config_dt.getString("input.text-column").toInt
-    in_whitelist                   = if(config_dt.hasPath("input.whitelist"))    config_dt.getString("input.whitelist") else null
-    out_raw                        = if(outputconfig.hasPath("raw"))             getFullPath(out_basedir, outputconfig.getString("raw")) else null
-    out_accumulated_AB             = if(outputconfig.hasPath("accAB"))           getFullPath(out_basedir, outputconfig.getString("accAB")) else null
-    out_accumulated_N              = if(outputconfig.hasPath("accN"))            getFullPath(out_basedir, outputconfig.getString("accN")) else null
-    out_accumulated_AB_whitelisted = if(outputconfig.hasPath("accABwhite"))      getFullPath(out_basedir, outputconfig.getString("accABwhite")) else null
-    out_accumulated_A              = if(outputconfig.hasPath("accA"))            getFullPath(out_basedir, outputconfig.getString("accA")) else null
-    out_accumulated_B              = if(outputconfig.hasPath("accB"))            getFullPath(out_basedir, outputconfig.getString("accB")) else null
-    out_accumulated_CT             = if(outputconfig.hasPath("accall"))          getFullPath(out_basedir, outputconfig.getString("accall")) else null
-    out_dt                         = if(outputconfig.hasPath("dt"))              getFullPath(out_basedir, outputconfig.getString("dt")) else null
-    out_dt_sorted                  = if(outputconfig.hasPath("dtsort"))          getFullPath(out_basedir, outputconfig.getString("dtsort")) else null
-    out_keymap                     = if(outputconfig.hasPath("keymap"))          getFullPath(out_basedir, outputconfig.getString("keymap")) else null
+    io_text                        = ioconfig.getString("text")
+    io_text_column                 = ioconfig.getString("text-column").toInt
+    io_whitelist                   = if(ioconfig.hasPath("whitelist"))           ioconfig.getString("whitelist") else null
+    
+    val ioct = ioconfig.getConfig("ct")
+    
+    io_ctraw                      = if(ioct.hasPath("raw"))             ioct.getString("raw")           else null
+    io_accumulated_AB             = if(ioct.hasPath("accAB"))           ioct.getString("accAB")         else null
+    io_accumulated_N              = if(ioct.hasPath("accN"))            ioct.getString("accN")          else null
+    io_accumulated_AB_whitelisted = if(ioct.hasPath("accABwhite"))      ioct.getString("accABwhite")    else null
+    io_accumulated_A              = if(ioct.hasPath("accA"))            ioct.getString("accA")          else null
+    io_accumulated_B              = if(ioct.hasPath("accB"))            ioct.getString("accB")          else null
+    io_accumulated_CT             = if(ioct.hasPath("accall"))          ioct.getString("accall")        else null
+    io_dt                         = if(ioct.hasPath("dt"))              ioct.getString("dt")            else null
+    io_dt_sorted                  = if(ioct.hasPath("dtsort"))          ioct.getString("dtsort")        else null
+    io_keymap                     = if(ioct.hasPath("keymap"))          ioct.getString("keymap")        else null
 
     // get filter config
     val config_filter = config_dt.getConfig("filter")
@@ -153,7 +156,7 @@ object DSTaskConfig extends Serializable {
   def toString(verbose:Boolean = false) = { if(verbose) config else config.getConfig("dt").atKey("dt") }.root().render(ConfigRenderOptions.concise.setFormatted(true).setComments(true).setJson(false))
 
   def writeConfig(dest:String=null, additional_comments:String = null, verbose:Boolean = false, overwrite:Boolean = false): Unit = {
-    val dest_ = if(dest == null || dest.isEmpty) appendPath(out_basedir, s"${jobname}.conf") else dest
+    val dest_ = if(dest == null || dest.isEmpty) appendPath(io_basedir, s"${jobname}.conf") else dest
     val path:Path = new Path(dest_)
     val w = path.getFileSystem.create(path, overwrite)
     if(additional_comments != null && !additional_comments.isEmpty) {

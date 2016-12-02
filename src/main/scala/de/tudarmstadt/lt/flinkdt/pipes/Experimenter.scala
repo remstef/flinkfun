@@ -37,9 +37,9 @@ object Experimenter extends App {
       //WhiteListFilter.CT2Min[String, String](DSTaskConfig.in_whitelist, env) ~|~>
       /* */
       //      ComputeDTSimplified.CT2MinJoin[String,String]() ~> DSWriter(DSTaskConfig.out_dt)
-      ComputeDTSimplified.byGraph[CT2red[String,String],String,String]() ~> DSWriter(DSTaskConfig.out_dt, s"${DSTaskConfig.jobname}-process")
+      ComputeDTSimplified.byGraph[CT2red[String,String],String,String]() ~> DSWriter(DSTaskConfig.io_dt, s"${DSTaskConfig.jobname}-process")
       /* */
-    }.process(input = s"${DSTaskConfig.out_accumulated_AB}")
+    }.process(input = s"${DSTaskConfig.io_accumulated_AB}")
 
 
   }
@@ -47,11 +47,11 @@ object Experimenter extends App {
   def preprocess() = {
 
     { /* */
-      Extractor(extractorfun, inputcolumn = DSTaskConfig.in_text_column) ~|~>
+      Extractor(extractorfun, inputcolumn = DSTaskConfig.io_text_column) ~|~>
       /*  */
       N11Sum[CT2red[String,String], String, String]
       /*  */
-    }.process(input = in, output = s"${DSTaskConfig.out_accumulated_AB}", jobname = s"${DSTaskConfig.jobname}-preprocess")
+    }.process(input = in, output = s"${DSTaskConfig.io_accumulated_AB}", jobname = s"${DSTaskConfig.jobname}-preprocess")
 
   }
 
@@ -60,7 +60,7 @@ object Experimenter extends App {
     { /* */
       FilterSortDT[CT2red[String,String], String, String](_.n11)
       /* */
-    }.process(input = DSTaskConfig.out_dt, output = DSTaskConfig.out_dt_sorted, jobname = s"${DSTaskConfig.jobname}-postprocess")
+    }.process(input = DSTaskConfig.io_dt, output = DSTaskConfig.io_dt_sorted, jobname = s"${DSTaskConfig.jobname}-postprocess")
 
   }
 
@@ -76,7 +76,7 @@ object Experimenter extends App {
   val env = ExecutionEnvironment.getExecutionEnvironment
 
   // get input data
-  val in = DSTaskConfig.in_text
+  val in = DSTaskConfig.io_text
 
 //  val preprocess_output_path:Path = new Path(DSTaskConfig.out_accumulated_AB)
 //  if(!preprocess_output_path.getFileSystem.exists(preprocess_output_path))
