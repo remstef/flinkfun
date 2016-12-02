@@ -46,13 +46,13 @@ object ImpliCtJBT {
       .map { ctr => if(flip) ctr.flipped().asInstanceOf[CT2red[T1, T2]].asCT2ext() else ctr.asCT2ext() }
 
     val n = n11
-      .map { ct => ct.n = ct.n11; ct.on = 1f; ct }
+      .map { ct => ct.n = ct.n11; ct.on = 1; ct }
       .reduce { (l,r) => l.n += r.n; l.on += r.on; l }
       .map { ct => ct.a = all_mark_t1; ct.b = all_mark_t2; ct.n11 = 1; ct.n1dot = 1; ct.ndot1 = 1; ct.o1dot = 1; ct.odot1 = 1; ct }
       .checkpointed(DSTaskConfig.out_accumulated_N, DSTaskConfig.jobname("(2) NSum"), reread_checkpointed_data, env)
 
     val n1dot = n11
-      .map { ct => ct.n1dot = ct.n11; ct.o1dot = 1f; ct }
+      .map { ct => ct.n1dot = ct.n11; ct.o1dot = 1; ct }
       .groupBy("a")
       .reduce { (l,r) => l.n1dot += r.n1dot; l.o1dot += r.o1dot; l }
       .map { ct => ct.b = all_mark_t2; ct.n11 = 1; ct.ndot1 = 1; ct.odot1 = 1; ct.n = ct.n1dot; ct.on = ct.o1dot; ct }
@@ -60,7 +60,7 @@ object ImpliCtJBT {
       .filter { _.n1dot >= DSTaskConfig.param_min_n1dot }
 
     val ndot1 = n11
-      .map { ct => ct.ndot1 = ct.n11; ct.odot1 = 1f; ct }
+      .map { ct => ct.ndot1 = ct.n11; ct.odot1 = 1; ct }
       .groupBy("b")
       .reduce { (l,r) => l.ndot1 += r.ndot1; l.odot1 += r.odot1; l } // .sum("ndot1, odot1")
       .map { ct => ct.a = all_mark_t1; ct.n11 = 1; ct.n1dot = 1; ct.o1dot = 1; ct.n = ct.ndot1; ct.on = ct.odot1; ct }
@@ -94,7 +94,7 @@ object ImpliCtJBT {
     val ct_dt = ct2_complete
       .join(ct2_complete, JoinHint.REPARTITION_SORT_MERGE)
       .where("b")
-      .equalTo("b"){ (l, r) => CT2red[T1,T1](a = l.a, b = r.a, 1f) }.withForwardedFieldsFirst("a->a").withForwardedFieldsSecond("a->b")
+      .equalTo("b"){ (l, r) => CT2red[T1,T1](a = l.a, b = r.a, 1) }.withForwardedFieldsFirst("a->a").withForwardedFieldsSecond("a->b")
       .checkpointed(DSTaskConfig.out_dt + suffix + "__rawtemp", DSTaskConfig.jobname("(8) [DT: Join]" + suffix), reread_checkpointed_data, env)
       .groupBy("a", "b")
       .sum("n11")

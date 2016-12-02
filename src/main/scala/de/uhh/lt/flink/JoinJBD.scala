@@ -29,13 +29,14 @@ object JoinJBD {
         env.setParallelism(cores.toInt)
       }
 
-      type t = (String, String)
+      type t = (String, String, Double)
         
 			// read a DataSet from an external source
 			val ds: DataSet[t] = env.readCsvFile(in, fieldDelimiter="\t")
 			
       val jnd = ds
-        .join(ds).where("_2").equalTo("_2") { (l,r) => (l._1, r._1, 1l) }
+        .join(ds).where("_2").equalTo("_2") { (l,r) => (l._1, r._1, l._3) }
+        .rebalance()
         .groupBy("_1","_2")
 			  .sum("_3")
 			

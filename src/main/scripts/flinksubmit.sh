@@ -9,9 +9,9 @@ export HADOOP_CONF_DIR=/etc/hadoop/conf
 export YARN_CONF_DIR=$HADOOP_CONF_DIR
 export HADOOP_HOME=/opt/cloudera/parcels/CDH-5.4.11-1.cdh5.4.11.p0.5 
 
-jar=$HOME/lt.flinkdt_*-jar-with-local-dependencies.jar
-class=de.uhh.lt.flink.JoinJBC
-appargs="-in hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jb-count-min2 -out hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jb-joinedFT-min2"
+jar=$HOME/lt.flinkdt_*-jar-with-cluster-dependencies.jar
+class=de.uhh.lt.flink.JoinJBX
+appargs="-in hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jb-count-min2 -out hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jb-joinedFX-min2 -tmpdir hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jb-min2-joinXtmp"
 memjobmanager=1024
 memtaskmanager=4096
 numtaskmanager=100
@@ -31,10 +31,13 @@ $JAVA_HOME/bin/java -cp $jar $JAVA_OPTS $class $appargs
 
 ##
 # # flink session
-# $FLINK_HOME/bin/flink-session -n 10  -qu $queue -tm 2048
+
+$FLINK_HOME/bin/yarn-session.sh -n $numtaskmanager  -qu $queue -tm $memtaskmanager
+
 #
 # # flink-shell
-# flink-shell -a $HOME/git/flinkfun/target/lt.flinkdt_1.0.0_2.11-0.4.jar remote 10.70.21.252 56786
+$FLINK_HOME/bin/start-scala-shell.sh -a $jar remote 10.70.21.24 35747
+
 # 
 # # run in session
 # flink run -m 10.70.21.21:38226 -c de.tudarmstadt.lt.seg.app.FlinkParse $(pwd)/git/lt.kd/lt.n2n-v2-preprocess/target/lt.n2n-preprocess-0.0.1-SNAPSHOT.jar -f "hdfs:///user/remus/wiki.en/enwiki-20151201-pages-articles" -o "hdfs:///user/remus/wiki.en/enwiki-20151201-pages-articles-syntactic2" -l
