@@ -2,6 +2,7 @@ package de.uhh.lt.flink
 
 import org.junit.Test
 import de.uhh.lt.flink.BeforeTests._
+import org.apache.flink.api.scala._
 
 @Test
 class JoinJBTest {

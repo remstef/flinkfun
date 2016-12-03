@@ -46,12 +46,16 @@ object Implicits {
   ///
 
   implicit def read_ct2(env: ExecutionEnvironment) = new {
-    def readCT2r(in: String): DataSet[CT2red[String,String]] =
-      env.readCsvFile[CT2red[String,String]](in, fieldDelimiter="\t")// env.readTextFile(in).map(CtFromString[CT2red[String,String], String, String](_))
+    def readCT2r(in: String, includedFields:Array[Int]=Array(0,1,2)): DataSet[CT2red[String,String]] = {
+      if(includedFields.length < 3)
+        env.readCsvFile[(String,String)](DSTaskConfig.io_ctraw, fieldDelimiter="\t", includedFields=includedFields).map(t => CT2red[String,String](t._1, t._2))
+      else
+        env.readCsvFile[CT2red[String,String]](DSTaskConfig.io_ctraw, fieldDelimiter="\t", includedFields=includedFields)
+    }
     def readCT2d(in: String): DataSet[CT2def[String,String]] =
-      env.readCsvFile[CT2def[String,String]](in, fieldDelimiter="\t")//env.readTextFile(in).map(CtFromString[CT2def[String,String], String, String](_))
+      env.readCsvFile[CT2def[String,String]](in, fieldDelimiter="\t")
     def readCT2e(in: String): DataSet[CT2ext[String,String]] =
-      env.readCsvFile[CT2ext[String,String]](in, fieldDelimiter="\t")//env.readTextFile(in).map(CtFromString[CT2ext[String,String], String, String](_))
+      env.readCsvFile[CT2ext[String,String]](in, fieldDelimiter="\t")
   }
 
 

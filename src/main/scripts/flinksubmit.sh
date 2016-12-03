@@ -22,9 +22,11 @@ $FLINK_HOME/bin/flink run -m yarn-cluster -yjm $memjobmanager -yn $numtaskmanage
 
 # run local
 jar=$HOME/git/flinkfun/target/lt.flinkdt_*-jar-with-local-dependencies.jar
-class=de.uhh.lt.flink.JoinJBD
 export JAVA_OPTS="-Xmx4g"
+class=de.uhh.lt.flink.JoinJBD
 appargs="-parallelism 8 -in file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-count-min2 -out file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-joinedF-min2"
+class=de.tudarmstadt.lt.flinkdt.pipes.ImpliCtJBT
+appargs="-parallelism 8 -dt.io.ct.raw file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-count-min2 -dt.io.dir file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-count-min2-DT"
 
 $JAVA_HOME/bin/java -cp $jar $JAVA_OPTS $class $appargs
 
@@ -36,7 +38,7 @@ $FLINK_HOME/bin/yarn-session.sh -n $numtaskmanager  -qu $queue -tm $memtaskmanag
 
 #
 # # flink-shell
-$FLINK_HOME/bin/start-scala-shell.sh -a $jar remote 10.70.21.24 35747
+$FLINK_HOME/bin/start-scala-shell.sh -a $jar remote 10.70.21.23 38079
 
 # 
 # # run in session

@@ -28,6 +28,7 @@ import org.apache.flink.api.scala.{ExecutionEnvironment}
 import org.apache.flink.api.scala._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import scala.reflect.ClassTag
+import de.tudarmstadt.lt.flinkdt.types.CT2
 
 /**
   * Created by Steffen Remus.
@@ -125,10 +126,10 @@ object ImpliCtJBT {
       println(s"Setting parallelism to $cores.")
       env.setParallelism(cores)
     }
-  
-    exec_pipeline(false, DSTaskConfig.reread_checkpointed_data, env.readCT2r(DSTaskConfig.io_ctraw), "*", "*", env).first(3).print
     
-    exec_pipeline(true, DSTaskConfig.reread_checkpointed_data, env.readCT2r(DSTaskConfig.io_ctraw), "*", "*", env).first(3).print
+    exec_pipeline(false, DSTaskConfig.reread_checkpointed_data, env.readCT2r(DSTaskConfig.io_ctraw, DSTaskConfig.io_ctraw_fields), "*", "*", env).first(3).print
+    
+    exec_pipeline(true, DSTaskConfig.reread_checkpointed_data, env.readCT2r(DSTaskConfig.io_ctraw, DSTaskConfig.io_ctraw_fields), "*", "*", env).first(3).print
   
     val end = System.currentTimeMillis()
     val dur = Duration.ofMillis(end-start)

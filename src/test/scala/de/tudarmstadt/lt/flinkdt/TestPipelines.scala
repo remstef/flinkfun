@@ -24,8 +24,8 @@ class TestPipelines {
     
     ImpliCtJBT.main(Array(
         "--dt.io.ct.raw", ClassLoader.getSystemClassLoader().getResource(in).getPath(),
-        "--dt.io.dir", "file://"+out.getAbsolutePath(),
-        "--dt.jobname", "testImpliCtJBT"
+        "--c", "dt.io.ct.raw-fields=[0,1] \n dt.jobname=testImpliCtJBT",
+        "--dt.io.dir", "file://"+out.getAbsolutePath()
     ))
     
     println(s"Outputfiles can be found in '${out}'.");

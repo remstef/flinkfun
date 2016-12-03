@@ -21,6 +21,7 @@ import com.typesafe.config.{ConfigRenderOptions, ConfigFactory, Config}
 import java.io.File
 import de.tudarmstadt.lt.utilities.TimeUtils
 import org.apache.flink.core.fs.Path
+import scala.collection.JavaConversions._
 
 /**
   * Created by Steffen Remus.
@@ -77,7 +78,8 @@ object DSTaskConfig extends Serializable {
   var io_whitelist:String                   = null
 
   var io_basedir:String                    = s"file://./${jobname}"
-  var io_ctraw:String                        = null
+  var io_ctraw:String                      = null
+  var io_ctraw_fields:Array[Int]           = null
   var io_accumulated_AB:String             = null
   var io_accumulated_N:String              = null
   var io_accumulated_AB_whitelisted:String = null
@@ -95,10 +97,21 @@ object DSTaskConfig extends Serializable {
       ConfigFactory.load()
     else {
       val cli_args = ParameterTool.fromArgs(args)
-      if (cli_args.has("conf"))
-        ConfigFactory.parseMap(cli_args.toMap).withFallback(ConfigFactory.parseFile(new File(cli_args.get("conf"))).withFallback(ConfigFactory.parseResources("myapplication.conf")).withFallback(ConfigFactory.load())).resolve() // load conf with fallback to default application.conf
-      else
-        ConfigFactory.parseMap(cli_args.toMap).withFallback(ConfigFactory.parseResources("myapplication.conf")).withFallback(ConfigFactory.load()).resolve() // load default application.conf
+      
+      // resolve cli-args
+      var conf:Config = ConfigFactory.parseMap(cli_args.toMap)
+      
+      if (cli_args.has("configfile"))
+        conf = conf.withFallback(ConfigFactory.parseFile(new File(cli_args.get("conf")))) // load conf with fallback to default application.conf
+      
+      if(cli_args.has("conf"))
+        conf = conf.withFallback(ConfigFactory.parseString(cli_args.get("conf")))
+        
+      if(cli_args.has("c"))
+        conf = conf.withFallback(ConfigFactory.parseString(cli_args.get("c")))
+                
+      conf.withFallback(ConfigFactory.parseResources("myapplication.conf")).withFallback(ConfigFactory.load()).resolve()
+        
     }
   }
 
@@ -125,6 +138,7 @@ object DSTaskConfig extends Serializable {
     val ioct = ioconfig.getConfig("ct")
     
     io_ctraw                      = if(ioct.hasPath("raw"))             ioct.getString("raw")           else null
+    io_ctraw_fields               = if(ioct.hasPath("raw-fields"))      ioct.getIntList("raw-fields").map(_.toInt).to[Array]  else null
     io_accumulated_AB             = if(ioct.hasPath("accAB"))           ioct.getString("accAB")         else null
     io_accumulated_N              = if(ioct.hasPath("accN"))            ioct.getString("accN")          else null
     io_accumulated_AB_whitelisted = if(ioct.hasPath("accABwhite"))      ioct.getString("accABwhite")    else null
