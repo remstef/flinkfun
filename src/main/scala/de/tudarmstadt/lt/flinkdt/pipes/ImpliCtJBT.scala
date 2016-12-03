@@ -118,7 +118,6 @@ object ImpliCtJBT {
     val start = System.currentTimeMillis()
     var info = s"main: ${getClass.getName}\nstart: ${tf.format(new Date(start))} \nend: -- \nduration: -- "
     DSTaskConfig.writeConfig(additional_comments = info)
-    println(DSTaskConfig.config)
   
     val env: ExecutionEnvironment = ExecutionEnvironment.getExecutionEnvironment
     if(DSTaskConfig.config.hasPath("parallelism")){

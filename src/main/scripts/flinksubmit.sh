@@ -12,6 +12,10 @@ export HADOOP_HOME=/opt/cloudera/parcels/CDH-5.4.11-1.cdh5.4.11.p0.5
 jar=$HOME/lt.flinkdt_*-jar-with-cluster-dependencies.jar
 class=de.uhh.lt.flink.JoinJBX
 appargs="-in hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jb-count-min2 -out hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jb-joinedFX-min2 -tmpdir hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jb-min2-joinXtmp"
+
+class=de.tudarmstadt.lt.flinkdt.pipes.ImpliCtJBT
+appargs="-dt.io.ct.raw hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jbsrc -dt.io.dir hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jbsrc-ct -dt.jobname CTdt -c {dt.io.ct.raw-fields=[1,2]}"
+
 memjobmanager=1024
 memtaskmanager=4096
 numtaskmanager=100
