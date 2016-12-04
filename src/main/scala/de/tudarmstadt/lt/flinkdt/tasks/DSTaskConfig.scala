@@ -171,7 +171,11 @@ object DSTaskConfig extends Serializable {
 
   def writeConfig(dest:String=null, additional_comments:String = null, verbose:Boolean = false, overwrite:Boolean = false): Unit = {
     val dest_ = if(dest == null || dest.isEmpty) appendPath(io_basedir, s"${jobname}.conf") else dest
-    val path:Path = new Path(dest_)
+    var path:Path = new Path(dest_)
+    var i = 0
+    while(path.getFileSystem.exists(path))
+      path = new Path(dest_ + (i+=1).toString) 
+      
     val w = path.getFileSystem.create(path, overwrite)
     if(additional_comments != null && !additional_comments.isEmpty) {
       w.write("# # # \n# \n# additional comments: \n# \n".getBytes)
