@@ -30,6 +30,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import scala.reflect.ClassTag
 import de.tudarmstadt.lt.flinkdt.types.CT2
 import java.util.concurrent.atomic.AtomicInteger
+import scala.collection.mutable
 
 /**
   * Created by Steffen Remus.
@@ -38,64 +39,54 @@ object ImpliCtJBT {
 
   def exec_pipeline[T1 : ClassTag : TypeInformation, T2 : ClassTag : TypeInformation](flip:Boolean, ct_raw:DataSet[CT2red[T1,T2]], all_marks:(T1, T2), env:ExecutionEnvironment): DataSet[CT2red[T1,T1]] = {
 
-    val pipeline = DSTaskConfig.compute_pipeline
-    val pipeline_index = new AtomicInteger(0)
-    
     val suffix = if(flip) "-flipped" else ""
 
     // TODO: put the pipeline condition into checkpointed
+    val pipeline:mutable.ListBuffer[String] = mutable.ListBuffer.concat(DSTaskConfig.compute_pipeline)
       
     // BEGIN: compute checkpointed and pruned ct2
-    val n11 = if(pipeline_index.get < pipeline.length && "N11Sum" == pipeline(pipeline_index.get)) { 
-      pipeline_index.incrementAndGet()
-      ct_raw.groupBy("a","b")
-        .sum("n11")
-        .checkpointed(DSTaskConfig.io_accumulated_AB, DSTaskConfig.jobname("(1) [N11Sum]"), DSTaskConfig.reread_checkpointed_data, env)
-        .map { ctr => if(flip) ctr.flipped().asInstanceOf[CT2red[T1, T2]].asCT2ext() else ctr.asCT2ext() }
-    } else null
+    val n11 = ct_raw
+      .groupBy("a","b")
+      .sum("n11")
+      .checkpointed(DSTaskConfig.io_accumulated_AB, DSTaskConfig.jobname("(1) [N11Sum]"), DSTaskConfig.reread_checkpointed_data, env)(pipeline, "N11Sum")
+      .map { ctr => if(flip) ctr.flipped().asInstanceOf[CT2red[T1, T2]].asCT2ext() else ctr.asCT2ext() }
 
-    val n = if(pipeline_index.get < pipeline.length && "NSum" == pipeline(pipeline_index.get)) { 
-      pipeline_index.incrementAndGet() 
-      n11.map { ct => ct.n = ct.n11; ct.on = 1; ct }
-        .reduce { (l,r) => l.n += r.n; l.on += r.on; l }
-        .map { ct => ct.a = all_marks._1; ct.b = all_marks._2; ct.n11 = 1; ct.n1dot = 1; ct.ndot1 = 1; ct.o1dot = 1; ct.odot1 = 1; ct }
-        .checkpointed(DSTaskConfig.io_accumulated_N, DSTaskConfig.jobname("(2) [NSum]"), DSTaskConfig.reread_checkpointed_data, env)
-    } else null
+    val n = n11
+      .map { ct => ct.n = ct.n11; ct.on = 1; ct }
+      .reduce { (l,r) => l.n += r.n; l.on += r.on; l }
+      .map { ct => ct.a = all_marks._1; ct.b = all_marks._2; ct.n11 = 1; ct.n1dot = 1; ct.ndot1 = 1; ct.o1dot = 1; ct.odot1 = 1; ct }
+      .checkpointed(DSTaskConfig.io_accumulated_N, DSTaskConfig.jobname("(2) [NSum]"), DSTaskConfig.reread_checkpointed_data, env)(pipeline,"NSum") 
 
-    val n1dot = if(pipeline_index.get < pipeline.length && "N1dotSum" == pipeline(pipeline_index.get)) {
-      pipeline_index.incrementAndGet()
-      n11.map { ct => ct.n1dot = ct.n11; ct.o1dot = 1; ct }
-        .groupBy("a")
-        .reduce { (l,r) => l.n1dot += r.n1dot; l.o1dot += r.o1dot; l }
-        .map { ct => ct.b = all_marks._2; ct.n11 = 1; ct.ndot1 = 1; ct.odot1 = 1; ct.n = ct.n1dot; ct.on = ct.o1dot; ct }
-        .checkpointed(DSTaskConfig.io_accumulated_A + suffix, DSTaskConfig.jobname("(3) [N1dotSum]" + suffix), DSTaskConfig.reread_checkpointed_data, env)
-        .filter { _.n1dot >= DSTaskConfig.param_min_n1dot }
-    } else null
+    val n1dot = n11
+      .map { ct => ct.n1dot = ct.n11; ct.o1dot = 1; ct }
+      .groupBy("a")
+      .reduce { (l,r) => l.n1dot += r.n1dot; l.o1dot += r.o1dot; l }
+      .map { ct => ct.b = all_marks._2; ct.n11 = 1; ct.ndot1 = 1; ct.odot1 = 1; ct.n = ct.n1dot; ct.on = ct.o1dot; ct }
+      .checkpointed(DSTaskConfig.io_accumulated_A + suffix, DSTaskConfig.jobname("(3) [N1dotSum]" + suffix), DSTaskConfig.reread_checkpointed_data, env)(pipeline, "N1dotSum")
+      .filter { _.n1dot >= DSTaskConfig.param_min_n1dot }
 
-    val ndot1 = if(pipeline_index.get < pipeline.length && "Ndot1Sum" == pipeline(pipeline_index.get)) {
-      pipeline_index.incrementAndGet()
-      n11.map { ct => ct.ndot1 = ct.n11; ct.odot1 = 1; ct }
-        .groupBy("b")
-        .reduce { (l,r) => l.ndot1 += r.ndot1; l.odot1 += r.odot1; l } // .sum("ndot1, odot1")
-        .map { ct => ct.a = all_marks._1; ct.n11 = 1; ct.n1dot = 1; ct.o1dot = 1; ct.n = ct.ndot1; ct.on = ct.odot1; ct }
-        .checkpointed(DSTaskConfig.io_accumulated_B + suffix, DSTaskConfig.jobname("(4) [Ndot1Sum]" + suffix), DSTaskConfig.reread_checkpointed_data, env)
-        .filter { ct => ct.ndot1 >= DSTaskConfig.param_min_ndot1 }
-        .filter { ct => ct.odot1 >= DSTaskConfig.param_min_odot1 }
-        .filter { ct => ct.odot1 <= DSTaskConfig.param_max_odot1 }
-    } else null
+    val ndot1 = n11
+      .map { ct => ct.ndot1 = ct.n11; ct.odot1 = 1; ct }
+      .groupBy("b")
+      .reduce { (l,r) => l.ndot1 += r.ndot1; l.odot1 += r.odot1; l } // .sum("ndot1, odot1")
+      .map { ct => ct.a = all_marks._1; ct.n11 = 1; ct.n1dot = 1; ct.o1dot = 1; ct.n = ct.ndot1; ct.on = ct.odot1; ct }
+      .checkpointed(DSTaskConfig.io_accumulated_B + suffix, DSTaskConfig.jobname("(4) [Ndot1Sum]" + suffix), DSTaskConfig.reread_checkpointed_data, env)(pipeline, "Ndot1Sum")
+      .filter { ct => ct.ndot1 >= DSTaskConfig.param_min_ndot1 }
+      .filter { ct => ct.odot1 >= DSTaskConfig.param_min_odot1 }
+      .filter { ct => ct.odot1 <= DSTaskConfig.param_max_odot1 }
 
-    val ct2_complete = if(pipeline_index.get < pipeline.length && "JoinFilter" == pipeline(pipeline_index.get)) { 
-      pipeline_index.incrementAndGet()
+    val ct2_complete = {
+      
       val joined_n1dot = n11
         .filter(_.n11 >= DSTaskConfig.param_min_n11)
         .join(n1dot, JoinHint.REPARTITION_SORT_MERGE)
         .where("a").equalTo("a"){(l, r) => { l.n1dot = r.n1dot; l.o1dot = r.o1dot; l }}.withForwardedFieldsFirst("n11; ndot1; odot1; n; on").withForwardedFieldsSecond("n1dot; o1dot")
-        .checkpointed(DSTaskConfig.io_accumulated_CT + "_join_n1dot" + suffix, DSTaskConfig.jobname("(5.1) [Join N1dot]" + suffix), DSTaskConfig.reread_checkpointed_data, env)
-  
+        .checkpointed(DSTaskConfig.io_accumulated_CT + "_join_n1dot" + suffix, DSTaskConfig.jobname("(5.1) [Join N1dot]" + suffix), DSTaskConfig.reread_checkpointed_data, env)(mutable.ListBuffer.concat(pipeline), "JoinFilter")
+        
       val joined = joined_n1dot
         .join(ndot1, JoinHint.REPARTITION_SORT_MERGE)
         .where("b").equalTo("b") { (l, r) => l.ndot1 = r.ndot1; l.odot1 = r.odot1; l }.withForwardedFieldsFirst("n11; n1dot; o1dot; n; on").withForwardedFieldsSecond("ndot1; odot1")
-        .checkpointed(DSTaskConfig.io_accumulated_CT + "_join_n1dot_ndot1" + suffix, DSTaskConfig.jobname("(5.2) [Join N1dot, Ndot1]" + suffix), DSTaskConfig.reread_checkpointed_data, env)
+        .checkpointed(DSTaskConfig.io_accumulated_CT + "_join_n1dot_ndot1" + suffix, DSTaskConfig.jobname("(5.2) [Join N1dot, Ndot1]" + suffix), DSTaskConfig.reread_checkpointed_data, env)(mutable.ListBuffer.concat(pipeline), "JoinFilter")
   
       joined
         .crossWithTiny(n) { (ct,n) => ct.n = n.n; ct.on = n.on; ct }.withForwardedFieldsFirst("n11; n1dot; ndot1; o1dot; odot1").withForwardedFieldsSecond("n; on")
@@ -105,26 +96,22 @@ object ImpliCtJBT {
         .sortGroup("_2", Order.DESCENDING)
         .first(DSTaskConfig.param_topn_sig)
         .map { _._1 }
-        .checkpointed(DSTaskConfig.io_accumulated_CT + suffix, DSTaskConfig.jobname("(6) [Join N, Prune by LMI]" + suffix), DSTaskConfig.reread_checkpointed_data, env)
-    } else null
+        .checkpointed(DSTaskConfig.io_accumulated_CT + suffix, DSTaskConfig.jobname("(6) [Join N, Prune by LMI]" + suffix), DSTaskConfig.reread_checkpointed_data, env)(pipeline, "JoinFilter")
+    }
 
     // BEGIN: compute DT
-    val ct_dt = if(pipeline_index.get < pipeline.length && "DT" == pipeline(pipeline_index.get)) {
-      pipeline_index.incrementAndGet()
-      ct2_complete.join(ct2_complete, JoinHint.REPARTITION_SORT_MERGE)
-        .where("b")
-        .equalTo("b"){ (l, r) => CT2red[T1,T1](a = l.a, b = r.a, 1) }.withForwardedFieldsFirst("a->a").withForwardedFieldsSecond("a->b")
-        .checkpointed(DSTaskConfig.io_dt + suffix + "__rawtemp", DSTaskConfig.jobname("(8) [DT: Join]" + suffix), DSTaskConfig.reread_checkpointed_data, env)
-        .groupBy("a", "b")
-        .sum("n11")
-        .checkpointed(DSTaskConfig.io_dt + suffix, DSTaskConfig.jobname("(9) [DT: Sum]" + suffix), DSTaskConfig.reread_checkpointed_data, env)
-    } else null
+    val ct_dt = ct2_complete
+      .join(ct2_complete, JoinHint.REPARTITION_SORT_MERGE)
+      .where("b")
+      .equalTo("b"){ (l, r) => CT2red[T1,T1](a = l.a, b = r.a, 1) }.withForwardedFieldsFirst("a->a").withForwardedFieldsSecond("a->b")
+      .checkpointed(DSTaskConfig.io_dt + suffix + "__rawtemp", DSTaskConfig.jobname("(8) [DT: Join]" + suffix), DSTaskConfig.reread_checkpointed_data, env)(mutable.ListBuffer.concat(pipeline), "DT")
+      .groupBy("a", "b")
+      .sum("n11")
+      .checkpointed(DSTaskConfig.io_dt + suffix, DSTaskConfig.jobname("(9) [DT: Sum]" + suffix), DSTaskConfig.reread_checkpointed_data, env)(pipeline, "DT")
 
-    val ct_dt_fsort = if(pipeline_index.get < pipeline.length && "FilterSort" == pipeline(pipeline_index.get)) {
-      pipeline_index.incrementAndGet()
-      ct_dt.applyTask { FilterSortDT[CT2red[T1, T1], T1, T1](_.n11) }
-      .checkpointed(DSTaskConfig.io_dt_sorted + suffix, DSTaskConfig.jobname("10 [DT: Filter, Sort]" + suffix), DSTaskConfig.reread_checkpointed_data, env)
-    } else null
+    val ct_dt_fsort = ct_dt
+      .applyTask { FilterSortDT[CT2red[T1, T1], T1, T1](_.n11) }
+      .checkpointed(DSTaskConfig.io_dt_sorted + suffix, DSTaskConfig.jobname("10 [DT: Filter, Sort]" + suffix), DSTaskConfig.reread_checkpointed_data, env)(pipeline, "FilterSort")
     // END: dt
 
     ct_dt_fsort

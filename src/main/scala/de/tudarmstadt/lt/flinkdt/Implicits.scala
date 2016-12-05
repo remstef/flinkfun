@@ -27,6 +27,7 @@ import org.apache.flink.api.scala._
 import org.apache.flink.api.common.io.OutputFormat
 import org.apache.flink.api.common.io.FileOutputFormat
 import org.apache.flink.api.common.io.FileInputFormat
+import scala.collection.mutable
 
 /**
   * Created by Steffen Remus.
@@ -103,13 +104,19 @@ object Implicits {
   }
 
   implicit def generalfun[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
-    
-    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean, env:ExecutionEnvironment):DataSet[T] = {
+        
+    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean, env:ExecutionEnvironment)(implicit pipeline:mutable.ListBuffer[String], provides:String):DataSet[T] = {
       val output_path:Path = new Path(location)
-      if(output_path.getFileSystem.exists(output_path))
+      if(output_path.getFileSystem.exists(output_path)){
+        if(pipeline != null && !pipeline.isEmpty && provides == pipeline.head)
+          pipeline.remove(0)
         return DSReader[T](location, env).process()
+      }
 
-      if(location != null) {
+      // only if location is not null and the the next step provides matches the next in the pipeline 
+      println(s"PIPELINE: $pipeline; PROVIDE: $provides")
+      if(location != null && ( pipeline != null && !pipeline.isEmpty && provides == pipeline.head ) ) {
+        pipeline.remove(0)
         DSWriter[T](location, jobname).process(ds)
         if(reReadFromCheckpoint) {
           // throw away intermediate results and continue to work with the re-read data
@@ -129,24 +136,7 @@ object Implicits {
       if(location != null)
         DSWriter[T](location, jobname).process(ds)
     }
-    
-//    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean)(implicit env:ExecutionEnvironment, fof:FileOutputFormat[T], fif:FileInputFormat[T]):DataSet[T] = {
-//      val output_path:Path = new Path(location)
-//      if(output_path.getFileSystem.exists(output_path))
-//        return DSReader[T](location, fif, env).process()
-//
-//      if(location != null) {
-//        DSWriter[T](location, jobname, fof).process(ds)
-//        if(reReadFromCheckpoint) {
-//          // throw away intermediate results and continue to work with the re-read data
-//          ds.getExecutionEnvironment.startNewSession()
-//          return DSReader[T](location, fif, env).process()
-//        }
-//        // else just re-use the processed data
-//      }
-//      return ds
-//    }
-    
+        
     def applyTask[O : ClassTag : TypeInformation](dsTask: DSTask[T, O]): DataSet[O] = dsTask(ds)
     
   }
