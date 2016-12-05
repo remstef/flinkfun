@@ -56,8 +56,23 @@ class ConfTest extends FunSuite {
 
   }
 
-  test("write current config") {
+  test("config from args") {
+    DSTaskConfig.load(DSTaskConfig.resolveConfig(Array(
+        "--dt.io.ct.raw", Thread.currentThread().getContextClassLoader().getResource("ct-raw").getPath(),
+        "--dt.io.dir", "file:///tmp/testoutput",
+        "--c", 
+"""
+
+dt.io.ct.raw-fields="0,1"
+dt.jobname=testImpliCtJBT
+dt.filter.max-odot1 = Infinity
+
+"""
+        )))
+    
     print(DSTaskConfig.toString())
+    
+    
   }
 
 }

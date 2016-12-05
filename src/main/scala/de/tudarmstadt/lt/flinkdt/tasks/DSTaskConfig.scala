@@ -54,28 +54,30 @@ object DSTaskConfig extends Serializable {
 //  def getFullPath(url:String,path:String) = appendPath(url, jobname + "/" + (if (flipct) "flipped-" else "" ) + path)
 
   @transient
-  var config:Config                         = ConfigFactory.load()
+  var config:Config                        = ConfigFactory.load()
 
-  var param_min_ndot1:Float                 = 2f
-  var param_min_n1dot:Float                 = 2f
-  var param_min_n11:Float                   = 2f
-  var param_min_odot1:Float                 = 2f
-  var param_max_odot1:Float                 = 1000f
+  var param_min_ndot1:Float                = 2f
+  var param_min_n1dot:Float                = 2f
+  var param_min_n11:Float                  = 2f
+  var param_min_odot1:Float                = 2f
+  var param_max_odot1:Float                = 1000f
 
-  var param_min_sig:Float                   = 0f
-  var param_topn_sig:Int                    = 1000
+  var param_min_sig:Float                  = 0f
+  var param_topn_sig:Int                   = 1000
 
-  var param_min_sim:Float                   = 2f
-  var param_min_sim_distinct:Int            = 2
-  var param_topn_sim:Int                    = 200
+  var param_min_sim:Float                  = 2f
+  var param_min_sim_distinct:Int           = 2
+  var param_topn_sim:Int                   = 200
 
-  var jobname:String                        = null
+  var jobname:String                       = null
 
-  var flipct:Boolean                        = false
-
-  var io_text:String                        = "!!NO INPUT DEFINED!!"
-  var io_text_column:Int                    = -1
-  var io_whitelist:String                   = null
+  var flipct:Boolean                       = false
+  
+  var io_text:String                       = "!!NO INPUT DEFINED!!"
+  var io_text_column:Int                   = -1
+  var io_whitelist:String                  = null
+  
+  var compute_pipeline:IndexedSeq[String]  = null
 
   var io_basedir:String                    = s"file://./${jobname}"
   var io_ctraw:String                      = null
@@ -128,7 +130,9 @@ object DSTaskConfig extends Serializable {
     io_basedir = ioconfig.getString("dir")
 
     //flipct                         = config_dt.getBoolean("flipct")
-    reread_checkpointed_data         = config_dt.getBoolean("re-read-checkpoint-data")
+    reread_checkpointed_data       = config_dt.getBoolean("re-read-checkpoint-data")
+    
+    compute_pipeline               = config_dt.getString("pipeline").trim.split(",").map(_.trim).filter(!_.isEmpty)
 
     // get input data and output data
     io_text                        = ioconfig.getString("text")
@@ -138,7 +142,7 @@ object DSTaskConfig extends Serializable {
     val ioct = ioconfig.getConfig("ct")
     
     io_ctraw                      = if(ioct.hasPath("raw"))             ioct.getString("raw")           else null
-    io_ctraw_fields               = if(ioct.hasPath("raw-fields"))      ioct.getIntList("raw-fields").map(_.toInt).to[Array]  else null
+    io_ctraw_fields               = if(ioct.hasPath("raw-fields"))      ioct.getString("raw-fields").trim.split(",").map(_.trim).filter(!_.isEmpty).map(_.toInt).toArray else null
     io_accumulated_AB             = if(ioct.hasPath("accAB"))           ioct.getString("accAB")         else null
     io_accumulated_N              = if(ioct.hasPath("accN"))            ioct.getString("accN")          else null
     io_accumulated_AB_whitelisted = if(ioct.hasPath("accABwhite"))      ioct.getString("accABwhite")    else null
@@ -169,12 +173,21 @@ object DSTaskConfig extends Serializable {
 
   def toString(verbose:Boolean = false) = { if(verbose) config else config.getConfig("dt").atKey("dt") }.root().render(ConfigRenderOptions.concise.setFormatted(true).setComments(true).setJson(false))
 
-  def writeConfig(dest:String=null, additional_comments:String = null, verbose:Boolean = false, overwrite:Boolean = false): Unit = {
+  def writeConfig(dest:String=null, additional_comments:String = null, verbose:Boolean = false, overwrite:Boolean = false): String = {
     val dest_ = if(dest == null || dest.isEmpty) appendPath(io_basedir, s"${jobname}.conf") else dest
-    var path:Path = new Path(dest_)
-    var i = 0
-    while(path.getFileSystem.exists(path))
-      path = new Path(dest_ + (i+=1).toString) 
+    
+    // if path exists append number until it does not exist anymore
+    var dest_path = dest_
+    var path = new Path(dest_path) 
+    if(!overwrite && dest != null)
+      Stream.from(1).seq
+        .map { i => new Path(s"${dest_path}${i}") }
+        .takeWhile { p => 
+          val r = path.getFileSystem.exists(path)
+          if(r)
+            path = p 
+          r
+        }
       
     val w = path.getFileSystem.create(path, overwrite)
     if(additional_comments != null && !additional_comments.isEmpty) {
@@ -186,6 +199,7 @@ object DSTaskConfig extends Serializable {
     w.write(DSTaskConfig.toString(verbose).getBytes)
     w.flush()
     w.close()
+    dest_path
   }
 
   def jobname(suffix:String): String = s"$jobname-$suffix"
