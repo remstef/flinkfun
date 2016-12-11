@@ -80,6 +80,7 @@ object DSTaskConfig extends Serializable {
   var compute_pipeline:IndexedSeq[String]  = null
 
   var io_basedir:String                    = s"file://./${jobname}"
+  def io_basedir(subdir:String):String     = appendPath(io_basedir, subdir)
   var io_ctraw:String                      = null
   var io_ctraw_fields:Array[Int]           = null
   var io_accumulated_AB:String             = null
