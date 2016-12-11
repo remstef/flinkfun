@@ -104,8 +104,12 @@ object Implicits {
   }
 
   implicit def generalfun[T : ClassTag : TypeInformation](ds: DataSet[T]) = new {
-        
-    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean, env:ExecutionEnvironment)(implicit pipeline:mutable.ListBuffer[String], provides:String):DataSet[T] = {
+    
+//    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean, env:ExecutionEnvironment):DataSet[T] = {
+//      checkpointed(location, jobname, reReadFromCheckpoint, env)(null, null)
+//    }
+    
+    def checkpointed(location:String, jobname:String, reReadFromCheckpoint:Boolean, env:ExecutionEnvironment)(implicit pipeline:mutable.ListBuffer[String] = mutable.ListBuffer("default"), provides:String = "default"):DataSet[T] = {
       val output_path:Path = new Path(location)
       if(output_path.getFileSystem.exists(output_path)){
         if(pipeline != null && !pipeline.isEmpty && provides == pipeline.head)

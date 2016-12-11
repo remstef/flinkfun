@@ -30,7 +30,7 @@ export JAVA_OPTS="-Xmx4g"
 class=de.uhh.lt.flink.JoinJBD
 appargs="-parallelism 8 -in file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-count-min2 -out file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-joinedF-min2"
 class=de.tudarmstadt.lt.flinkdt.pipes.ImpliCtJBT
-appargs="-parallelism 8 -dt.io.ct.raw file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-count-min2 -dt.io.dir file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-count-min2-DT"
+appargs="-parallelism 8 -dt.io.ct.raw file:///home/rem/data/wiki.en/enwiki-20151201-oie-jb-count-min2 -dt.io.dir file:///home/rem/data/wiki.en/wiki.en/join-flink -dt.pipeline JoinFilter -dt.filter.max-odot1 Infinity -dt.filter.min-n1dot 1 -dt.filter.min-n11 1 -dt.filter.min-ndot1 1 -dt.filter.min-odot1 1"
 
 $JAVA_HOME/bin/java -cp $jar $JAVA_OPTS $class $appargs
 
