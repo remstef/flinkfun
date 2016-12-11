@@ -36,8 +36,6 @@ import scala.collection.mutable
   * Created by Steffen Remus.
   */
 object RCountCT {
-  
-  
 
   def exec_pipeline(env:ExecutionEnvironment): Unit = {
     type T = String
@@ -51,7 +49,7 @@ object RCountCT {
     val nabc = raw
       .groupBy("a","b","c")
       .sum("nabc")
-      .checkpointed(DSTaskConfig.io_basedir("nabc"), DSTaskConfig.jobname("(1/8) [nabc]"), true, env)
+      .checkpointed(DSTaskConfig.io_basedir("nabc"), DSTaskConfig.jobname("(1/8) [nabc]"), false, env)
 
     nabc
       .groupBy("a","b")
