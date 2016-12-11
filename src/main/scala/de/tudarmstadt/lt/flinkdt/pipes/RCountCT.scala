@@ -43,10 +43,12 @@ object RCountCT {
     type T = String
     case class CT3 (a:T, b:T, c:T)
     case class CT3r(a:T, b:T, c:T, nabc:Double)
-
-    val raw = env.readCsvFile[CT3](DSTaskConfig.io_ctraw, "\t", includedFields = Array(1,2,3)) // first field is src
     
-    val nabc = raw.map { c => CT3r(c.a,c.b,c.c,1d) }
+    //    val raw = env.readCsvFile[CT3](DSTaskConfig.io_ctraw, "\t", includedFields = Array(1,2,3)) // first field is src
+
+    val raw = env.readTextFile(DSTaskConfig.io_ctraw).map { _.split("\t") }.filter { _.length != 4 }.map { _ match { case Array(src,a,b,c) => CT3r(a,b,c,1d) } }
+    
+    val nabc = raw
       .groupBy("a","b","c")
       .sum("nabc")
       .checkpointed(DSTaskConfig.io_basedir + "nabc", DSTaskConfig.jobname("(1) [nabc]"), true, env)
