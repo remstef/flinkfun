@@ -134,11 +134,12 @@ object Implicits {
     
     
     def save(location:String, jobname:String = null):Unit = {
+      if(location == null)
+        return
       val output_path:Path = new Path(location)
       if(output_path.getFileSystem.exists(output_path))
-          return
-      if(location != null)
-        DSWriter[T](location, jobname).process(ds)
+        return
+      DSWriter[T](location, jobname).process(ds)
     }
         
     def applyTask[O : ClassTag : TypeInformation](dsTask: DSTask[T, O]): DataSet[O] = dsTask(ds)
