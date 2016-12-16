@@ -19,9 +19,9 @@ appargs="-dt.io.ct.raw hdfs:///user/remus/wiki.en/enwiki-20151201-oie-jbsrc -dt.
 class=de.tudarmstadt.lt.flinkdt.pipes.RCountCT
 appargs="-dt.io.ct.raw hdfs:///user/remus/wiki.en/enwiki-20151201-oie-uf -dt.io.dir hdfs:///user/remus/wiki.en/enwiki-20151201-oie-uf-ct -dt.jobname RCount"
 
-memjobmanager=1024
-memtaskmanager=4096
-numtaskmanager=100
+memjobmanager=8192
+memtaskmanager=8192
+numtaskmanager=50
 queue=shortrunning
 
 # run in new session
