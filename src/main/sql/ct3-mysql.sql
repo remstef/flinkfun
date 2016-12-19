@@ -55,6 +55,31 @@ WHERE
 SELECT 'activating index...';
 ALTER TABLE ct3 ADD KEY (a), ADD KEY (b), ADD KEY (c);
 
+-- get a similarity value between a1 and a2
+DROP PROCEDURE IF EXISTS getSimilarityProb3;
+DELIMITER //
+CREATE PROCEDURE getSimilarityProb3
+(IN a1input VARCHAR(128), IN a2input VARCHAR(128), IN max_ob INT, IN maxcontexts INT)
+BEGIN
+  -- DECLARE oa_a2 INT;
+  SET @oa_a2 = (SELECT oa FROM ct2 WHERE a=a2input LIMIT 1);
+  -- get contexts of a1 and compute KN-backoff probabilities when joined with a2 and p_AgivenB is NULL
+  select a1input, a2input, count(c1.b) as shared_contexts,
+    sum(coalesce(
+      EXP( LOG(c2.p_AgivenB) + LOG(c1.p_BgivenA) ), /* <-- if not null, otherwise  */
+      EXP( LOG(@D)+LOG(c1.ob)- LOG(c1.nb)+LOG(@oa_a2) -LOG(c1.o) /*<-- kn backoff*/  + LOG(c1.p_BgivenA)/* <-- p(c|a) */ ) /* otherwise */
+    )) as p_A2givenA1 
+    from 
+	  (select * from ct2p where a=a1input and ob <= max_ob limit maxcontexts) c1 
+	  left outer join 
+	    (select * from ct2p where a = a2input) c2 
+	  on (c1.b = c2.b);
+END //
+DELIMITER ;
+
+
+call getSimilarityProb('mouse','keyboard', 1000, 10);
+
 /**
 ****
 *****
@@ -63,6 +88,13 @@ ALTER TABLE ct3 ADD KEY (a), ADD KEY (b), ADD KEY (c);
 ****
 **/
 
--- 
+-- get contexts of a1 and join by (b,c) with cts from a2
+select *
+from 
+	(select * from ct2p where a='mouse' and ob <= 1000) c1 
+	left outer join 
+	(select * from ct2p where a = 'keyboard') c2 
+	on (c1.b = c2.b)
+;
 
 
