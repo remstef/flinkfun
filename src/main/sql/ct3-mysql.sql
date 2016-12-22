@@ -55,6 +55,11 @@ WHERE
 SELECT 'activating index...';
 ALTER TABLE ct3 ADD KEY (a), ADD KEY (b), ADD KEY (c);
 
+-- create a view with the probability values
+CREATE VIEW ct2fromct3 AS SELECT a, b, nab, na, nb, n, oa, ob, o, p_AgivenB_KN(nab, na, nb, n, oa, ob, o) AS p_AgivenB, p_BgivenA(nab, na, nb, n, oa, ob, o) AS p_BgivenA
+FROM ct2;
+
+
 -- get a similarity value between a1 and a2
 DROP PROCEDURE IF EXISTS getSimilarityProb3;
 DELIMITER //
@@ -77,7 +82,6 @@ BEGIN
 END //
 DELIMITER ;
 
-
 call getSimilarityProb('mouse','keyboard', 1000, 10);
 
 /**
@@ -91,10 +95,64 @@ call getSimilarityProb('mouse','keyboard', 1000, 10);
 -- get contexts of a1 and join by (b,c) with cts from a2
 select *
 from 
-	(select * from ct2p where a='mouse' and ob <= 1000) c1 
+	(select * from ct3 where a='read') c1 
 	left outer join 
-	(select * from ct2p where a = 'keyboard') c2 
+	(select * from ct3 where a='write') c2 
 	on (c1.b = c2.b)
 ;
 
 
+(SELECT * FROM ct3 LIMIT 2) UNION (SELECT * FROM ct3 LIMIT 2);
+
+(select a,b,c,nabc,nab,nac,nbc,na,nb,nc,n,oab,oac,obc,oa,ob,oc,o,"a" as pos from ct3 limit 3) union (select b,a,c,nabc,nab,nac,nbc,na,nb,nc,n,oab,oac,obc,oa,ob,oc,o,"b" as pos from ct3 limit 3);
+
+
+SET @a1:='talk';
+
+select * from (
+	(select *, "a" as asrc from ct3 where a = @a1 limit 10) 
+	union 
+	(select *, "b" as asrc from ct3 where b = @a1 limit 10) 
+  union
+  (select *, "c" as asrc from ct3 where c = @a1 limit 10)
+) t
+limit 100;
+
+select *
+from ct3
+where 
+  a = @a1 and
+  c = @a1
+limit 100;
+
+
+select count(distinct(concat(a,':~:',b,':~:',c))), count(concat(a,':~:',b,':~:',c))
+from ct3
+where 
+  a = @a1 or
+  b = @a1 or
+  c = @a1
+limit 100;
+  
+
+
+--
+--
+--
+--
+--
+--
+
+-- consider this instead of the stored procedures
+-- if you create func:
+-- 
+-- create function p1() returns INTEGER DETERMINISTIC NO SQL return @p1;
+-- 
+-- and view:
+-- 
+-- create view h_parm as
+-- select * from sw_hardware_big where unit_id = p1() ;
+-- 
+-- Then you can call a view with a parameter:
+-- 
+-- select s.* from (select @p1:=12 p) parm , h_parm s;

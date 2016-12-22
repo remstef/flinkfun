@@ -1,5 +1,78 @@
 library(RMySQL)
 
+clearDBResults <- function(rs){
+  dbClearResult(rs)
+  # clear unused result sets in order to avoid out-of-sync exceptions
+  while(dbMoreResults(mydb)){
+    rs <- dbNextResult(mydb)
+    dbClearResult(rs)
+  }
+}
+
+produceScoresPROB <- function(){
+  # get similarity between two words
+  getsimPROB = function (w1, w2) {
+    rs <- dbSendQuery(mydb, sprintf("call getSimilarityProb('%s','%s',1000,5000);", w1, w2))
+    d <- fetch(rs)
+    sim <- d[1,'p_A2givenA1']
+    clearDBResults(rs)
+    return(sim)
+  }
+  # for each word pair get the similarity
+  for(i in 1:nrow(sl)){
+    cat(i, '/', nrow(sl), sl[i,'word1'], sl[i,'word2'],'')
+    sl[i,'p.w2|w1'] = getsimPROB(sl[i,'word1'], sl[i,'word2'])
+    sl[i,'p.w1|w2'] = getsimPROB(sl[i,'word2'], sl[i,'word1'])
+    sl[i,'p.sim'] =  sqrt(exp(log( sl[i,'p.w1|w2']) + log(sl[i,'p.w2|w1'])))
+    cat(sl[i,'p.w1|w2'],  sl[i,'p.w2|w1'], sl[i,'p.sim'], '\n')
+  }
+  # sl$p.sim <- sqrt(exp(log(sl$p.w1.w2)+log(sl$p.w2.w1)))
+  return(sl)
+}
+
+produceScoresJBT <- function(){
+  # get similarity between two words JBT shared contexts
+  getsimJBT = function (w1, w2) {
+    rs <- dbSendQuery(mydb, sprintf("call getSimilarity('%s','%s',1000,1000,200);", w1, w2))
+    d <- fetch(rs)
+    sim <- d[1,'cnt']
+    clearDBResults(rs)
+    return(sim)
+  }
+  # for each word pair get the similarity
+  for(i in 1:nrow(sl)){
+    cat(i, '/', nrow(sl), sl[i,'word1'], sl[i,'word2'],'')
+    sl[i,'sharedcontexts'] = getsimJBT(sl[i,'word1'], sl[i,'word2'])
+    cat(sl[i,'sharedcontexts'], '\n')
+  }
+  return(sl)
+}
+
+produceScoresJBTRank <- function(){
+  # get similarity between two words JBT shared contexts
+  getsimJBTRank = function (w1, w2) {
+    rs <- dbSendQuery(mydb, sprintf("call getSimilarA('%s',1000,1000,200);", w1))
+    d <- fetch(rs)
+    rank <- which(d[,2] == w2)
+    if(!length(rank)) # if w2 is not found in resultset set rank to 201 (one more than max)
+      rank <- 201
+    clearDBResults(rs)
+    return(1/rank)
+  }
+  
+  # for each word pair get the similarity
+  for(i in 1:nrow(sl)){
+    cat(i, '/', nrow(sl), sl[i,'word1'], sl[i,'word2'],'')
+    sl[i,'jbtrank'] = getsimJBTRank(sl[i,'word1'], sl[i,'word2'])
+    cat(sl[i,'jbtrank'], '\n')
+  }
+  return(sl)
+}
+
+#
+## public static void main(String[] args)
+#
+
 kndiscount = 0.8;
 simlex <- '/Users/rem/data/simlex/SimLex-999/SimLex-999.txt'
 out <- '/Users/rem/data/simlex/melamud14.tsv'
@@ -11,46 +84,27 @@ dbGetQuery(mydb, "SELECT 1;")
 # set discount factor
 dbGetQuery(mydb, sprintf("SET @D = %f;", kndiscount))
 
-# get similarity between two words
-getsim = function (w1, w2) {
-  rs <- dbSendQuery(mydb, sprintf("call getSimilarityProb('%s','%s',1000,10000);", w1, w2))
-  d <- fetch(rs)
-  sim <- d[1,'p_A2givenA1']
-  dbClearResult(rs)
-  
-  # clear unused result sets in order to avoid out-of-sync exceptions
-  while(dbMoreResults(mydb)){
-    rs <- dbNextResult(mydb)
-    dbClearResult(rs)
-  }
-  
-  return(sim)
-}
-
 # read simlex dataset
 sl = read.table(simlex, header=T, stringsAsFactors=F)
-
-# for each word pair get the similarity
-for(i in 1:nrow(sl)){
-  cat(i, '/', nrow(sl), sl[i,'word1'], sl[i,'word2'],'')
-  sl[i,'p.w2|w1'] = getsim(sl[i,'word1'], sl[i,'word2'])
-  sl[i,'p.w1|w2'] = getsim(sl[i,'word2'], sl[i,'word1'])
-  sl[i,'p.sim'] =  sqrt(exp(log( sl[i,'p.w1|w2']) + log(sl[i,'p.w2|w1'])))
-  cat(sl[i,'p.w1|w2'],  sl[i,'p.w2|w1'], sl[i,'p.sim'], '\n')
-}
-# sl$simp = sqrt(exp(log(sl$`p.w1|w2`) + log(sl$`p.w2|w1`)))
+# sl <- read.table(out, header=T, stringsAsFactors=F)
+# sl <- produceScoresPROB()
+# sl <- produceScoresJBT()
+# sl <- produceScoresJBTRank()
+# write results
+# write.table(sl, quote = F, sep = '\t', row.names = F, col.names = T, file = out)
 
 # disconnect all mysql connections
 lapply(dbListConnections(MySQL()), dbDisconnect)
 
-# write results
-write.table(sl, quote = F, sep = '\t', row.names = F, col.names = T, file = out)
-
 # compute correlation
-corr <- data.frame(cor(sl[,-(1:3)],use='complete.obs',method='spearman'))
+slscores = sl[,-(1:3)]
+slscores = sl[which(sl$POS == 'V'),-(1:3)]
+slscores = sl[which(sl$jbtrank >= 1/200),-(1:3)]
+corr <- cor(slscores, use='complete.obs', method='spearman')
+corr <- data.frame(corr)
+
 print('correlations:')
 print(corr)
 print(corr['p.sim','SimLex999'])
-
-
-
+print(corr['jbtrank','SimLex999'])
+print(corr['sharedcontexts','SimLex999'])

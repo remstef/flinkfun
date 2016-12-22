@@ -104,6 +104,7 @@ call getSimilarityProb('easy','tough', 1000, 1000);
 call getSimilarityProb('formal','proper', 100, 100);
 
 -- define a procedure to quickly get similar entries for a
+DROP PROCEDURE IF EXISTS getSimilarA;
 DELIMITER //
 CREATE PROCEDURE getSimilarA
 (IN inputquery VARCHAR(128), IN max_ob INT, IN topn INT, IN lim INT)
@@ -127,13 +128,16 @@ BEGIN
 END //
 DELIMITER ;
 
+call getSimilarA('Tom', 100, 10, 200);
+
 
 -- define a procedure to quickly get similar entries for 'a'
+DROP PROCEDURE IF EXISTS getSimilarity;
 DELIMITER //
 CREATE PROCEDURE getSimilarity
 (IN a1input VARCHAR(128), IN a2input VARCHAR(128), IN max_ob INT, IN topn INT, IN lim INT)
 BEGIN
-  SELECT c1.a, c2.a, COUNT(c1.b) as cnt, SUM(c1.nab) as sumnab_1, SUM(c2.nab) as sumnab_2, SUM(c1.sig) as sumsig
+  SELECT c1.a as a1, c2.a as a2, COUNT(c1.b) as cnt, SUM(c1.nab) as sumnab_1, SUM(c2.nab) as sumnab_2, SUM(c1.sig) as sumsig
   FROM (
     SELECT t.a, t.b, t.nab, t.sig 
     FROM ct2v t 
@@ -143,14 +147,17 @@ BEGIN
       t.ob  <= max_ob
     ORDER BY t.sig 
     DESC LIMIT topn
-  ) c1  
+  ) c1
   INNER JOIN ct2 c2 
-  ON (c1.b = c2.b AND c2.a = a2input) 
+  ON (c1.b = c2.b AND c2.a = a2input)
   GROUP BY c1.a, c2.a
   ORDER BY cnt DESC
   LIMIT lim;
 END //
 DELIMITER ;
+
+
+call getSimilarity('Tom', 'Jerry', 100, 10, 200);
 
 call getSimilarity('mouse', 'animal', 1000, 1000, 200);
 call getSimilarity('mouse', 'keyboard', 1000, 1000, 200);
@@ -261,5 +268,6 @@ limit 50;
 
 
 
+select * from ct2v limit 100;
 
 
