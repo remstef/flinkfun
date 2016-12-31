@@ -76,6 +76,28 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS getSimilarityProb;
 DELIMITER //
 CREATE PROCEDURE getSimilarityProb
+(IN w1 VARCHAR(128), IN w2 VARCHAR(128), IN max_ob INT, IN maxcontexts INT)
+BEGIN
+  -- DECLARE oa_a2 INT;
+  SET @oa_w2 = (SELECT oa FROM ct2 WHERE a=w2 LIMIT 1);
+  -- get contexts of a1 and compute KN-backoff probabilities when joined with a2 and p_AgivenB is NULL
+  select w1, w2, count(c1.b) as shared_contexts,
+    sum(coalesce(
+      EXP( LOG(c2.p_AgivenB) + LOG(c1.p_BgivenA) ), /* p(w2|c)p(c|w1) <-- if not null, otherwise  */
+      EXP( LOG(@D)+LOG(c1.ob)- LOG(c1.nb)+LOG(@oa_w2) -LOG(c1.o) /*<-- kn backoff*/  + LOG(c1.p_BgivenA)/* <-- p(c|w1) */ ) /* otherwise */
+    )) as p_A2givenA1 
+    from 
+	  (select * from ct2p where a=w1 and ob <= max_ob limit maxcontexts) c1 
+	  left outer join 
+	    (select * from ct2p where a = w2) c2 
+	  on (c1.b = c2.b);
+END //
+DELIMITER ;
+
+-- get a similarity value between a1 and a2
+DROP PROCEDURE IF EXISTS getSimilarityProbInner;
+DELIMITER //
+CREATE PROCEDURE getSimilarityProbInner
 (IN a1input VARCHAR(128), IN a2input VARCHAR(128), IN max_ob INT, IN maxcontexts INT)
 BEGIN
   -- DECLARE oa_a2 INT;
@@ -88,14 +110,13 @@ BEGIN
     )) as p_A2givenA1 
     from 
 	  (select * from ct2p where a=a1input and ob <= max_ob limit maxcontexts) c1 
-	  left outer join 
+	  inner join 
 	    (select * from ct2p where a = a2input) c2 
 	  on (c1.b = c2.b);
 END //
 DELIMITER ;
 
-
-call getSimilarityProb('mouse','keyboard', 1000, 10);
+call getSimilarityProbInner('mouse','keyboard', 1000, 10);
 call getSimilarityProb('mouse','animal', 1000, 10);
 call getSimilarityProb('mouse','clock', 1000, 10);
 call getSimilarityProb('mouse','water', 10, 10);

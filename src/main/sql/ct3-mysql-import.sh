@@ -1,13 +1,14 @@
 #!/bin/bash
 
 function catdata { cat ct3/*.tsv.gz | gzip -c -d; }
+function catdata { cat ct3-tom-jerry.tsv | sed 1d; }
 
-dockername=ctmysql
-mysqldatadir=$(pwd)/ct3-mysql
-targetport=3307
+dockername=ctmysql-t
+mysqldatadir=$(pwd)/ct3-mysql-t
+targetport=3309
 
 # start a mysql docker container, name it
-docker run -p $targetport:3306 --name $dockername -v $mysqldata:/var/lib/mysql -e LC_ALL=C.UTF-8 -e MYSQL_ROOT_PASSWORD=root -d mysql:5.7
+docker run -p $targetport:3306 --name $dockername -v $mysqldatadir:/var/lib/mysql -e LC_ALL=C.UTF-8 -e MYSQL_ROOT_PASSWORD=root -d mysql:5.7
 
 # DB definition
 sql_db_schema="
