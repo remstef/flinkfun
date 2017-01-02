@@ -95,8 +95,8 @@ produceScoresJBTRank <- function(){
 #
 
 kndiscount = 0.8;
-simlex <- '/Users/rem/data/simlex/SimLex-999/SimLex-999.txt'
-out <- '/Users/rem/data/simlex/melamud14.tsv'
+simlex <- '~/data/simlex/SimLex-999/SimLex-999.txt'
+out <- '~/data/simlex/melamud14.tsv'
 
 # init script and db
 mydb <- dbConnect(MySQL(), user='root', password='root', dbname='ct', host='0.0.0.0', port=3308)
@@ -133,4 +133,4 @@ print(corr['jbtrank','SimLex999'])
 print(corr['sharedcontexts','SimLex999'])
 print(corr['p3.sim','SimLex999'])
 print(corr['p3.w2.w1','SimLex999'])
-
+print(corr['p3.w1.w2','SimLex999'])
