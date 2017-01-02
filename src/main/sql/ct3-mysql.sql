@@ -79,30 +79,43 @@ DROP FUNCTION IF EXISTS pXgivenY_lg;
 CREATE FUNCTION pXgivenY_lg(nxy DOUBLE unsigned, ny DOUBLE unsigned) RETURNS DOUBLE
 RETURN log(nxy) - log(ny);
 
--- p(w2|c1c2)
-drop function if exists pW2gvnCTX;
+drop function if exists plog_CgvnW1;
 DELIMITER //
-create function pW2gvnCTX (
+create function plog_CgvnW1 (
+  nc1c2w1 double unsigned, nw1 double unsigned, 
+  nc1w1 double unsigned, nc2w1 double unsigned)
+returns double
+BEGIN
+  return /*p(c1c2|w1)*/ log(nc1c2w1) - log(nw1);
+END //
+DELIMITER ;
+
+-- p(w2|c1c2)
+drop function if exists plog_W2gvnC;
+DELIMITER //
+create function plog_W2gvnC (
   w2 varchar(128), c1 varchar(128), c2 varchar(128)
   ) returns double
 BEGIN
-  declare nw2c1c2, nc1c2, nw2c1, nw2c2, nc1, nc2 double default NULL;
+  declare nw2c1c2, nc1c2, nw2c1, nw2c2, nw2, nc1, nc2, n_ double default NULL;
   -- check (w2,c1,c2) and compute (p(w2|c1c2)p(w2|c1)p(w2|c2)) / 3
   select nabc, nbc, nab, nac, nb, nc into nw2c1c2, nc1c2, nw2c1, nw2c2, nc1, nc2 from ct3 where a=w2 and b=c1 and c=c2 limit 1; -- limit 1 should not be necessary
   if nw2c1c2 is not null then
-    return exp(/*p(w2|c1c2)/3*/ log(nw2c1c2) - log(nc1c2) -log(3)) + exp(/*p(w2|c1)/3*/ log(nw2c1) - log(nc1) - log(3)) + exp(/*p(w2|c2)/3*/log(nw2c2)-log(nc2) - log(3)) ;
+    return log(exp(/*p(w2|c1c2)/3*/ log(nw2c1c2) - log(nc1c2)) + exp(/*p(w2|c1)/3*/ log(nw2c1) - log(nc1) - log(3)) + exp(/*p(w2|c2)/3*/log(nw2c2)-log(nc2) - log(3))) ;
   end if;
   -- check (w2,c1) and compute p(w2|c1) / 3
   select nab, nb into nw2c1, nc1 from ct3 where a=w2 and b=c1 limit 1;
   if nw2c1 is not null then -- compute  (p(w2|c1c2)p(w2|c1)p(w2|c2)) / 3
-    return exp(/*p(w|c1)*/ (log(nw2c1) - log(nc1)) - log(3) );
+    return /*p(w|c1)*/ (log(nw2c1) - log(nc1)) - log(3);
   end if;
   -- check (w2,c2) and compute p(w2|c2) / 3
   select nac, nc into nw2c2, nc2 from ct3 where a=w2 and c=c2 limit 1;
   if nw2c2 is not null then -- compute  p(w2|c2) / 3
-    return exp(/*p(w|c2)*/ (log(nw2c2) - log(nc2)) - log(3) );
+    return /*p(w|c2)*/ (log(nw2c2) - log(nc2)) - log(3);
   end if;
-  return 0;
+  -- check w2 and compute p(w2)
+  select na, n into nw2, n_ from ct3 where a=w2 limit 1;
+  return /*p(w2)*/ log(nw2) - log(n_);
 END //
 DELIMITER ;
 
@@ -112,15 +125,29 @@ DELIMITER ;
 DROP PROCEDURE IF EXISTS getSimilarityProb3;
 DELIMITER //
 CREATE PROCEDURE getSimilarityProb3
-(IN a1input VARCHAR(128), IN a2input VARCHAR(128), IN max_ob INT, IN maxcontexts INT)
+(IN w1 VARCHAR(128), IN w2 VARCHAR(128), IN max_ob INT, IN maxcontexts INT)
 BEGIN
-  select sum(pW2gvnCTX(a2input, b, c)) from ct3 where a=a1input and ob <= max_ob limit maxcontexts;
+  select sum(exp(plog_w1 + plog_w2)) as pW2gvnW1 from (select plog_CgvnW1(nabc, na, nab, nac) as plog_w1, plog_W2gvnC(w2, b, c) as plog_w2 from ct3 where a=w1 and ob <= max_ob limit maxcontexts) t where plog_w2 != 0;
 END //
 DELIMITER ;
 
+call getSimilarityProb3('chase','pursue', 1000, 10);
+call getSimilarityProb3('pursue','chase', 1000, 10);
+call getSimilarityProb3('god','prey', 1000, 10000);
+call getSimilarityProb3('prey','god', 1000, 10000);
+call getSimilarityProb3('pursue','pursue', 10000, 10000);
+call getSimilarityProb3('chase','chase', 10000, 10000);
 call getSimilarityProb3('buy','acquire', 10000, 10000);
 
-select pW2gvnCTX_DEBUG('acquire', b, c) from ct3 where a='buy' and ob <= 10000 limit 1000;
+select sum(exp(plog_w1 + plog_w2)) from (select plog_CgvnW1(nabc, na, nab, nac) as plog_w1, plog_W2gvnC('pursue', b, c) as plog_w2 from ct3 where a='chase' and ob <= 1000 limit 10) t where plog_w2 != 0;
+
+select *, exp(plog_w1 + plog_w2) as p from (
+  select *, plog_CgvnW1(nabc,na,nab,nac) as plog_w1, plog_W2gvnC('god', b, c) as plog_w2 from ct3 where a='prey' and ob <= 10000 limit 10
+) t;
+
+select * from ct3 limit 1;
+
+
 
 /**
 ****
@@ -202,29 +229,6 @@ if(c1c = c2c) then
   return concat("0+0+p(c2|w)=",@p);
 end if;
 return "0";
-END //
-DELIMITER ;
-
-
-drop function if exists pCgvnW1;
-DELIMITER //
-create function pCgvnW1 (
-  c1b varchar(128), c2b varchar(128), c1c varchar(128), c2c varchar(128), 
-  nc1c2w double unsigned, nw double unsigned, 
-  nc1w double unsigned, nc2w double unsigned)
-returns double
-BEGIN
--- declare p varchar(128);
-if(c1b = c2b) then
-  if(c1c = c2c) then
-    return exp(log(exp(/*p(c1c2|w)*/ log(nc1c2w) - log(nw)) + exp(/*p(c1|w)*/ log(nc1w) - log(nw)) + exp(/*p(c2|w)*/log(nc2w)-log(nw))) - log(3));
-  end if;
-  return exp(/*p(c1|w)*/ (log(nc1w) - log(nw)) - log(3));
-end if;
-if(c1c = c2c) then
-  return exp(/*p(c2|w)*/ (log(nc2w) - log(nw)) -log(3)); 
-end if;
-return 0;
 END //
 DELIMITER ;
 

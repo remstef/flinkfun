@@ -9,7 +9,7 @@ clearDBResults <- function(rs){
   }
 }
 
-produceScoresPROB <- function(){
+produceScoresPROB2 <- function(){
   # get similarity between two words
   getsimPROB = function (w1, w2) {
     rs <- dbSendQuery(mydb, sprintf("call getSimilarityProbInner('%s','%s',1000,10000);", w1, w2))
@@ -25,6 +25,27 @@ produceScoresPROB <- function(){
     sl[i,'p.w1|w2.inner'] = getsimPROB(sl[i,'word2'], sl[i,'word1'])
     sl[i,'p.sim.inner'] =  sqrt(exp(log( sl[i,'p.w1|w2.inner']) + log(sl[i,'p.w2|w1.inner'])))
     cat(sl[i,'p.w1|w2.inner'],  sl[i,'p.w2|w1.inner'], sl[i,'p.sim.innner'], '\n')
+  }
+  # sl$p.sim <- sqrt(exp(log(sl$p.w1.w2)+log(sl$p.w2.w1)))
+  return(sl)
+}
+
+produceScoresPROB3 <- function(){
+  # get similarity between two words
+  getsimPROB = function (w1, w2) {
+    rs <- dbSendQuery(mydb, sprintf("call getSimilarityProb3('%s','%s',10000,10000);", w1, w2))
+    d <- fetch(rs)
+    sim <- d[1,'pW2gvnW1']
+    clearDBResults(rs)
+    return(sim)
+  }
+  # for each word pair get the similarity
+  for(i in 1:nrow(sl)){
+    cat(i, '/', nrow(sl), '[', sl[i,'POS'], ']', sl[i,'word1'], sl[i,'word2'],'')
+    sl[i,'p3.w2|w1'] = getsimPROB(sl[i,'word1'], sl[i,'word2'])
+    sl[i,'p3.w1|w2'] = getsimPROB(sl[i,'word2'], sl[i,'word1'])
+    sl[i,'p3.sim'] =  sqrt(exp(log( sl[i,'p3.w1|w2']) + log(sl[i,'p3.w2|w1'])))
+    cat(sl[i,'p3.w1|w2'],  sl[i,'p3.w2|w1'], sl[i,'p3.sim'], '\n')
   }
   # sl$p.sim <- sqrt(exp(log(sl$p.w1.w2)+log(sl$p.w2.w1)))
   return(sl)
@@ -87,20 +108,21 @@ dbGetQuery(mydb, sprintf("SET @D = %f;", kndiscount))
 # read simlex dataset
 # sl = read.table(simlex, header=T, stringsAsFactors=F)
 sl <- read.table(out, header=T, stringsAsFactors=F)
-# sl <- produceScoresPROB()
+# sl <- produceScoresPROB3()
+# sl <- produceScoresPROB2()
 # sl <- produceScoresJBT()
 # sl <- produceScoresJBTRank()
 # write results
-#write.table(sl, quote = F, sep = '\t', row.names = F, col.names = T, file = out)
+# write.table(sl, quote = F, sep = '\t', row.names = F, col.names = T, file = out)
 
 # disconnect all mysql connections
 lapply(dbListConnections(MySQL()), dbDisconnect)
 
 # compute correlation
 slscores = sl[,-(1:3)]
-#slscores = sl[which(sl$POS == 'V'),-(1:3)]
+# slscores = sl[which(sl$POS == 'V'),-(1:3)]
 #slscores = sl[which(sl$jbtrank >= 1/200),-(1:3)]
-corr <- cor(slscores, use='complete.obs', method='spearman')
+corr <- cor(slscores, use='pairwise.complete.obs', method='spearman')
 corr <- data.frame(corr)
 
 print('correlations:')
@@ -109,3 +131,6 @@ print(corr['p.sim','SimLex999'])
 print(corr['p.sim.inner','SimLex999'])
 print(corr['jbtrank','SimLex999'])
 print(corr['sharedcontexts','SimLex999'])
+print(corr['p3.sim','SimLex999'])
+print(corr['p3.w2.w1','SimLex999'])
+
