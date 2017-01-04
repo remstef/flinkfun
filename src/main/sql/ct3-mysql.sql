@@ -27,6 +27,7 @@ CREATE TABLE ct3 (
 -- load the data (do smtg like mkfifo /var/lib/mysql-files/tmp and cat dir/p* > /var/lib/mysql-files/tmp before)
 SELECT 'loading data...';
 LOAD DATA INFILE '/var/lib/mysql-files/tmp' INTO TABLE ct3;
+SELECT 'loading data...';
 
 -- remove wrongly imported data
 SELECT 'removing corrupted data...';
@@ -53,7 +54,8 @@ WHERE
 
 -- add index
 SELECT 'activating index...';
-ALTER TABLE ct3 ADD KEY (a), ADD KEY (b), ADD KEY (c);
+ALTER TABLE ct3 ADD KEY a (a), ADD KEY b (b), ADD KEY c (c), ADD KEY ab (a,b), ADD KEY ac (a,c), ADD KEY abc (a,b,c);
+SELECT 'Indexing finished.';
 
 -- create a view with the probability values
 DROP VIEW IF EXISTS ct3p;
@@ -79,6 +81,7 @@ DROP FUNCTION IF EXISTS pXgivenY_lg;
 CREATE FUNCTION pXgivenY_lg(nxy DOUBLE unsigned, ny DOUBLE unsigned) RETURNS DOUBLE
 RETURN log(nxy) - log(ny);
 
+-- p(c1c2|w1)
 drop function if exists plog_CgvnW1;
 DELIMITER //
 create function plog_CgvnW1 (
@@ -93,41 +96,56 @@ DELIMITER ;
 -- p(w2|c1c2)
 drop function if exists plog_W2gvnC;
 DELIMITER //
-create function plog_W2gvnC (
+CREATE FUNCTION plog_W2gvnC(
   w2 varchar(128), c1 varchar(128), c2 varchar(128)
-  ) returns double
+  ) RETURNS double
 BEGIN
   declare nw2c1c2, nc1c2, nw2c1, nw2c2, nw2, nc1, nc2, n_ double default NULL;
+  set @log_counter_lambda_mu = log(1 - exp(@log_lambda) - exp(@log_mu));
   -- check (w2,c1,c2) and compute (p(w2|c1c2)p(w2|c1)p(w2|c2)) / 3
-  select nabc, nbc, nab, nac, nb, nc into nw2c1c2, nc1c2, nw2c1, nw2c2, nc1, nc2 from ct3 where a=w2 and b=c1 and c=c2 limit 1; -- limit 1 should not be necessary
+  select nabc, nbc, oab, oac, ob, oc, oa, o into nw2c1c2, nc1c2, nw2c1, nw2c2, nc1, nc2, nw2, n_ from ct3 where a=w2 and b=c1 and c=c2 limit 1; -- limit 1 should not be necessary
   if nw2c1c2 is not null then
-    return log(exp(/*p(w2|c1c2)/3*/ log(nw2c1c2) - log(nc1c2)) + exp(/*p(w2|c1)/3*/ log(nw2c1) - log(nc1) - log(3)) + exp(/*p(w2|c2)/3*/log(nw2c2)-log(nc2) - log(3))) ;
+    return log(exp(/*p(w2|c1c2)/3*/ log(nw2c1c2) - log(nc1c2) + @log_counter_lambda_mu) + exp(/*p(w2|c1)/3*/ log(nw2c1) - log(nc1) + @log_lambda-log(2)) + exp(/*p(w2|c2)/3*/log(nw2c2)-log(nc2) + @log_lambda-log(2)) + exp(/*p(w2)*/ log(nw2) - log(n_) + @log_mu) ) ;
   end if;
   -- check (w2,c1) and compute p(w2|c1) / 3
-  select nab, nb into nw2c1, nc1 from ct3 where a=w2 and b=c1 limit 1;
+  select oab, ob, oa, o into nw2c1, nc1, nw2, n_ from ct3 where a=w2 and b=c1 limit 1;
   if nw2c1 is not null then -- compute  (p(w2|c1c2)p(w2|c1)p(w2|c2)) / 3
-    return /*p(w|c1)*/ (log(nw2c1) - log(nc1)) - log(3);
+    return log(exp(/*p(w|c1)*/ log(nw2c1) - log(nc1) + @log_lambda-log(2)) + exp(/*p(w2)*/ log(nw2) - log(n_) + @log_mu) ) ;
   end if;
   -- check (w2,c2) and compute p(w2|c2) / 3
-  select nac, nc into nw2c2, nc2 from ct3 where a=w2 and c=c2 limit 1;
+  select oac, oc, oa, o into nw2c2, nc2, nw2, n_ from ct3 where a=w2 and c=c2 limit 1;
   if nw2c2 is not null then -- compute  p(w2|c2) / 3
-    return /*p(w|c2)*/ (log(nw2c2) - log(nc2)) - log(3);
+    return log(exp(/*p(w|c2)*/ log(nw2c2) - log(nc2) + @log_lambda-log(2)) + exp(/*p(w2)*/ log(nw2) - log(n_) + @log_mu) ) ;
   end if;
   -- check w2 and compute p(w2)
-  select na, n into nw2, n_ from ct3 where a=w2 limit 1;
-  return /*p(w2)*/ log(nw2) - log(n_);
+  select oa, o into nw2, n_ from ct3 where a=w2 limit 1;
+  return /*p(w2)*/ log(nw2) - log(n_) + @log_mu;
 END //
 DELIMITER ;
 
 
 
 -- get a similarity value between a1 and a2
-DROP PROCEDURE IF EXISTS getSimilarityProb3;
+DROP FUNCTION IF EXISTS getSimilarityProb3;
 DELIMITER //
-CREATE PROCEDURE getSimilarityProb3
-(IN w1 VARCHAR(128), IN w2 VARCHAR(128), IN max_ob INT, IN maxcontexts INT)
+CREATE FUNCTION getSimilarityProb3
+(w1 VARCHAR(128), w2 VARCHAR(128), max_ob INT, maxcontexts INT) RETURNS DOUBLE
 BEGIN
-  select sum(exp(plog_w1 + plog_w2)) as pW2gvnW1 from (select plog_CgvnW1(nabc, na, nab, nac) as plog_w1, plog_W2gvnC(w2, b, c) as plog_w2 from ct3 where a=w1 and ob <= max_ob limit maxcontexts) t where plog_w2 != 0;
+  declare psim double default 0;
+  select sum(exp(plog_w1 + plog_w2)) into sim from (select plog_CgvnW1(nabc, na, nab, nac) as plog_w1, plog_W2gvnC(w2, b, c) as plog_w2 from ct3 where a=w1 and ob <= max_ob limit maxcontexts) t where plog_w2 != 0;
+  return psim;
+END //
+DELIMITER ;
+
+-- get a similarity value between a1 and a2
+DROP FUNCTION IF EXISTS getSimilarityP3;
+DELIMITER //
+CREATE FUNCTION getSimilarityP3
+(w1 VARCHAR(128), w2 VARCHAR(128), maxcontexts INT) RETURNS DOUBLE
+BEGIN
+  declare psim double default 0;
+  select sum(exp(plog_w1 + plog_w2)) into psim from (select plog_CgvnW1(nabc, na, nab, nac) as plog_w1, plog_W2gvnC(w2, b, c) as plog_w2 from ct3 where a=w1 order by nabc limit maxcontexts) t where plog_w2 != 0;
+  return psim;
 END //
 DELIMITER ;
 
@@ -205,69 +223,62 @@ CREATE TABLE ct3asct2
   (select c as a, concat(a,"::*::@")     as c, nabc as nab, nc as na, na  as nb, n as n, oc as oa, oa  as ob, o as o, "c" as asrc, "a"   as bsrc from ct3) 
 ;
 
-
-
-drop function if exists pCgvnW1_DEBUG;
+drop function if exists plog_CgvnW1_DEBUG;
 DELIMITER //
-create function pCgvnW1_DEBUG (
-  c1b varchar(128), c2b varchar(128), c1c varchar(128), c2c varchar(128), 
-  nc1c2w double unsigned, nw double unsigned, 
-  nc1w double unsigned, nc2w double unsigned)
-returns varchar(128)
+CREATE FUNCTION plog_CgvnW1_DEBUG(
+  nc1c2w1 double unsigned, nw1 double unsigned, 
+  nc1w1 double unsigned, nc2w1 double unsigned) RETURNS varbinary(128)
 BEGIN
--- declare p varchar(128);
-if(c1b = c2b) then
-  if(c1c = c2c) then
-    set @p = exp(log(exp(/*p(c1c2|w)*/ log(nc1c2w) - log(nw)) + exp(/*p(c1|w)*/ log(nc1w) - log(nw)) + exp(/*p(c2|w)*/log(nc2w)-log(nw))) - log(3)) ;
-    return concat("p(c1c2|w)+p(c1|w)+p(c2|w)=",@p);
-  end if;
-  set @p = exp(/*p(c1|w)*/ (log(nc1w) - log(nw)) - log(3));
-  return concat("0+p(c1|w)+0=", @p);
-end if;
-if(c1c = c2c) then
-  set @p = exp(/*p(c2|w)*/ (log(nc2w) - log(nw)) - log(3)); 
-  return concat("0+0+p(c2|w)=",@p);
-end if;
-return "0";
+  return concat(
+    "p(c1c2|w1) = ", 
+    log(nc1c2w1) - log(nw1)
+  );
 END //
 DELIMITER ;
 
 
-
-drop function if exists pW2gvnCTX_DEBUG;
+drop function if exists plog_W2gvnC_DEBUG;
 DELIMITER //
-create function pW2gvnCTX_DEBUG (
+CREATE FUNCTION plog_W2gvnC_DEBUG(
   w2 varchar(128), c1 varchar(128), c2 varchar(128)
-  ) returns varchar(128)
+  ) RETURNS varbinary(128)
 BEGIN
-  declare nw2c1c2, nc1c2, nw2c1, nw2c2, nc1, nc2 double default NULL;
-  -- check (w2,c1,c2) and compute (p(w2|c1c2)p(w2|c1)p(w2|c2)) / 3
-  select nabc, nbc, nab, nac, nb, nc into nw2c1c2, nc1c2, nw2c1, nw2c2, nc1, nc2 from ct3 where a=w2 and b=c1 and c=c2 limit 1; -- limit 1 should not be necessary
+  declare nw2c1c2, nc1c2, nw2c1, nw2c2, nw2, nc1, nc2, n_ double default NULL;
+  set @log_counter_lambda_mu = log(1 - exp(@log_lambda) - exp(@log_mu));
+  -- check (w2,c1,c2) and compute (p(w2|c1c2)p(w2|c1)p(w2|c2))
+  select nabc, nbc, nab, nac, nb, nc, na, n into nw2c1c2, nc1c2, nw2c1, nw2c2, nc1, nc2, nw2, n_ from ct3 where a=w2 and b=c1 and c=c2 limit 1; -- limit 1 should not be necessary
   if nw2c1c2 is not null then
     return concat(
-      "p(w2|c1c2)/3 x p(w2|c1)/3 x p(w2|c2))/3 = ",
-      exp(/*p(w2|c1c2)*/ log(nw2c1c2) - log(nc1c2) - log(3)) + exp(/*p(w2|c1)*/ log(nw2c1) - log(nc1) - log(3)) + exp(/*p(w2|c2)*/log(nw2c2)-log(nc2)-log(3))
+      "(1-lambda-mu)p(w2|c1c2)+(lambda/2)p(w2|c1)+(lambda/2)p(w2|c2)+(mu)p(w2)",
+      log(exp(/*p(w2|c1c2)*/ log(nw2c1c2) - log(nc1c2) + @log_counter_lambda_mu) + exp(/*p(w2|c1)/3*/ log(nw2c1) - log(nc1) + @log_lambda-log(2)) + exp(/*p(w2|c2)/3*/log(nw2c2)-log(nc2) + @log_lambda-log(2)) + exp(/*p(w2)*/ log(nw2) - log(n_) + @log_mu) )
     );
   end if;
-  -- check (w2,c1) and compute p(w2|c1) / 3
-  select nab, nb into nw2c1, nc1 from ct3 where a=w2 and b=c1 limit 1;
+  -- check (w2,c1) and compute p(w2|c1)
+  select nab, nb, na, n into nw2c1, nc1, nw2, n_ from ct3 where a=w2 and b=c1 limit 1;
   if nw2c1 is not null then -- compute  (p(w2|c1c2)p(w2|c1)p(w2|c2)) / 3
     return concat(
-      "p(w2|c1) / 3 = ",
-      exp(/*p(w|c1)*/ (log(nw2c1) - log(nc1)) - log(3) )
+      "(1-lambda-mu)0+(lambda/2)p(w2|c1)+(lambda/2)0+(mu)p(w2)",
+      log(exp(/*p(w|c1)*/ log(nw2c1) - log(nc1) + @log_lambda-log(2)) + exp(/*p(w2)*/ log(nw2) - log(n_) + @log_mu) )
     );
   end if;
-  -- check (w2,c2) and compute p(w2|c2) / 3
-  select nac, nc into nw2c2, nc2 from ct3 where a=w2 and c=c2 limit 1;
-  if nw2c2 is not null then -- compute  p(w2|c2) / 3
+  -- check (w2,c2) and compute p(w2|c2)
+  select nac, nc, na, n into nw2c2, nc2, nw2, n_ from ct3 where a=w2 and c=c2 limit 1;
+  if nw2c2 is not null then -- compute  p(w2|c2)
     return concat(
-      "p(w2|c2) / 3 = ",
-      exp(/*p(w|c2)*/ (log(nw2c2) - log(nc2)) - log(3) )
+      "(1-lambda-mu)0+(lambda/2)0+(lambda/2)p(w2|c2)+(mu)p(w2)",
+      log(exp(/*p(w|c2)*/ log(nw2c2) - log(nc2) + @log_lambda-log(2)) + exp(/*p(w2)*/ log(nw2) - log(n_) + @log_mu) )
     );
   end if;
-  return "no shared contexts";
+  -- check w2 and compute p(w2)
+  select na, n into nw2, n_ from ct3 where a=w2 limit 1;
+  return concat(
+    "(1-lambda-mu)0+(lambda/2)0+(lambda/2)0+(mu)p(w2)",
+    /*p(w2)*/ log(nw2) - log(n_) + @log_mu
+  );
 END //
 DELIMITER ;
+
+
 
 select *, pW2gvnCTX(@w2, b, c) from ct3 where a=@w1;
 
@@ -286,9 +297,7 @@ select @w1, @w2, count(*), sum(sqrt(exp(log(pCgvnW1) + log(pW2gvnC)))) as pW2gvn
     limit 1000
 ) t;
 
-select * from ct3 limit 10;
-
-
+select * from ct3 where a = 'read' and c = 'book' limit 10;
 
 
 
