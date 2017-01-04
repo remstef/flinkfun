@@ -231,6 +231,33 @@ CREATE TABLE ct3e
   (select c as a, concat('p:',a) as b, concat('s:',b) as c, nabc, nac as nab, nbc as nac, nab as nbc, nc as na, na as nb, nb as nc, n, oac as oab, obc as oac, oab as obc, oc as oa, oa as ob, ob as oc, o from ct3)
 ;
 
+-- derived ct2s
+CREATE TABLE ct2_c1c2
+  (select a,      concat(b,'::@::',c)    as b, nabc as nab, na as na, nbc as nb, n, oa as oa, obc as ob, o from ct3)
+  union
+  (select b as a, concat('@::',a,'::',c) as b, nabc as nab, nb as na, nac as nb, n, ob as oa, oac as ob, o from ct3)
+  union
+  (select c as a, concat(b,'::',a,'::@') as b, nabc as nab, nc as na, nab as nb, n, oc as oa, oab as ob, o from ct3)
+;
+
+CREATE TABLE ct2_c1
+  (select a,      concat('*::@::',c)    as b, nac as nab, na as na, nc as nb, n, oa as oa, oc as ob, o from ct3)
+  union
+  (select b as a, concat('@::',a,'::*') as b, nab as nab, nb as na, na as nb, n, ob as oa, oa as ob, o from ct3)
+  union
+  (select c as a, concat(b,'::*::@')    as b, nac as nab, nc as na, nb as nb, n, oc as oa, ob as ob, o from ct3)
+;
+
+CREATE TABLE ct2_c2
+  (select a,      concat(b,'::@::*')    as b, nab as nab, na as na, nb as nb, n, oa as oa, ob as ob, o from ct3)
+  union
+  (select b as a, concat('@::*::',c)    as b, nbc as nab, nb as na, nc as nb, n, ob as oa, oc as ob, o from ct3)
+  union
+  (select c as a, concat('*::',a,'::@') as b, nac as nab, nc as na, na as nb, n, oc as oa, oa as ob, o from ct3)
+;
+
+
+
 
 drop function if exists plog_CgvnW1_DEBUG;
 DELIMITER //
