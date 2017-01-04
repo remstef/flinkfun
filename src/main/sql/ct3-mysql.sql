@@ -103,36 +103,34 @@ BEGIN
   declare nw2c1c2, nc1c2, nw2c1, nw2c2, nw2, nc1, nc2, n_ double default NULL;
   set @log_counter_lambda_mu = log(1 - exp(@log_lambda) - exp(@log_mu));
   -- check (w2,c1,c2) and compute (p(w2|c1c2)p(w2|c1)p(w2|c2)) / 3
-  select nabc, nbc, oab, oac, ob, oc, oa, o into nw2c1c2, nc1c2, nw2c1, nw2c2, nc1, nc2, nw2, n_ from ct3 where a=w2 and b=c1 and c=c2 limit 1; -- limit 1 should not be necessary
+  select nabc, nbc, nab, nac, nb, nc, na, n into nw2c1c2, nc1c2, nw2c1, nw2c2, nc1, nc2, nw2, n_ from ct3 where a=w2 and b=c1 and c=c2 limit 1; -- limit 1 should not be necessary
   if nw2c1c2 is not null then
     return log(exp(/*p(w2|c1c2)/3*/ log(nw2c1c2) - log(nc1c2) + @log_counter_lambda_mu) + exp(/*p(w2|c1)/3*/ log(nw2c1) - log(nc1) + @log_lambda-log(2)) + exp(/*p(w2|c2)/3*/log(nw2c2)-log(nc2) + @log_lambda-log(2)) + exp(/*p(w2)*/ log(nw2) - log(n_) + @log_mu) ) ;
   end if;
   -- check (w2,c1) and compute p(w2|c1) / 3
-  select oab, ob, oa, o into nw2c1, nc1, nw2, n_ from ct3 where a=w2 and b=c1 limit 1;
+  select nab, nb, na, n into nw2c1, nc1, nw2, n_ from ct3 where a=w2 and b=c1 limit 1;
   if nw2c1 is not null then -- compute  (p(w2|c1c2)p(w2|c1)p(w2|c2)) / 3
     return log(exp(/*p(w|c1)*/ log(nw2c1) - log(nc1) + @log_lambda-log(2)) + exp(/*p(w2)*/ log(nw2) - log(n_) + @log_mu) ) ;
   end if;
   -- check (w2,c2) and compute p(w2|c2) / 3
-  select oac, oc, oa, o into nw2c2, nc2, nw2, n_ from ct3 where a=w2 and c=c2 limit 1;
+  select nac, nc, na, n into nw2c2, nc2, nw2, n_ from ct3 where a=w2 and c=c2 limit 1;
   if nw2c2 is not null then -- compute  p(w2|c2) / 3
     return log(exp(/*p(w|c2)*/ log(nw2c2) - log(nc2) + @log_lambda-log(2)) + exp(/*p(w2)*/ log(nw2) - log(n_) + @log_mu) ) ;
   end if;
   -- check w2 and compute p(w2)
-  select oa, o into nw2, n_ from ct3 where a=w2 limit 1;
+  select na, n into nw2, n_ from ct3 where a=w2 limit 1;
   return /*p(w2)*/ log(nw2) - log(n_) + @log_mu;
 END //
 DELIMITER ;
-
-
 
 -- get a similarity value between a1 and a2
 DROP FUNCTION IF EXISTS getSimilarityProb3;
 DELIMITER //
 CREATE FUNCTION getSimilarityProb3
-(w1 VARCHAR(128), w2 VARCHAR(128), max_ob INT, maxcontexts INT) RETURNS DOUBLE
+(w1 VARCHAR(128), w2 VARCHAR(128), max_other INT, maxcontexts INT) RETURNS DOUBLE
 BEGIN
   declare psim double default 0;
-  select sum(exp(plog_w1 + plog_w2)) into sim from (select plog_CgvnW1(nabc, na, nab, nac) as plog_w1, plog_W2gvnC(w2, b, c) as plog_w2 from ct3 where a=w1 and ob <= max_ob limit maxcontexts) t where plog_w2 != 0;
+  select sum(exp(plog_w1 + plog_w2)) into psim from (select plog_CgvnW1(nabc, na, nab, nac) as plog_w1, plog_W2gvnC(w2, b, c) as plog_w2 from ct3 where a=w1 and ob <= max_other and oc <= max_other limit maxcontexts) t where plog_w2 != 0;
   return psim;
 END //
 DELIMITER ;
@@ -141,10 +139,10 @@ DELIMITER ;
 DROP FUNCTION IF EXISTS getSimilarityP3;
 DELIMITER //
 CREATE FUNCTION getSimilarityP3
-(w1 VARCHAR(128), w2 VARCHAR(128), maxcontexts INT) RETURNS DOUBLE
+(w1 VARCHAR(128), w2 VARCHAR(128), max_other INT, maxcontexts INT) RETURNS DOUBLE
 BEGIN
   declare psim double default 0;
-  select sum(exp(plog_w1 + plog_w2)) into psim from (select plog_CgvnW1(nabc, na, nab, nac) as plog_w1, plog_W2gvnC(w2, b, c) as plog_w2 from ct3 where a=w1 order by nabc limit maxcontexts) t where plog_w2 != 0;
+  select sum(exp(plog_w1 + plog_w2)) into psim from (select plog_CgvnW1(nabc, na, nab, nac) as plog_w1, plog_W2gvnC(w2, b, c) as plog_w2 from ct3 where a=w1 and ob <= max_other and oc <= max_other order by nabc limit maxcontexts) t where plog_w2 != 0;
   return psim;
 END //
 DELIMITER ;
@@ -223,6 +221,17 @@ CREATE TABLE ct3asct2
   (select c as a, concat(a,"::*::@")     as c, nabc as nab, nc as na, na  as nb, n as n, oc as oa, oa  as ob, o as o, "c" as asrc, "a"   as bsrc from ct3) 
 ;
 
+
+-- create extended ct3
+CREATE TABLE ct3e
+  (select a,      concat('s:',b) as b, concat('o:',c) as c, nabc, nab, nac, nbc, na, nb, nc, n, oab, oac, obc, oa, ob, oc, o from ct3)
+  union
+  (select b as a, concat('o:',c) as b, concat('p:',a) as c, nabc, nbc as nab, nab as nac, nac as nbc, nb as na, nc as nb, na as nc, n, obc as oab, oab as oac, oac as obc, ob as oa, oc as ob, oa as oc, o from ct3)
+  union
+  (select c as a, concat('p:',a) as b, concat('s:',b) as c, nabc, nac as nab, nbc as nac, nab as nbc, nc as na, na as nb, nb as nc, n, oac as oab, obc as oac, oab as obc, oc as oa, oa as ob, ob as oc, o from ct3)
+;
+
+
 drop function if exists plog_CgvnW1_DEBUG;
 DELIMITER //
 CREATE FUNCTION plog_CgvnW1_DEBUG(
@@ -291,13 +300,13 @@ select @w1, @w2, count(*), sum(sqrt(exp(log(pCgvnW1) + log(pW2gvnC)))) as pW2gvn
   pW2gvnC(c1.b, c2.b, c1.c, c2.c, c2.nabc, c2.nbc, c2.nab, c2.nb, c2.nac, c2.nc) as pW2gvnC
   from 
     (select * from ct3 where a=@w1) c1 
-    inner join 
+    left join 
     (select * from ct3 where a=@w2) c2 
     on (c1.b = c2.b and c1.c = c2.c)
     limit 1000
 ) t;
 
-select * from ct3 where a = 'read' and c = 'book' limit 10;
+select * from ct3 where a = 'read' and c = 'o::book' limit 10;
 
 
 
