@@ -256,6 +256,10 @@ CREATE TABLE ct2_c2
   (select c as a, concat('*::',a,'::@') as b, nac as nab, nc as na, na as nb, n, oc as oa, oa as ob, o from ct3)
 ;
 
+alter table ct2_c1c2 add key a (a), add key b (b), add key ab (a,b);
+alter table ct2_c1 add key a (a), add key b (b), add key ab (a,b);
+alter table ct2_c2 add key a (a), add key b (b), add key ab (a,b);
+
 
 
 
